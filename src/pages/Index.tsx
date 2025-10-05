@@ -243,39 +243,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <div className="flex items-center gap-2 mb-4">
-          <AddProjectDialog
-            onAddProject={(name, color, customerInfo) =>
-              addProject({ name, color, customerInfo })
-            }
-          />
-          {isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/admin")}
-              className="flex items-center gap-2"
-            >
-              Admin
-            </Button>
-          )}
-        </div>
-        
         <OfflineIndicator />
-        
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div className="flex-shrink-0">
-            <ActivityFilter onFilterChange={handleFilterChange} />
-          </div>
-          <div className="flex-1">
-            <SearchAndSort
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-            />
-          </div>
-        </div>
 
         {projects.length === 0 ? (
           <div className="text-center py-12">
@@ -346,7 +314,41 @@ const Index = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center gap-2">
+            <AddProjectDialog
+              onAddProject={(name, color, customerInfo) =>
+                addProject({ name, color, customerInfo })
+              }
+            />
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2"
+              >
+                Admin
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex-shrink-0">
+              <ActivityFilter onFilterChange={handleFilterChange} />
+            </div>
+            <div className="flex-1">
+              <SearchAndSort
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
