@@ -26,13 +26,13 @@ export default function Auth() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/select-organization");
+        navigate("/");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/select-organization");
+        navigate("/");
       }
     });
 
@@ -68,7 +68,7 @@ export default function Auth() {
           password,
           options: {
             data: { name },
-            emailRedirectTo: `${window.location.origin}/select-organization`,
+            emailRedirectTo: `${window.location.origin}/`,
           },
         });
 
@@ -76,7 +76,7 @@ export default function Auth() {
 
         toast({
           title: "Konto opprettet!",
-          description: "Velg eller bli med i en organisasjon for å fortsette.",
+          description: "Din personlige arbeidsområde er klar!",
         });
       }
     } catch (error: any) {
