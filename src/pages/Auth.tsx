@@ -12,6 +12,8 @@ const authSchema = z.object({
   email: z.string().email("Ugyldig e-postadresse"),
   password: z.string().min(6, "Passord må være minst 6 tegn"),
   name: z.string().min(2, "Navn må være minst 2 tegn").optional(),
+  organizationNumber: z.string().min(9, "Organisasjonsnummer må være minst 9 tegn").optional(),
+  organizationName: z.string().min(2, "Firmanavn må være minst 2 tegn").optional(),
 });
 
 export default function Auth() {
@@ -21,6 +23,8 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [organizationNumber, setOrganizationNumber] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -46,7 +50,7 @@ export default function Auth() {
     try {
       const validationData = isLogin
         ? { email, password }
-        : { email, password, name };
+        : { email, password, name, organizationNumber, organizationName };
       
       authSchema.parse(validationData);
 
@@ -63,16 +67,35 @@ export default function Auth() {
           description: "Du er nå logget inn.",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { name },
+            data: { 
+              name,
+              organization_number: organizationNumber,
+              organization_name: organizationName
+            },
             emailRedirectTo: `${window.location.origin}/`,
           },
         });
 
         if (error) throw error;
+
+        // Update profile with organization info
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              organization_number: organizationNumber,
+              organization_name: organizationName
+            })
+            .eq('id', data.user.id);
+
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+          }
+        }
 
         toast({
           title: "Konto opprettet!",
@@ -112,17 +135,41 @@ export default function Auth() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Navn</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ditt navn"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Navn</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Ditt navn"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="organizationNumber">Organisasjonsnummer</Label>
+                  <Input
+                    id="organizationNumber"
+                    type="text"
+                    placeholder="123456789"
+                    value={organizationNumber}
+                    onChange={(e) => setOrganizationNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="organizationName">Firmanavn</Label>
+                  <Input
+                    id="organizationName"
+                    type="text"
+                    placeholder="Handyhelp"
+                    value={organizationName}
+                    onChange={(e) => setOrganizationName(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>

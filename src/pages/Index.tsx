@@ -86,10 +86,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center">
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground">
-            {profile.name}
-          </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground">
+              {profile.name}
+            </h1>
+            {profile.organization_name && (
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {profile.organization_name}
+              </p>
+            )}
+          </div>
         </div>
       </header>
 

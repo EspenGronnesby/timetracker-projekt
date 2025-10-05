@@ -118,16 +118,22 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          organization_name: string | null
+          organization_number: string | null
         }
         Insert: {
           created_at?: string
           id: string
           name: string
+          organization_name?: string | null
+          organization_number?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          organization_name?: string | null
+          organization_number?: string | null
         }
         Relationships: []
       }
@@ -234,7 +240,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_organization: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

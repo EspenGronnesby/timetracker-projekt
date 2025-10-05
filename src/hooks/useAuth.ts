@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 interface Profile {
   id: string;
   name: string;
+  organization_number: string | null;
+  organization_name: string | null;
 }
 
 export const useAuth = () => {
