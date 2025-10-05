@@ -13,22 +13,17 @@ const materialSchema = z.object({
 });
 interface AddMaterialDialogProps {
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 export const AddMaterialDialog = ({
-  onAddMaterial,
-  open: externalOpen,
-  onOpenChange: externalOnOpenChange
+  onAddMaterial
 }: AddMaterialDialogProps) => {
-  const [internalOpen, setInternalOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
-  const { toast } = useToast();
-  
-  const open = externalOpen !== undefined ? externalOpen : internalOpen;
-  const setOpen = externalOnOpenChange || setInternalOpen;
+  const {
+    toast
+  } = useToast();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -55,19 +50,12 @@ export const AddMaterialDialog = ({
   const totalPrice = !isNaN(parseFloat(quantity)) && !isNaN(parseFloat(unitPrice)) ? (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2) : "0.00";
   return <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          className="h-16 w-full hover:scale-105 transition-transform hover:bg-amber-500/10 hover:border-amber-500/50"
-        >
-          <Package className="h-8 w-8" />
-        </Button>
+        
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Legg til materiale</DialogTitle>
-          <DialogDescription>
-            Registrer materiale brukt på prosjektet
-          </DialogDescription>
+          
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
