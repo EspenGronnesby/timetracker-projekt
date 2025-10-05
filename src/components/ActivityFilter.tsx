@@ -34,39 +34,52 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
       <Button
         variant={selectedPeriod === "day" ? "default" : "outline"}
         size="sm"
         onClick={() => handlePeriodChange("day")}
+        className="text-xs sm:text-sm px-2 sm:px-3"
       >
-        Day
+        <span className="hidden xs:inline">Day</span>
+        <span className="xs:hidden">D</span>
       </Button>
       <Button
         variant={selectedPeriod === "week" ? "default" : "outline"}
         size="sm"
         onClick={() => handlePeriodChange("week")}
+        className="text-xs sm:text-sm px-2 sm:px-3"
       >
-        Week
+        <span className="hidden xs:inline">Week</span>
+        <span className="xs:hidden">W</span>
       </Button>
       <Button
         variant={selectedPeriod === "month" ? "default" : "outline"}
         size="sm"
         onClick={() => handlePeriodChange("month")}
+        className="text-xs sm:text-sm px-2 sm:px-3"
       >
-        Month
+        <span className="hidden xs:inline">Month</span>
+        <span className="xs:hidden">M</span>
       </Button>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant={selectedPeriod === "custom" ? "default" : "outline"}
             size="sm"
-            className={cn("gap-2")}
+            className={cn("gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3")}
           >
-            <CalendarIcon className="h-4 w-4" />
-            {selectedPeriod === "custom" && customRange?.from && customRange?.to
-              ? `${format(customRange.from, "MMM d")} - ${format(customRange.to, "MMM d")}`
-              : "Custom"}
+            <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+            {selectedPeriod === "custom" && customRange?.from && customRange?.to ? (
+              <span className="hidden sm:inline">
+                {format(customRange.from, "MMM d")} - {format(customRange.to, "MMM d")}
+              </span>
+            ) : (
+              <>
+                <span className="hidden xs:inline">Custom</span>
+                <span className="xs:hidden">C</span>
+              </>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -74,7 +87,7 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
             mode="range"
             selected={customRange}
             onSelect={handleCustomRangeSelect}
-            numberOfMonths={2}
+            numberOfMonths={1}
             initialFocus
             className="pointer-events-auto"
           />

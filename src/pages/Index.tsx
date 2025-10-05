@@ -222,17 +222,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold text-foreground">
+      <header className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base sm:text-lg md:text-2xl font-bold text-foreground truncate">
               {profile?.name}
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
               Your Projects
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <ThemeToggle />
             <AddProjectDialog
               onAddProject={(name, color, customerInfo) =>
@@ -244,7 +244,7 @@ const Index = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/admin")}
-                className="flex items-center gap-2"
+                className="hidden sm:flex items-center gap-2"
               >
                 Admin
               </Button>
@@ -262,10 +262,10 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <OfflineIndicator />
         
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
@@ -277,42 +277,42 @@ const Index = () => {
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Projects</p>
-                <p className="text-3xl font-bold">{projects?.length || 0}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Projects</p>
+                <p className="text-2xl sm:text-3xl font-bold">{projects?.length || 0}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-500/10 rounded-lg">
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
                 <div className={`w-3 h-3 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active Now</p>
-                <p className="text-3xl font-bold">{activeCount}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Active Now</p>
+                <p className="text-2xl sm:text-3xl font-bold">{activeCount}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-500/10 rounded-lg">
-                <svg className="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Time</p>
-                <p className="text-3xl font-bold">
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Time</p>
+                <p className="text-2xl sm:text-3xl font-bold">
                   {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
                 </p>
               </div>
@@ -339,7 +339,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in">
             {filteredAndSortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id

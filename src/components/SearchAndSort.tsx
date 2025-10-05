@@ -22,19 +22,19 @@ export function SearchAndSort({
   onSortChange,
 }: SearchAndSortProps) {
   return (
-    <div className="flex gap-3 mb-6 flex-col sm:flex-row">
+    <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6 flex-col sm:flex-row">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Søk etter prosjekter..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
+          className="pl-8 sm:pl-9 text-sm"
         />
       </div>
       <Select value={sortBy} onValueChange={onSortChange}>
-        <SelectTrigger className="w-full sm:w-[200px]">
-          <SortAsc className="h-4 w-4 mr-2" />
+        <SelectTrigger className="w-full sm:w-[200px] text-sm">
+          <SortAsc className="h-4 w-4 mr-2 flex-shrink-0" />
           <SelectValue placeholder="Sorter etter" />
         </SelectTrigger>
         <SelectContent>
