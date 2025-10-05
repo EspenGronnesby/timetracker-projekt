@@ -78,23 +78,16 @@ export const ProjectCard = ({
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="flex gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <Button
             variant={isActive ? "secondary" : "default"}
-            size="sm"
             onClick={onToggle}
-            className="flex-1"
+            className="h-12 sm:h-10 w-full"
           >
             {isActive ? (
-              <>
-                <Pause className="mr-2 h-4 w-4" />
-                Stopp timer
-              </>
+              <Pause className="h-5 w-5" />
             ) : (
-              <>
-                <Play className="mr-2 h-4 w-4" />
-                Start timer
-              </>
+              <Play className="h-5 w-5" />
             )}
           </Button>
 
