@@ -6,6 +6,7 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { ActivityFilter, FilterPeriod } from "@/components/ActivityFilter";
@@ -168,23 +169,48 @@ const Index = () => {
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
-        <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Projects</p>
-              <p className="text-2xl font-bold">{projects?.length || 0}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Projects</p>
+                <p className="text-3xl font-bold">{projects?.length || 0}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Active Now</p>
-              <p className="text-2xl font-bold">{activeCount}</p>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-500/10 rounded-lg">
+                <div className={`w-3 h-3 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Active Now</p>
+                <p className="text-3xl font-bold">{activeCount}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Time</p>
-              <p className="text-2xl font-bold">
-                {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
-              </p>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-500/10 rounded-lg">
+                <svg className="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Time</p>
+                <p className="text-3xl font-bold">
+                  {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
+                </p>
+              </div>
             </div>
-          </div>
+          </Card>
         </div>
         {projects.length === 0 ? (
           <div className="text-center py-12">

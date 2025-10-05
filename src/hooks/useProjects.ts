@@ -148,6 +148,16 @@ export const useProjects = (userId?: string) => {
     }) => {
       if (!userId) throw new Error("Must be logged in");
 
+      // Get user's organization
+      const { data: userOrg, error: orgError } = await supabase
+        .from("user_organizations")
+        .select("organization_id")
+        .eq("user_id", userId)
+        .limit(1)
+        .single();
+
+      if (orgError) throw orgError;
+
       const { data, error } = await supabase
         .from("projects")
         .insert({
@@ -160,6 +170,7 @@ export const useProjects = (userId?: string) => {
           contract_number: customerInfo.contractNumber,
           description: customerInfo.description,
           created_by: userId,
+          organization_id: userOrg.organization_id,
         })
         .select()
         .single();
