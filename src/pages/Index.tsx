@@ -99,16 +99,27 @@ const Index = () => {
               </p>
             )}
           </div>
-          {isAdmin && (
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2"
+              >
+                Admin
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/admin")}
+              onClick={signOut}
               className="flex items-center gap-2"
             >
-              Admin
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logg ut</span>
             </Button>
-          )}
+          </div>
         </div>
       </header>
 
