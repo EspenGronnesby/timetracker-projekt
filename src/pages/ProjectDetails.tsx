@@ -19,7 +19,7 @@ const ProjectDetails = () => {
   const { projects, toggleProject, toggleDriving, addMaterial } = useProjects(activeUser.id, activeUser.name);
   
   const [statsView, setStatsView] = useState<"my" | "total">("my");
-  const [activityFilter, setActivityFilter] = useState<FilterType>("all");
+  const [activityFilter, setActivityFilter] = useState<FilterType>("espen");
   const [liveTime, setLiveTime] = useState(0);
   
   const project = projects.find((p) => p.id === id);
@@ -115,18 +115,9 @@ const ProjectDetails = () => {
     return dateB.getTime() - dateA.getTime();
   });
 
-  // Filter activities
+  // Filter activities by user
   const filteredActivities = allActivities.filter(activity => {
-    const activityUserId = activity.userId;
-    
-    if (activityFilter === "my") return activityUserId === activeUser.id;
-    if (activityFilter === "espen") return activityUserId === "espen";
-    if (activityFilter === "benjamin") return activityUserId === "benjamin";
-    if (activityFilter === "lukas") return activityUserId === "lukas";
-    if (activityFilter === "time") return activity.type === "time";
-    if (activityFilter === "drive") return activity.type === "drive";
-    if (activityFilter === "material") return activity.type === "material";
-    return true;
+    return activity.userId === activityFilter;
   });
 
   return (
