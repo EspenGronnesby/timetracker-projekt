@@ -11,11 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { OrganizationProvider, useOrganization } from '@/contexts/OrganizationContext';
 
-const orgSchema = z.object({
-  organization_number: z.string().trim().min(1, 'Organisasjonsnummer er påkrevd').max(20, 'Må være mindre enn 20 tegn'),
-  organization_name: z.string().trim().min(1, 'Firmanavn er påkrevd').max(100, 'Må være mindre enn 100 tegn'),
-});
-
 const OrganizationSelectorContent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -24,6 +19,7 @@ const OrganizationSelectorContent = () => {
   const [showNewOrgForm, setShowNewOrgForm] = useState(false);
   const [orgNumber, setOrgNumber] = useState('');
   const [orgName, setOrgName] = useState('');
+  const [showNameField, setShowNameField] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleSelectOrganization = (org: any) => {
@@ -31,25 +27,34 @@ const OrganizationSelectorContent = () => {
     navigate('/');
   };
 
-  const handleCreateOrganization = async (e: React.FormEvent) => {
+  const handleSearchOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!orgNumber.trim()) {
+      toast({
+        title: 'Mangler informasjon',
+        description: 'Vennligst oppgi organisasjonsnummer',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setCreating(true);
 
     try {
-      const validated = orgSchema.parse({
-        organization_number: orgNumber,
-        organization_name: orgName,
-      });
+      const validated = z.string().trim().min(1).max(20).parse(orgNumber);
 
       // Check if organization exists
-      const { data: existingOrg } = await supabase
+      const { data: existingOrg, error: searchError } = await supabase
         .from('organizations')
         .select('id, organization_number, organization_name')
-        .eq('organization_number', validated.organization_number)
+        .eq('organization_number', validated)
         .maybeSingle();
 
+      if (searchError) throw searchError;
+
       if (existingOrg) {
-        // Join existing organization
+        // Organization exists - join it
         const { error: joinError } = await supabase
           .from('user_organizations')
           .insert({
@@ -58,7 +63,7 @@ const OrganizationSelectorContent = () => {
           });
 
         if (joinError) {
-          if (joinError.code === '23505') { // Duplicate key
+          if (joinError.code === '23505') {
             toast({
               title: 'Allerede medlem',
               description: 'Du er allerede medlem av denne organisasjonen',
@@ -70,7 +75,7 @@ const OrganizationSelectorContent = () => {
         }
 
         toast({
-          title: 'Velkommen tilbake!',
+          title: 'Velkommen!',
           description: `Du har blitt lagt til i ${existingOrg.organization_name}`,
         });
 
@@ -78,38 +83,69 @@ const OrganizationSelectorContent = () => {
         selectOrganization(existingOrg);
         navigate('/');
       } else {
-        // Create new organization
-        const { data: newOrg, error: orgError } = await supabase
-          .from('organizations')
-          .insert({
-            organization_number: validated.organization_number,
-            organization_name: validated.organization_name,
-            created_by: user!.id,
-          })
-          .select()
-          .single();
-
-        if (orgError) throw orgError;
-
-        // Add user to organization
-        const { error: joinError } = await supabase
-          .from('user_organizations')
-          .insert({
-            user_id: user!.id,
-            organization_id: newOrg.id,
-          });
-
-        if (joinError) throw joinError;
-
+        // Organization doesn't exist - show name field
+        setShowNameField(true);
         toast({
-          title: 'Organisasjon opprettet!',
-          description: `${validated.organization_name} er nå opprettet`,
+          title: 'Ny organisasjon',
+          description: 'Organisasjonen finnes ikke. Oppgi firmanavn for å opprette den.',
+        });
+      }
+    } catch (error) {
+      console.error('Error searching organization:', error);
+      toast({
+        title: 'Feil',
+        description: 'Kunne ikke søke etter organisasjon',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleCreateOrganization = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+
+    try {
+      const validated = z.object({
+        organization_number: z.string().trim().min(1).max(20),
+        organization_name: z.string().trim().min(1, 'Firmanavn er påkrevd').max(100),
+      }).parse({
+        organization_number: orgNumber,
+        organization_name: orgName,
+      });
+
+      // Create new organization
+      const { data: newOrg, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          organization_number: validated.organization_number,
+          organization_name: validated.organization_name,
+          created_by: user!.id,
+        })
+        .select()
+        .single();
+
+      if (orgError) throw orgError;
+
+      // Add user to organization
+      const { error: joinError } = await supabase
+        .from('user_organizations')
+        .insert({
+          user_id: user!.id,
+          organization_id: newOrg.id,
         });
 
-        await refreshOrganizations();
-        selectOrganization(newOrg);
-        navigate('/');
-      }
+      if (joinError) throw joinError;
+
+      toast({
+        title: 'Organisasjon opprettet!',
+        description: `${validated.organization_name} er nå opprettet`,
+      });
+
+      await refreshOrganizations();
+      selectOrganization(newOrg);
+      navigate('/');
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -118,10 +154,10 @@ const OrganizationSelectorContent = () => {
           variant: 'destructive',
         });
       } else {
-        console.error('Error creating/joining organization:', error);
+        console.error('Error creating organization:', error);
         toast({
           title: 'Feil',
-          description: 'Kunne ikke opprette/bli med i organisasjon',
+          description: 'Kunne ikke opprette organisasjon',
           variant: 'destructive',
         });
       }
@@ -147,7 +183,7 @@ const OrganizationSelectorContent = () => {
             Velg organisasjon
           </CardTitle>
           <CardDescription>
-            Velg hvilken organisasjon du vil jobbe med, eller opprett/bli med i en ny
+            Velg hvilken organisasjon du vil jobbe med, eller bli med i en ny
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -179,10 +215,10 @@ const OrganizationSelectorContent = () => {
               onClick={() => setShowNewOrgForm(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              {organizations.length === 0 ? 'Opprett organisasjon' : 'Legg til organisasjon'}
+              {organizations.length === 0 ? 'Bli med i organisasjon' : 'Legg til organisasjon'}
             </Button>
           ) : (
-            <form onSubmit={handleCreateOrganization} className="space-y-4">
+            <form onSubmit={showNameField ? handleCreateOrganization : handleSearchOrganization} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="org-number">Organisasjonsnummer *</Label>
                 <Input
@@ -190,36 +226,49 @@ const OrganizationSelectorContent = () => {
                   placeholder="123456789"
                   value={orgNumber}
                   onChange={(e) => setOrgNumber(e.target.value)}
+                  disabled={showNameField}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Hvis organisasjonen finnes blir du lagt til, ellers opprettes den
-                </p>
+                {!showNameField && (
+                  <p className="text-xs text-muted-foreground">
+                    Hvis organisasjonen finnes blir du automatisk lagt til
+                  </p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="org-name">Firmanavn *</Label>
-                <Input
-                  id="org-name"
-                  placeholder="Mitt Firma AS"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  required
-                />
-              </div>
+              {showNameField && (
+                <div className="space-y-2">
+                  <Label htmlFor="org-name">Firmanavn *</Label>
+                  <Input
+                    id="org-name"
+                    placeholder="Mitt Firma AS"
+                    value={orgName}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Organisasjonen finnes ikke og vil bli opprettet
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => setShowNewOrgForm(false)}
+                  onClick={() => {
+                    setShowNewOrgForm(false);
+                    setShowNameField(false);
+                    setOrgNumber('');
+                    setOrgName('');
+                  }}
                   disabled={creating}
                 >
                   Avbryt
                 </Button>
                 <Button type="submit" className="flex-1" disabled={creating}>
-                  {creating ? 'Behandler...' : 'Fortsett'}
+                  {creating ? 'Behandler...' : showNameField ? 'Opprett organisasjon' : 'Fortsett'}
                 </Button>
               </div>
             </form>
