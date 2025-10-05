@@ -510,9 +510,7 @@ const ProjectDetails = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Aktivitetslogg</h2>
             <div className="flex gap-2">
-              <Button variant={activityFilter === "all" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("all")} className="hover:scale-105 transition-transform">
-                <FileText className="h-5 w-5" />
-              </Button>
+              
               <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="hover:scale-105 transition-transform">
                 <Clock className="h-5 w-5" />
               </Button>
