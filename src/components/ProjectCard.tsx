@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Project, TimeEntry, DriveEntry, Material } from "@/hooks/useProjects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Play,
   Pause,
@@ -13,7 +14,9 @@ import {
   Check,
   Clock,
   Package,
+  Calendar,
 } from "lucide-react";
+import { isWithinInterval, startOfDay, endOfDay, format } from "date-fns";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
 import { useNavigate } from "react-router-dom";
@@ -105,50 +108,71 @@ export const ProjectCard = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Filter entries based on period
-  const getFilteredEntries = () => {
-    if (!filterPeriod) return { timeEntries, driveEntries, materials };
+  // Get filter label for display
+  const getFilterLabel = () => {
+    if (!filterPeriod) return null;
     
-    const now = new Date();
-    let startDate: Date;
-    
+    if (filterPeriod === 'day') return 'I dag';
+    if (filterPeriod === 'week') return 'Siste 7 dager';
+    if (filterPeriod === 'month') return 'Siste 30 dager';
     if (filterPeriod === 'custom' && customRange) {
-      startDate = customRange.from;
-    } else if (filterPeriod === 'day') {
-      startDate = new Date(now.setHours(0, 0, 0, 0));
-    } else if (filterPeriod === 'week') {
-      startDate = new Date(now.setDate(now.getDate() - 7));
-    } else if (filterPeriod === 'month') {
-      startDate = new Date(now.setMonth(now.getMonth() - 1));
-    } else {
-      return { timeEntries, driveEntries, materials };
+      return `${format(customRange.from, 'dd.MM')} - ${format(customRange.to, 'dd.MM')}`;
+    }
+    return null;
+  };
+
+  // Filter entries based on period with useMemo for performance
+  const { filteredTime, filteredDrive, filteredMaterials } = useMemo(() => {
+    if (!filterPeriod) {
+      return { 
+        filteredTime: timeEntries, 
+        filteredDrive: driveEntries, 
+        filteredMaterials: materials 
+      };
     }
     
-    const filtered = {
-      timeEntries: timeEntries.filter(e => new Date(e.start_time) >= startDate),
-      driveEntries: driveEntries.filter(e => new Date(e.start_time) >= startDate),
-      materials: materials.filter(e => new Date(e.created_at) >= startDate)
-    };
+    const now = new Date();
+    let filterFn: (date: Date) => boolean;
     
-    return filtered;
-  };
-  
-  const { timeEntries: filteredTime, driveEntries: filteredDrive, materials: filteredMaterials } = getFilteredEntries();
+    if (filterPeriod === 'custom' && customRange) {
+      // For custom range, use both from and to dates, and include entire end day
+      const rangeStart = startOfDay(customRange.from);
+      const rangeEnd = endOfDay(customRange.to);
+      filterFn = (date: Date) => isWithinInterval(date, { start: rangeStart, end: rangeEnd });
+    } else if (filterPeriod === 'day') {
+      // Include entire current day
+      const dayStart = startOfDay(now);
+      const dayEnd = endOfDay(now);
+      filterFn = (date: Date) => isWithinInterval(date, { start: dayStart, end: dayEnd });
+    } else if (filterPeriod === 'week') {
+      const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filterFn = (date: Date) => date >= weekStart;
+    } else if (filterPeriod === 'month') {
+      const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      filterFn = (date: Date) => date >= monthStart;
+    } else {
+      return { 
+        filteredTime: timeEntries, 
+        filteredDrive: driveEntries, 
+        filteredMaterials: materials 
+      };
+    }
+    
+    return {
+      filteredTime: timeEntries.filter(e => filterFn(new Date(e.start_time))),
+      filteredDrive: driveEntries.filter(e => filterFn(new Date(e.start_time))),
+      filteredMaterials: materials.filter(e => filterFn(new Date(e.created_at)))
+    };
+  }, [timeEntries, driveEntries, materials, filterPeriod, customRange]);
 
-  const totalTime = filteredTime.reduce(
-    (acc, entry) => acc + entry.duration_seconds,
-    0
-  );
+  // Calculate totals
+  const totalTime = filteredTime.reduce((acc, entry) => acc + entry.duration_seconds, 0);
+  const totalKilometers = filteredDrive.reduce((acc, entry) => acc + (entry.kilometers || 0), 0);
+  const totalMaterialCost = filteredMaterials.reduce((acc, material) => acc + material.total_price, 0);
 
-  const totalKilometers = filteredDrive.reduce(
-    (acc, entry) => acc + (entry.kilometers || 0),
-    0
-  );
-
-  const totalMaterialCost = filteredMaterials.reduce(
-    (acc, material) => acc + material.total_price,
-    0
-  );
+  // Check if there's any activity in the filtered period
+  const hasActivity = filteredTime.length > 0 || filteredDrive.length > 0 || filteredMaterials.length > 0;
+  const filterLabel = getFilterLabel();
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -162,7 +186,7 @@ export const ProjectCard = ({
       onClick={() => navigate(`/project/${project.id}`)}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           <div
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: project.color }}
@@ -180,6 +204,12 @@ export const ProjectCard = ({
             </div>
           </div>
         </div>
+        {filterLabel && (
+          <Badge variant="secondary" className="ml-2 flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            {filterLabel}
+          </Badge>
+        )}
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
@@ -204,30 +234,38 @@ export const ProjectCard = ({
         </div>
 
         <div className="space-y-2 mb-4 p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>Total tid:</span>
+          {!hasActivity && filterPeriod ? (
+            <div className="text-center py-4 text-muted-foreground text-sm">
+              Ingen aktivitet i denne perioden
             </div>
-            <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
-          </div>
-          {totalKilometers > 0 && (
-            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Car className="h-4 w-4" />
-                <span>Kjørt:</span>
+          ) : (
+            <>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>Total tid:</span>
+                </div>
+                <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
               </div>
-              <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
-            </div>
-          )}
-          {totalMaterialCost > 0 && (
-            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Package className="h-4 w-4" />
-                <span>Materialer:</span>
-              </div>
-              <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
-            </div>
+              {totalKilometers > 0 && (
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Car className="h-4 w-4" />
+                    <span>Kjørt:</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
+                </div>
+              )}
+              {totalMaterialCost > 0 && (
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span>Materialer:</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
