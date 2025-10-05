@@ -54,13 +54,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "drive_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "drive_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -109,13 +102,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "materials_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_secure"
             referencedColumns: ["id"]
           },
           {
@@ -275,13 +261,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "time_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "time_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -342,66 +321,7 @@ export type Database = {
       }
     }
     Views: {
-      projects_secure: {
-        Row: {
-          color: string | null
-          contract_number: string | null
-          created_at: string | null
-          created_by: string | null
-          customer_address: string | null
-          customer_email: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          description: string | null
-          id: string | null
-          name: string | null
-          organization_id: string | null
-        }
-        Insert: {
-          color?: string | null
-          contract_number?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          customer_address?: never
-          customer_email?: never
-          customer_name?: never
-          customer_phone?: never
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          organization_id?: string | null
-        }
-        Update: {
-          color?: string | null
-          contract_number?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          customer_address?: never
-          customer_email?: never
-          customer_name?: never
-          customer_phone?: never
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          organization_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projects_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       can_access_project_sensitive_data: {
