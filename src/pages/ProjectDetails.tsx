@@ -22,6 +22,7 @@ import {
 import { formatTime } from "@/lib/timeUtils";
 
 const ProjectDetails = () => {
+  // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
@@ -39,52 +40,29 @@ const ProjectDetails = () => {
   const [statsView, setStatsView] = useState<"my" | "total">("my");
   const [liveTime, setLiveTime] = useState(0);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
+  // Find project early to use in all logic
   const project = projects.find((p) => p.id === id);
 
-  if (loading || !user || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Laster...</p>
-      </div>
-    );
-  }
+  // Calculate data regardless of loading state to keep hooks consistent
+  const projectTimeEntries = project
+    ? timeEntries.filter((entry) => entry.project_id === project.id)
+    : [];
+  const projectDriveEntries = project
+    ? driveEntries.filter((entry) => entry.project_id === project.id)
+    : [];
+  const projectMaterials = project
+    ? materials.filter((material) => material.project_id === project.id)
+    : [];
 
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Prosjekt ikke funnet</h2>
-          <Button onClick={() => navigate("/")}>Tilbake til oversikt</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const projectTimeEntries = timeEntries.filter(
-    (entry) => entry.project_id === project.id
-  );
-  const projectDriveEntries = driveEntries.filter(
-    (entry) => entry.project_id === project.id
-  );
-  const projectMaterials = materials.filter(
-    (material) => material.project_id === project.id
-  );
-
-  const myTimeEntries = projectTimeEntries.filter(
-    (entry) => entry.user_id === user.id
-  );
-  const myDriveEntries = projectDriveEntries.filter(
-    (entry) => entry.user_id === user.id
-  );
-  const myMaterials = projectMaterials.filter(
-    (material) => material.user_id === user.id
-  );
+  const myTimeEntries = user
+    ? projectTimeEntries.filter((entry) => entry.user_id === user.id)
+    : [];
+  const myDriveEntries = user
+    ? projectDriveEntries.filter((entry) => entry.user_id === user.id)
+    : [];
+  const myMaterials = user
+    ? projectMaterials.filter((material) => material.user_id === user.id)
+    : [];
 
   const activeEntry = myTimeEntries.find((entry) => !entry.end_time);
   const activeDrive = myDriveEntries.find((entry) => !entry.end_time);
@@ -117,6 +95,13 @@ const ProjectDetails = () => {
     0
   );
 
+  // ALL useEffects MUST be before any conditional returns
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
   useEffect(() => {
     if (!activeEntry) {
       setLiveTime(myTotalTime);
@@ -134,6 +119,28 @@ const ProjectDetails = () => {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, [activeEntry, myTotalTime]);
+
+  // NOW we can do conditional returns after all hooks
+  if (loading || !user || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Laster...</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Prosjekt ikke funnet</h2>
+          <Button onClick={() => navigate("/")}>Tilbake til oversikt</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // These are already calculated at the top, remove duplicates
 
   const handleToggleProject = () => {
     const isActive = !!activeEntry;
