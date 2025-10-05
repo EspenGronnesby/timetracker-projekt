@@ -6,7 +6,6 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
-import { SearchAndSort } from "@/components/SearchAndSort";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,8 +25,6 @@ const Index = () => {
   const { trackPresence } = usePresenceTracking();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("name");
   
   // Fetch project member counts
   const { data: projectMembers } = useQuery({
@@ -108,43 +105,8 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
-  // Search and sort projects - compute without hooks to avoid hook order issues
-  const filteredAndSortedProjects = (() => {
-    let filtered = projects.filter((project) =>
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    switch (sortBy) {
-      case "name":
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "time": {
-        const getProjectTime = (projectId: string) => {
-          const entries = filteredTimeEntries.filter(e => e.project_id === projectId && e.end_time);
-          return entries.reduce((acc, e) => acc + e.duration_seconds, 0);
-        };
-        filtered.sort((a, b) => getProjectTime(b.id) - getProjectTime(a.id));
-        break;
-      }
-      case "active": {
-        const isProjectActive = (projectId: string) =>
-          activeTimeEntries.some(e => e.project_id === projectId) ||
-          activeDriveEntries.some(e => e.project_id === projectId);
-        filtered.sort((a, b) => {
-          const aActive = isProjectActive(a.id) ? 1 : 0;
-          const bActive = isProjectActive(b.id) ? 1 : 0;
-          return bActive - aActive;
-        });
-        break;
-      }
-      case "recent":
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        break;
-    }
-
-    return filtered;
-  })();
+  // Sort projects by name
+  const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
 
   // Early return AFTER all hooks
   if (loading || !user) {
@@ -257,16 +219,16 @@ const Index = () => {
               }
             />
           </div>
-        ) : filteredAndSortedProjects.length === 0 ? (
+        ) : sortedProjects.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter funnet</h2>
             <p className="text-muted-foreground mb-6">
-              Prøv et annet søk eller opprett et nytt prosjekt
+              Opprett et nytt prosjekt for å komme i gang
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in">
-            {filteredAndSortedProjects.map((project) => {
+            {sortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
               );
@@ -333,18 +295,8 @@ const Index = () => {
             )}
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="flex-shrink-0">
-              <ActivityFilter onFilterChange={handleFilterChange} />
-            </div>
-            <div className="flex-1">
-              <SearchAndSort
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-              />
-            </div>
+          <div className="flex-shrink-0">
+            <ActivityFilter onFilterChange={handleFilterChange} />
           </div>
         </div>
 
