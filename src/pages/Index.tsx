@@ -206,6 +206,10 @@ const Index = () => {
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <OfflineIndicator />
+        
+        <div className="mb-4 sm:mb-6">
+          <ActivityFilter onFilterChange={handleFilterChange} />
+        </div>
 
         {projects.length === 0 ? (
           <div className="text-center py-12">
@@ -293,10 +297,6 @@ const Index = () => {
                 Admin
               </Button>
             )}
-          </div>
-          
-          <div className="flex-shrink-0">
-            <ActivityFilter onFilterChange={handleFilterChange} />
           </div>
         </div>
 
