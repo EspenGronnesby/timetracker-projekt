@@ -146,13 +146,20 @@ export const useProjects = (userId?: string) => {
       color: string;
       customerInfo: CustomerInfo;
     }) => {
-      if (!userId) throw new Error("Must be logged in");
+      // CRITICAL: Get fresh session to ensure auth.uid() matches
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error("You must be logged in to create a project. Please refresh and try again.");
+      }
+
+      const authUserId = session.user.id;
 
       // Get user's organization (gracefully handle missing org)
       const { data: userOrg } = await supabase
         .from("user_organizations")
         .select("organization_id")
-        .eq("user_id", userId)
+        .eq("user_id", authUserId)
         .limit(1)
         .maybeSingle();
 
@@ -167,7 +174,7 @@ export const useProjects = (userId?: string) => {
           customer_email: customerInfo.email,
           contract_number: customerInfo.contractNumber,
           description: customerInfo.description,
-          created_by: userId,
+          created_by: authUserId, // Use fresh session user ID
           organization_id: userOrg?.organization_id ?? null,
         })
         .select()
@@ -180,14 +187,14 @@ export const useProjects = (userId?: string) => {
         .from("project_members")
         .select("id")
         .eq("project_id", data.id)
-        .eq("user_id", userId)
+        .eq("user_id", authUserId)
         .maybeSingle();
 
       if (!memberCheck) {
         // Manually add creator as owner if trigger failed
         await supabase.from("project_members").insert({
           project_id: data.id,
-          user_id: userId,
+          user_id: authUserId,
           role: "owner",
         });
       }
