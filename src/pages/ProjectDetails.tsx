@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects, TimeEntry, DriveEntry, Material } from "@/hooks/useProjects";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { OnlineUsersIndicator, usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
   Mail,
   MapPin,
   FileText,
+  Lock,
 } from "lucide-react";
 import { formatTime } from "@/lib/timeUtils";
 
@@ -42,6 +44,11 @@ const ProjectDetails = () => {
 
   // Find project early to use in all logic
   const project = projects.find((p) => p.id === id);
+
+  // Check if user is admin or project creator
+  const isAdmin = useIsAdmin(user?.id);
+  const isProjectCreator = project?.created_by === user?.id;
+  const canViewSensitiveData = isAdmin || isProjectCreator;
 
   // Calculate data regardless of loading state to keep hooks consistent
   const projectTimeEntries = project
@@ -217,15 +224,25 @@ const ProjectDetails = () => {
       <div className="container mx-auto px-4 py-6 space-y-6">
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Kundeinformasjon</h2>
+          {!canViewSensitiveData && (
+            <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Kun admin og prosjektskaper kan se full kundeinformasjon
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
               <User className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">Kundenavn</p>
-                <p className="font-medium">{project.customer_name}</p>
+                <p className="font-medium">
+                  {canViewSensitiveData ? project.customer_name : '[Skjult]'}
+                </p>
               </div>
             </div>
-            {project.customer_address && (
+            {canViewSensitiveData && project.customer_address && (
               <div className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
@@ -234,7 +251,7 @@ const ProjectDetails = () => {
                 </div>
               </div>
             )}
-            {project.customer_phone && (
+            {canViewSensitiveData && project.customer_phone && (
               <div className="flex items-start gap-3">
                 <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
@@ -243,7 +260,7 @@ const ProjectDetails = () => {
                 </div>
               </div>
             )}
-            {project.customer_email && (
+            {canViewSensitiveData && project.customer_email && (
               <div className="flex items-start gap-3">
                 <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>

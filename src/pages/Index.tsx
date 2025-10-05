@@ -97,6 +97,14 @@ const Index = () => {
               </p>
             )}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/admin")}
+            className="flex items-center gap-2"
+          >
+            Admin
+          </Button>
         </div>
       </header>
 
