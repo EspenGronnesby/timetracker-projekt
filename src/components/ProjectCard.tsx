@@ -103,26 +103,22 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Total tid: {formatTime(totalTime)}
-              </span>
-            </div>
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              Total tid: {formatTime(totalTime)}
+            </span>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Car className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Kjørt: {totalKilometers.toFixed(1)} km
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <Car className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              Kjørt: {totalKilometers.toFixed(1)} km
+            </span>
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t flex justify-end">
+        <div className="pt-4 border-t flex justify-end">
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-4 w-4" />
           </Button>
