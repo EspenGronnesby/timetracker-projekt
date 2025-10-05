@@ -409,72 +409,72 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
+            <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" />
               Team & Invites
             </h2>
             
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-2.5">
               {/* Team Members */}
               <div>
-                <h3 className="text-xs sm:text-sm font-medium mb-2 sm:mb-3">Team Members ({teamMembers?.length || 0})</h3>
-                <div className="space-y-2">
+                <h3 className="text-xs font-medium mb-1.5">Team Members ({teamMembers?.length || 0})</h3>
+                <div className="space-y-1.5">
                   {teamMembers && teamMembers.length > 0 ? (
                     teamMembers.map((member: any) => (
-                      <div key={member.user_id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                      <div key={member.user_id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <User className="h-3 w-3 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • Joined {new Date(member.joined_at).toLocaleDateString('no-NO')}
+                          <p className="text-xs font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • {new Date(member.joined_at).toLocaleDateString('no-NO')}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs sm:text-sm text-muted-foreground text-center py-4">Ingen teammedlemmer ennå</p>
+                    <p className="text-xs text-muted-foreground text-center py-2">Ingen teammedlemmer ennå</p>
                   )}
                 </div>
               </div>
               
               {/* Invite Section */}
-              <div className="pt-3 sm:pt-4 border-t">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-                  <h3 className="text-xs sm:text-sm font-medium">Project Invites</h3>
-                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
-                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <div className="pt-2 border-t">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1.5">
+                  <h3 className="text-xs font-medium">Project Invites</h3>
+                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs h-7">
+                    <Share2 className="h-3 w-3 mr-1.5" />
                     {generating ? "Generating..." : "Generate New Invite"}
                   </Button>
                 </div>
                 
-                {inviteUrl && <div className="mb-4 p-2 sm:p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">New invite link:</p>
-                    <div className="flex gap-2">
-                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md bg-background min-w-0" />
-                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                        {copied ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
+                {inviteUrl && <div className="mb-2 p-1.5 bg-green-500/10 border border-green-500/20 rounded">
+                    <p className="text-[10px] text-muted-foreground mb-1">New invite link:</p>
+                    <div className="flex gap-1.5">
+                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded bg-background min-w-0" />
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-7 w-7">
+                        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                       </Button>
                     </div>
                   </div>}
                 
-                {activeInvites && activeInvites.length > 0 && <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground mb-2">Active Invites:</p>
-                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs sm:text-sm">
+                {activeInvites && activeInvites.length > 0 && <div className="space-y-1.5">
+                    <p className="text-[10px] text-muted-foreground mb-1">Active Invites:</p>
+                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-1.5 p-1.5 bg-muted/30 rounded text-xs">
                         <div className="flex-1 min-w-0">
-                          <code className="text-xs bg-background px-2 py-1 rounded block truncate">
+                          <code className="text-[10px] bg-background px-1.5 py-0.5 rounded block truncate">
                             {window.location.origin}/join/{invite.invite_code}
                           </code>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             Used {invite.use_count} times
                             {invite.max_uses && ` • ${invite.max_uses - invite.use_count} remaining`}
                             {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-8 w-8">
-                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-7 w-7">
+                          <Copy className="h-3 w-3" />
                         </Button>
                       </div>)}
                   </div>}
