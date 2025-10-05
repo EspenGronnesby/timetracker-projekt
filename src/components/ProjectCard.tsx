@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Trash2, Clock } from "lucide-react";
@@ -12,6 +13,7 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(project.totalTime);
 
   useEffect(() => {
@@ -31,7 +33,10 @@ export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) =
   }, [project.isActive, project.totalTime, project.currentEntry]);
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card">
+    <Card 
+      className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card cursor-pointer"
+      onClick={() => navigate(`/project/${project.id}`)}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 flex-1">
           <div 
@@ -41,12 +46,18 @@ export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) =
               boxShadow: project.isActive ? '0 0 12px hsl(var(--accent))' : 'none'
             }}
           />
-          <h3 className="font-semibold text-lg text-foreground">{project.name}</h3>
+          <div>
+            <h3 className="font-semibold text-lg text-foreground">{project.name}</h3>
+            <p className="text-sm text-muted-foreground">{project.customerInfo.name}</p>
+          </div>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onDelete(project.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(project.id);
+          }}
           className="text-destructive hover:text-destructive hover:bg-destructive/10"
         >
           <Trash2 className="h-4 w-4" />
@@ -62,7 +73,10 @@ export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) =
         </div>
 
         <Button
-          onClick={() => onToggle(project.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(project.id);
+          }}
           className={`transition-all duration-300 ${
             project.isActive
               ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"

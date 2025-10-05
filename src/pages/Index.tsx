@@ -8,7 +8,7 @@ import { formatDuration } from "@/lib/timeUtils";
 
 const Index = () => {
   const { activeUser, setActiveUser, users } = useActiveUser();
-  const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id);
+  const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
 
   const totalTime = projects.reduce((acc, p) => acc + p.totalTime, 0);
   const activeCount = projects.filter((p) => p.isActive).length;

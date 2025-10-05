@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Project, TimeEntry } from "@/types/project";
+import { Project, TimeEntry, DriveEntry, Material, CustomerInfo } from "@/types/project";
 import { getTotalSeconds } from "@/lib/timeUtils";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "timetracker_projects";
 
-export const useProjects = (userId: string) => {
+export const useProjects = (userId: string, userName: string) => {
   const [projects, setProjects] = useState<Project[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -20,11 +20,29 @@ export const useProjects = (userId: string) => {
               endTime: p.currentEntry.endTime ? new Date(p.currentEntry.endTime) : undefined,
             }
           : undefined,
-        entries: p.entries.map((e: any) => ({
+        currentDrive: p.currentDrive
+          ? {
+              ...p.currentDrive,
+              startTime: new Date(p.currentDrive.startTime),
+              endTime: p.currentDrive.endTime ? new Date(p.currentDrive.endTime) : undefined,
+            }
+          : undefined,
+        entries: (p.entries || []).map((e: any) => ({
           ...e,
           startTime: new Date(e.startTime),
           endTime: e.endTime ? new Date(e.endTime) : undefined,
         })),
+        driveEntries: (p.driveEntries || []).map((e: any) => ({
+          ...e,
+          startTime: new Date(e.startTime),
+          endTime: e.endTime ? new Date(e.endTime) : undefined,
+        })),
+        materials: (p.materials || []).map((m: any) => ({
+          ...m,
+          addedAt: new Date(m.addedAt),
+        })),
+        totalKilometers: p.totalKilometers || 0,
+        totalMaterialCost: p.totalMaterialCost || 0,
       }));
     }
     return [];
@@ -41,24 +59,46 @@ export const useProjects = (userId: string) => {
             endTime: p.currentEntry.endTime?.toISOString(),
           }
         : undefined,
+      currentDrive: p.currentDrive
+        ? {
+            ...p.currentDrive,
+            startTime: p.currentDrive.startTime.toISOString(),
+            endTime: p.currentDrive.endTime?.toISOString(),
+          }
+        : undefined,
       entries: p.entries.map((e) => ({
         ...e,
         startTime: e.startTime.toISOString(),
         endTime: e.endTime?.toISOString(),
       })),
+      driveEntries: p.driveEntries.map((e) => ({
+        ...e,
+        startTime: e.startTime.toISOString(),
+        endTime: e.endTime?.toISOString(),
+      })),
+      materials: p.materials.map((m) => ({
+        ...m,
+        addedAt: m.addedAt.toISOString(),
+      })),
     }));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
   }, [projects]);
 
-  const addProject = (name: string, color: string) => {
+  const addProject = (name: string, color: string, customerInfo: CustomerInfo) => {
     const newProject: Project = {
       id: Date.now().toString(),
       name,
       color,
+      customerInfo,
       totalTime: 0,
+      totalKilometers: 0,
+      totalMaterialCost: 0,
       isActive: false,
+      isDriving: false,
       userId,
       entries: [],
+      driveEntries: [],
+      materials: [],
       createdAt: new Date(),
     };
     setProjects((prev) => [...prev, newProject]);
@@ -99,6 +139,8 @@ export const useProjects = (userId: string) => {
             id: Date.now().toString(),
             startTime: new Date(),
             duration: 0,
+            userId,
+            userName,
           };
           
           toast.success(`Startet "${project.name}"`);
@@ -115,6 +157,81 @@ export const useProjects = (userId: string) => {
     );
   };
 
+  const toggleDriving = (id: string, kilometers?: number) => {
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project.id !== id) return project;
+
+        if (project.isDriving) {
+          // Stop driving
+          if (project.currentDrive && kilometers !== undefined) {
+            const endTime = new Date();
+            const completedDrive: DriveEntry = {
+              ...project.currentDrive,
+              endTime,
+              kilometers,
+            };
+
+            toast.success(`Registrert ${kilometers} km på "${project.name}"`);
+            
+            return {
+              ...project,
+              isDriving: false,
+              totalKilometers: project.totalKilometers + kilometers,
+              driveEntries: [...project.driveEntries, completedDrive],
+              currentDrive: undefined,
+            };
+          }
+        } else {
+          // Start driving
+          const newDrive: DriveEntry = {
+            id: Date.now().toString(),
+            startTime: new Date(),
+            userId,
+            userName,
+          };
+          
+          toast.success(`Startet kjøring for "${project.name}"`);
+          
+          return {
+            ...project,
+            isDriving: true,
+            currentDrive: newDrive,
+          };
+        }
+
+        return project;
+      })
+    );
+  };
+
+  const addMaterial = (projectId: string, name: string, quantity: number, unitPrice: number) => {
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project.id !== projectId) return project;
+
+        const material: Material = {
+          id: Date.now().toString(),
+          name,
+          quantity,
+          unitPrice,
+          totalPrice: quantity * unitPrice,
+          addedAt: new Date(),
+          userId,
+          userName,
+        };
+
+        toast.success(`Lagt til materiale: ${name}`);
+
+        return {
+          ...project,
+          totalMaterialCost: project.totalMaterialCost + material.totalPrice,
+          materials: [...project.materials, material],
+        };
+      })
+    );
+  };
+
   const deleteProject = (id: string) => {
     const project = projects.find((p) => p.id === id);
     setProjects((prev) => prev.filter((p) => p.id !== id));
@@ -127,6 +244,8 @@ export const useProjects = (userId: string) => {
     projects: userProjects,
     addProject,
     toggleProject,
+    toggleDriving,
+    addMaterial,
     deleteProject,
   };
 };
