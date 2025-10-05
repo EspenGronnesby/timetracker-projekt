@@ -58,18 +58,7 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <ProjectCardSkeleton />
-          <ProjectCardSkeleton />
-          <ProjectCardSkeleton />
-        </div>
-      </div>
-    );
-  }
-
+  // Calculate filtered time entries before early return
   const getFilterDate = () => {
     if (filterPeriod === "custom" && customRange) {
       return customRange.from;
@@ -119,7 +108,7 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
-  // Search and sort projects
+  // Search and sort projects - must be before early return
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects.filter((project) =>
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -156,6 +145,19 @@ const Index = () => {
 
     return filtered;
   }, [projects, searchQuery, sortBy, filteredTimeEntries, activeTimeEntries, activeDriveEntries]);
+
+  // Early return AFTER all hooks
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <ProjectCardSkeleton />
+          <ProjectCardSkeleton />
+          <ProjectCardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   const handleFilterChange = (period: FilterPeriod, range?: { from: Date; to: Date }) => {
     setFilterPeriod(period);
