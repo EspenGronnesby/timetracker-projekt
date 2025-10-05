@@ -257,16 +257,16 @@ const ProjectDetails = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Kundeinformasjon</h2>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <Card className="p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Kundeinformasjon</h2>
           {!canViewSensitiveData && <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
+              <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Kun admin og prosjektskaper kan se full kundeinformasjon
               </p>
             </div>}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-start gap-3">
               <User className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
@@ -314,24 +314,24 @@ const ProjectDetails = () => {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <Tabs value={statsView} onValueChange={v => setStatsView(v as "my" | "total")}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Statistikk</h2>
-              <TabsList>
-                <TabsTrigger value="my">Min statistikk</TabsTrigger>
-                <TabsTrigger value="total">Total statistikk</TabsTrigger>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+              <h2 className="text-base sm:text-lg font-semibold">Statistikk</h2>
+              <TabsList className="w-full sm:w-auto grid grid-cols-2">
+                <TabsTrigger value="my" className="text-xs sm:text-sm">Min statistikk</TabsTrigger>
+                <TabsTrigger value="total" className="text-xs sm:text-sm">Total statistikk</TabsTrigger>
               </TabsList>
             </div>
 
             <TabsContent value="my" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-primary/10 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Min tid</p>
-                      <p className="text-2xl font-bold">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Min tid</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">
                         {formatTime(activeEntry ? liveTime : myTotalTime)}
                       </p>
                       {activeEntry && <p className="text-xs text-primary">● Kjører nå</p>}
@@ -339,26 +339,26 @@ const ProjectDetails = () => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-accent/10 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Car className="h-6 w-6 text-accent" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Min kjøring
                       </p>
-                      <p className="text-2xl font-bold">{myTotalKm.toFixed(1)} km</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">{myTotalKm.toFixed(1)} km</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-secondary rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-6 w-6" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Mine materialer
                       </p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xl sm:text-2xl font-bold truncate">
                         {myTotalMaterialCost.toFixed(0)} kr
                       </p>
                     </div>
@@ -368,37 +368,37 @@ const ProjectDetails = () => {
             </TabsContent>
 
             <TabsContent value="total" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-primary/10 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total tid</p>
-                      <p className="text-2xl font-bold">{formatTime(totalTime)}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Total tid</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">{formatTime(totalTime)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-accent/10 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Car className="h-6 w-6 text-accent" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Total kjøring
                       </p>
-                      <p className="text-2xl font-bold">{totalKm.toFixed(1)} km</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">{totalKm.toFixed(1)} km</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-secondary rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-6 w-6" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Materialkostnad
                       </p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xl sm:text-2xl font-bold truncate">
                         {totalMaterialCost.toFixed(0)} kr
                       </p>
                     </div>
@@ -409,56 +409,62 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Users className="h-5 w-5" />
+        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               Team & Invites
             </h2>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Team Members */}
               <div>
-                <h3 className="text-sm font-medium mb-3">Team Members ({teamMembers?.length || 0})</h3>
+                <h3 className="text-xs sm:text-sm font-medium mb-2 sm:mb-3">Team Members ({teamMembers?.length || 0})</h3>
                 <div className="space-y-2">
-                  {teamMembers?.map((member: any) => <div key={member.user_id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary" />
+                  {teamMembers && teamMembers.length > 0 ? (
+                    teamMembers.map((member: any) => (
+                      <div key={member.user_id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • Joined {new Date(member.joined_at).toLocaleDateString('no-NO')}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{member.profiles?.name || 'Unknown'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • Joined {new Date(member.joined_at).toLocaleDateString('no-NO')}
-                        </p>
-                      </div>
-                    </div>)}
+                    ))
+                  ) : (
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center py-4">Ingen teammedlemmer ennå</p>
+                  )}
                 </div>
               </div>
               
               {/* Invite Section */}
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium">Project Invites</h3>
-                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm">
-                    <Share2 className="h-4 w-4 mr-2" />
+              <div className="pt-3 sm:pt-4 border-t">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                  <h3 className="text-xs sm:text-sm font-medium">Project Invites</h3>
+                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                     {generating ? "Generating..." : "Generate New Invite"}
                   </Button>
                 </div>
                 
-                {inviteUrl && <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">New invite link:</p>
+                {inviteUrl && <div className="mb-4 p-2 sm:p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">New invite link:</p>
                     <div className="flex gap-2">
-                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-3 py-2 text-sm border rounded-md bg-background" />
-                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline">
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md bg-background min-w-0" />
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                        {copied ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
                       </Button>
                     </div>
                   </div>}
                 
                 {activeInvites && activeInvites.length > 0 && <div className="space-y-2">
                     <p className="text-xs text-muted-foreground mb-2">Active Invites:</p>
-                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-sm">
-                        <div className="flex-1">
-                          <code className="text-xs bg-background px-2 py-1 rounded">
+                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs sm:text-sm">
+                        <div className="flex-1 min-w-0">
+                          <code className="text-xs bg-background px-2 py-1 rounded block truncate">
                             {window.location.origin}/join/{invite.invite_code}
                           </code>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -467,8 +473,8 @@ const ProjectDetails = () => {
                             {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)}>
-                          <Copy className="h-4 w-4" />
+                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-8 w-8">
+                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>)}
                   </div>}
@@ -476,33 +482,47 @@ const ProjectDetails = () => {
             </div>
           </Card>}
 
-        <Card id="activity-log" className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Aktivitetslogg</h2>
-            <div className="flex gap-2">
-              
-              <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="hover:scale-105 transition-transform">
-                <Clock className="h-5 w-5" />
+        <Card id="activity-log" className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+            <h2 className="text-base sm:text-lg font-semibold">Aktivitetslogg</h2>
+            <div className="flex gap-1 sm:gap-2">
+              <Button 
+                variant={activityFilter === "time" ? "default" : "outline"} 
+                size="icon" 
+                onClick={() => setActivityFilter("time")} 
+                className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10"
+              >
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "drive" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("drive")} className="hover:scale-105 transition-transform">
-                <Car className="h-5 w-5" />
+              <Button 
+                variant={activityFilter === "drive" ? "default" : "outline"} 
+                size="icon" 
+                onClick={() => setActivityFilter("drive")} 
+                className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10"
+              >
+                <Car className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "material" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("material")} className="hover:scale-105 transition-transform">
-                <Package className="h-5 w-5" />
+              <Button 
+                variant={activityFilter === "material" ? "default" : "outline"} 
+                size="icon" 
+                onClick={() => setActivityFilter("material")} 
+                className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10"
+              >
+                <Package className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
 
-          {myActivities.length === 0 ? <p className="text-muted-foreground text-center py-8">
+          {myActivities.length === 0 ? <p className="text-muted-foreground text-center py-6 sm:py-8 text-xs sm:text-sm">
               Ingen aktiviteter funnet
-            </p> : <div className="space-y-3">
+            </p> : <div className="space-y-2 sm:space-y-3">
               {myActivities.map((activity, index) => {
             if (activity.type === "time") {
               const entry = activity.data;
-              return <div key={`time-${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-primary/10">
-                      <Clock className="h-5 w-5 text-primary mt-0.5" />
+              return <div key={`time-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-primary/10">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
                      <div className="flex-1 min-w-0">
-                        <p className="font-medium">Tidsregistrering</p>
+                        <p className="text-sm font-medium">Tidsregistrering</p>
                         <p className="text-xs sm:text-sm text-muted-foreground break-words">
                           {new Date(entry.start_time).toLocaleString("no-NO", {
                       day: "2-digit",
@@ -516,17 +536,17 @@ const ProjectDetails = () => {
                       minute: "2-digit"
                     })}`}
                         </p>
-                        {entry.end_time && <p className="text-sm font-semibold text-primary">
+                        {entry.end_time && <p className="text-xs sm:text-sm font-semibold text-primary">
                             {formatTime(entry.duration_seconds)}
                           </p>}
                       </div>
                     </div>;
             } else if (activity.type === "drive") {
               const entry = activity.data;
-              return <div key={`drive-${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-accent/10">
-                      <Car className="h-5 w-5 text-accent mt-0.5" />
+              return <div key={`drive-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-accent/10">
+                      <Car className="h-4 w-4 sm:h-5 sm:w-5 text-accent mt-0.5 flex-shrink-0" />
                      <div className="flex-1 min-w-0">
-                        <p className="font-medium">Kjøring</p>
+                        <p className="text-sm font-medium">Kjøring</p>
                         <p className="text-xs sm:text-sm text-muted-foreground break-words">
                           {new Date(entry.start_time).toLocaleString("no-NO", {
                       day: "2-digit",
@@ -540,17 +560,17 @@ const ProjectDetails = () => {
                       minute: "2-digit"
                     })}`}
                         </p>
-                        {entry.kilometers !== null && <p className="text-sm font-semibold text-accent">
+                        {entry.kilometers !== null && <p className="text-xs sm:text-sm font-semibold text-accent">
                             {entry.kilometers} km
                           </p>}
                       </div>
                     </div>;
             } else {
               const material = activity.data;
-              return <div key={`material-${material.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
-                      <Package className="h-5 w-5 mt-0.5" />
+              return <div key={`material-${material.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary">
+                      <Package className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{material.name}</p>
+                        <p className="text-sm font-medium truncate">{material.name}</p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
                           {new Date(material.created_at).toLocaleString("no-NO", {
                       day: "2-digit",
