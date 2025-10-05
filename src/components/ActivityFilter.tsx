@@ -34,30 +34,30 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
   };
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+    <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
       <Button
         variant={selectedPeriod === "day" ? "default" : "outline"}
-        size="sm"
+        size="default"
         onClick={() => handlePeriodChange("day")}
-        className="text-xs sm:text-sm px-2 sm:px-3"
+        className="text-sm sm:text-sm px-4 sm:px-3 h-11 sm:h-10"
       >
         <span className="hidden xs:inline">Day</span>
         <span className="xs:hidden">D</span>
       </Button>
       <Button
         variant={selectedPeriod === "week" ? "default" : "outline"}
-        size="sm"
+        size="default"
         onClick={() => handlePeriodChange("week")}
-        className="text-xs sm:text-sm px-2 sm:px-3"
+        className="text-sm sm:text-sm px-4 sm:px-3 h-11 sm:h-10"
       >
         <span className="hidden xs:inline">Week</span>
         <span className="xs:hidden">W</span>
       </Button>
       <Button
         variant={selectedPeriod === "month" ? "default" : "outline"}
-        size="sm"
+        size="default"
         onClick={() => handlePeriodChange("month")}
-        className="text-xs sm:text-sm px-2 sm:px-3"
+        className="text-sm sm:text-sm px-4 sm:px-3 h-11 sm:h-10"
       >
         <span className="hidden xs:inline">Month</span>
         <span className="xs:hidden">M</span>
@@ -66,10 +66,10 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
         <PopoverTrigger asChild>
           <Button
             variant={selectedPeriod === "custom" ? "default" : "outline"}
-            size="sm"
-            className={cn("gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3")}
+            size="default"
+            className={cn("gap-1 sm:gap-2 text-sm sm:text-sm px-4 sm:px-3 h-11 sm:h-10")}
           >
-            <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+            <CalendarIcon className="h-4 w-4 sm:h-4 sm:w-4" />
             {selectedPeriod === "custom" && customRange?.from && customRange?.to ? (
               <span className="hidden sm:inline">
                 {format(customRange.from, "MMM d")} - {format(customRange.to, "MMM d")}

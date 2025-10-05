@@ -182,20 +182,20 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in cursor-pointer"
+      className="p-5 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in cursor-pointer"
       onClick={() => navigate(`/project/${project.id}`)}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-3 sm:gap-3 flex-1 min-w-0">
           <div
-            className="w-4 h-4 flex-shrink-0 rounded-full"
+            className="w-5 h-5 flex-shrink-0 rounded-full"
             style={{ backgroundColor: project.color }}
           />
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base sm:text-lg truncate">{project.name}</h3>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+            <h3 className="font-semibold text-lg sm:text-lg truncate">{project.name}</h3>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-1 truncate">
-                <Building2 className="h-3 w-3 flex-shrink-0" />
+                <Building2 className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">{project.customer_name}</span>
               </span>
               <span className="flex items-center gap-1 flex-shrink-0">
@@ -217,14 +217,14 @@ export const ProjectCard = ({
           <Button
             variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className={`h-14 sm:h-16 w-full hover:scale-105 transition-all ${
+            className={`h-16 sm:h-16 w-full hover:scale-105 transition-all ${
               isActive ? "bg-green-500 hover:bg-green-600 animate-pulse" : ""
             }`}
           >
             {isActive ? (
-              <Pause className="h-6 w-6 sm:h-8 sm:w-8" />
+              <Pause className="h-8 w-8 sm:h-8 sm:w-8" />
             ) : (
-              <Play className="h-6 w-6 sm:h-8 sm:w-8" />
+              <Play className="h-8 w-8 sm:h-8 sm:w-8" />
             )}
           </Button>
 
@@ -233,33 +233,33 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <div className="space-y-2 mb-4 p-2 sm:p-3 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
+        <div className="space-y-2 mb-4 p-3 sm:p-3 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
           {!hasActivity && filterPeriod ? (
-            <div className="text-center py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm">
+            <div className="text-center py-4 sm:py-4 text-muted-foreground text-sm sm:text-sm">
               Ingen aktivitet i denne perioden
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
-                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <div className="flex items-center justify-between text-sm sm:text-sm">
+                <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                  <Clock className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
                   <span>Total tid:</span>
                 </div>
                 <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
               </div>
               {totalKilometers > 0 && (
-                <div className="flex items-center justify-between text-xs sm:text-sm pt-2 border-t border-border">
-                  <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
-                    <Car className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                    <Car className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
                     <span>Kjørt:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
                 </div>
               )}
               {totalMaterialCost > 0 && (
-                <div className="flex items-center justify-between text-xs sm:text-sm pt-2 border-t border-border">
-                  <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
-                    <Package className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                    <Package className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
                     <span>Materialer:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
@@ -277,17 +277,17 @@ export const ProjectCard = ({
               e.stopPropagation();
               navigate(`/project/${project.id}#invites`);
             }}
-            className="hover:scale-105 transition-transform h-10 w-10 sm:h-11 sm:w-11"
+            className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
           >
-            <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Share2 className="h-5 w-5 sm:h-5 sm:w-5" />
           </Button>
           <Button 
             variant="destructive" 
             size="icon" 
             onClick={onDelete}
-            className="hover:scale-105 transition-transform h-10 w-10 sm:h-11 sm:w-11"
+            className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
           >
-            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Trash2 className="h-5 w-5 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>
