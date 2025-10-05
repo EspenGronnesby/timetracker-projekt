@@ -157,50 +157,19 @@ export const useProjects = (userId?: string) => {
       console.log("✅ Session refreshed, user:", session.user.id);
       const authUserId = session.user.id;
 
-      // Get user's organization (gracefully handle missing org)
-      const { data: userOrg } = await supabase
-        .from("user_organizations")
-        .select("organization_id")
-        .eq("user_id", authUserId)
-        .limit(1)
-        .maybeSingle();
-
-      const { data, error } = await supabase
-        .from("projects")
-        .insert({
-          name,
-          color,
-          customer_name: customerInfo.name,
-          customer_address: customerInfo.address,
-          customer_phone: customerInfo.phone,
-          customer_email: customerInfo.email,
-          contract_number: customerInfo.contractNumber,
-          description: customerInfo.description,
-          created_by: authUserId, // Use fresh session user ID
-          organization_id: userOrg?.organization_id ?? null,
-        })
-        .select()
-        .single();
+      // Use secure RPC to create project (bypasses client-side RLS pitfalls)
+      const { data, error } = await supabase.rpc('create_project', {
+        p_name: name,
+        p_color: color,
+        p_customer_name: customerInfo.name,
+        p_customer_address: customerInfo.address,
+        p_customer_phone: customerInfo.phone,
+        p_customer_email: customerInfo.email,
+        p_contract_number: customerInfo.contractNumber,
+        p_description: customerInfo.description,
+      });
 
       if (error) throw error;
-      
-      // Verify membership exists (fallback if trigger didn't fire)
-      const { data: memberCheck } = await supabase
-        .from("project_members")
-        .select("id")
-        .eq("project_id", data.id)
-        .eq("user_id", authUserId)
-        .maybeSingle();
-
-      if (!memberCheck) {
-        // Manually add creator as owner if trigger failed
-        await supabase.from("project_members").insert({
-          project_id: data.id,
-          user_id: authUserId,
-          role: "owner",
-        });
-      }
-      
       return data;
     },
     onSuccess: () => {

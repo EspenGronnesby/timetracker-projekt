@@ -487,6 +487,32 @@ export type Database = {
           | { project_created_by: string; project_org_id: string }
         Returns: boolean
       }
+      create_project: {
+        Args: {
+          p_color: string
+          p_contract_number: string
+          p_customer_address: string
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_description: string
+          p_name: string
+        }
+        Returns: {
+          color: string
+          contract_number: string | null
+          created_at: string
+          created_by: string
+          customer_address: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string | null
+        }
+      }
       get_user_organization: {
         Args: { user_id: string }
         Returns: string
