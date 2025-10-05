@@ -224,31 +224,11 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg md:text-2xl font-bold text-foreground truncate">
-              {profile?.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-              Your Projects
-            </p>
-          </div>
+          <h1 className="text-base sm:text-lg md:text-2xl font-bold text-foreground truncate">
+            {profile?.name}
+          </h1>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <ThemeToggle />
-            <AddProjectDialog
-              onAddProject={(name, color, customerInfo) =>
-                addProject({ name, color, customerInfo })
-              }
-            />
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/admin")}
-                className="hidden sm:flex items-center gap-2"
-              >
-                Admin
-              </Button>
-            )}
             <Button
               variant="outline"
               size="sm"
@@ -263,6 +243,24 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center gap-2 mb-4">
+          <AddProjectDialog
+            onAddProject={(name, color, customerInfo) =>
+              addProject({ name, color, customerInfo })
+            }
+          />
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin")}
+              className="flex items-center gap-2"
+            >
+              Admin
+            </Button>
+          )}
+        </div>
+        
         <OfflineIndicator />
         
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
