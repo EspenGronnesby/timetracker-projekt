@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { ActivityFilter, FilterPeriod } from "@/components/ActivityFilter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
@@ -157,6 +158,7 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <AddProjectDialog
               onAddProject={(name, color, customerInfo) =>
                 addProject({ name, color, customerInfo })
