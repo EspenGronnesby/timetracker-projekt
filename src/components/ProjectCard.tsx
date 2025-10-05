@@ -11,6 +11,7 @@ import {
   Share2,
   Copy,
   Check,
+  Clock,
 } from "lucide-react";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
@@ -24,9 +25,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TimeBreakdown } from "./TimeBreakdown";
-import { ActiveTimer } from "./ActiveTimer";
-import { calculateTimeBreakdown } from "@/lib/analyticsUtils";
 
 interface ProjectCardProps {
   project: Project;
@@ -108,8 +106,11 @@ export const ProjectCard = ({
     0
   );
 
-  const breakdown = calculateTimeBreakdown(timeEntries);
-  const activeEntry = timeEntries.find(e => !e.end_time);
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
 
   return (
     <Card
@@ -151,27 +152,23 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        {activeEntry && (
-          <div className="mb-4 flex justify-center">
-            <ActiveTimer 
-              startTime={new Date(activeEntry.start_time)} 
-              color={project.color}
-            />
+        <div className="space-y-2 mb-4 p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Total tid:</span>
+            </div>
+            <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
           </div>
-        )}
-
-        <div className="space-y-3 mb-4 p-3 bg-muted/50 rounded-lg">
-          <TimeBreakdown 
-            day={breakdown.day}
-            week={breakdown.week}
-            month={breakdown.month}
-            total={totalTime}
-          />
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border">
-            <Car className="h-3 w-3" />
-            <span>Driven:</span>
-            <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
-          </div>
+          {totalKilometers > 0 && (
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Car className="h-4 w-4" />
+                <span>Kjørt:</span>
+              </div>
+              <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
+            </div>
+          )}
         </div>
 
         <div className="pt-4 border-t flex justify-between items-center">

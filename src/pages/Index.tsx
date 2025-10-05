@@ -1,22 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-import { Calendar, Activity, LogOut } from "lucide-react";
-import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
-import { StreakCounter } from "@/components/StreakCounter";
-import { calculateStreak, calculateTimeBreakdown, formatCompactTime } from "@/lib/analyticsUtils";
+import { ActivityFilter, FilterPeriod } from "@/components/ActivityFilter";
+import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const isAdmin = useIsAdmin(user?.id);
   const { trackPresence } = usePresenceTracking();
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
+  const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
   const {
     projects,
     timeEntries,
@@ -42,7 +43,40 @@ const Index = () => {
     );
   }
 
-  const myTimeEntries = timeEntries.filter(
+  const getFilterDate = () => {
+    if (filterPeriod === "custom" && customRange) {
+      return customRange.from;
+    }
+    const now = new Date();
+    switch (filterPeriod) {
+      case "day":
+        return startOfDay(now);
+      case "week":
+        return startOfWeek(now);
+      case "month":
+        return startOfMonth(now);
+      default:
+        return startOfWeek(now);
+    }
+  };
+
+  const filterTimeEntries = (entries: typeof timeEntries) => {
+    if (filterPeriod === "custom" && customRange) {
+      return entries.filter(entry => 
+        isWithinInterval(new Date(entry.start_time), {
+          start: customRange.from,
+          end: customRange.to
+        })
+      );
+    }
+    
+    const filterDate = getFilterDate();
+    return entries.filter(entry => new Date(entry.start_time) >= filterDate);
+  };
+
+  const filteredTimeEntries = filterTimeEntries(timeEntries);
+
+  const myTimeEntries = filteredTimeEntries.filter(
     (entry) => entry.user_id === user?.id && entry.end_time
   );
   const totalTime = myTimeEntries.reduce(
@@ -58,8 +92,12 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
-  const streak = calculateStreak(timeEntries.filter(e => e.user_id === user?.id));
-  const todayBreakdown = calculateTimeBreakdown(timeEntries.filter(e => e.user_id === user?.id));
+  const handleFilterChange = (period: FilterPeriod, range?: { from: Date; to: Date }) => {
+    setFilterPeriod(period);
+    if (range) {
+      setCustomRange(range);
+    }
+  };
 
   const handleToggleProject = (projectId: string) => {
     const isActive = activeTimeEntries.some(
@@ -125,23 +163,29 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center justify-between max-w-5xl gap-4">
-          <StreakCounter streak={streak} />
-          
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold">{formatCompactTime(todayBreakdown.day)}</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Activity className={`h-4 w-4 ${activeCount > 0 ? 'text-green-500' : 'text-muted-foreground'}`} />
-            <span className="text-sm font-semibold">{activeCount} active</span>
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <ActivityFilter onFilterChange={handleFilterChange} />
+        </div>
+
+        <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Projects</p>
+              <p className="text-2xl font-bold">{projects?.length || 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Active Now</p>
+              <p className="text-2xl font-bold">{activeCount}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Time</p>
+              <p className="text-2xl font-bold">
+                {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <main className="container mx-auto px-4 py-8">
         {projects.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter ennå</h2>
@@ -157,7 +201,7 @@ const Index = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => {
-              const projectTimeEntries = timeEntries.filter(
+              const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
               );
               const projectDriveEntries = driveEntries.filter(
