@@ -95,18 +95,6 @@ const OrganizationSelectorContent = () => {
             throw joinError;
           }
 
-          // Make user admin of the organization
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({
-              user_id: user!.id,
-              role: 'admin',
-            });
-
-          if (roleError && roleError.code !== '23505') {
-            console.error('Error granting admin role:', roleError);
-          }
-
           toast({
             title: 'Velkommen!',
             description: `Du har blitt lagt til i ${existingOrg.organization_name}`,
@@ -139,21 +127,9 @@ const OrganizationSelectorContent = () => {
 
           if (joinError) throw joinError;
 
-          // Make user admin of the organization
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({
-              user_id: user!.id,
-              role: 'admin',
-            });
-
-          if (roleError && roleError.code !== '23505') {
-            console.error('Error granting admin role:', roleError);
-          }
-
           toast({
             title: 'Organisasjon opprettet!',
-            description: `${brregOrg.navn} er nå opprettet`,
+            description: `${brregOrg.navn} er nå opprettet og du er nå admin`,
           });
 
           await refreshOrganizations();
@@ -283,18 +259,6 @@ const OrganizationSelectorContent = () => {
         throw joinError;
       }
 
-      // Make user admin of the organization
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user!.id,
-          role: 'admin',
-        });
-
-      if (roleError && roleError.code !== '23505') {
-        console.error('Error granting admin role:', roleError);
-      }
-
       toast({
         title: 'Velkommen!',
         description: `Du har blitt lagt til i ${orgToJoin.organization_name}`,
@@ -351,21 +315,9 @@ const OrganizationSelectorContent = () => {
 
       if (joinError) throw joinError;
 
-      // Make user admin of the organization
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user!.id,
-          role: 'admin',
-        });
-
-      if (roleError && roleError.code !== '23505') {
-        console.error('Error granting admin role:', roleError);
-      }
-
       toast({
         title: 'Organisasjon opprettet!',
-        description: `${validated.organization_name} er nå opprettet`,
+        description: `${validated.organization_name} er nå opprettet og du er nå admin`,
       });
 
       await refreshOrganizations();
