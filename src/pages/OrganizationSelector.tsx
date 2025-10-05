@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,13 +9,14 @@ import { Building2, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { OrganizationProvider, useOrganization } from '@/contexts/OrganizationContext';
 
 const orgSchema = z.object({
   organization_number: z.string().trim().min(1, 'Organisasjonsnummer er påkrevd').max(20, 'Må være mindre enn 20 tegn'),
   organization_name: z.string().trim().min(1, 'Firmanavn er påkrevd').max(100, 'Må være mindre enn 100 tegn'),
 });
 
-const OrganizationSelector = () => {
+const OrganizationSelectorContent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { organizations, selectOrganization, loading, refreshOrganizations } = useOrganization();
@@ -227,6 +227,30 @@ const OrganizationSelector = () => {
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+const OrganizationSelector = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Laster...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
+
+  return (
+    <OrganizationProvider userId={user.id}>
+      <OrganizationSelectorContent />
+    </OrganizationProvider>
   );
 };
 
