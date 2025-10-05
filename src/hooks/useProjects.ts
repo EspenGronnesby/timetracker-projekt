@@ -155,7 +155,6 @@ export const useProjects = (userId?: string) => {
       }
 
       console.log("✅ Session refreshed, user:", session.user.id);
-      const authUserId = session.user.id;
 
       // Use secure RPC to create project (bypasses client-side RLS pitfalls)
       const { data, error } = await supabase.rpc('create_project', {
@@ -169,7 +168,12 @@ export const useProjects = (userId?: string) => {
         p_description: customerInfo.description,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ create_project failed:", error);
+        throw error;
+      }
+      
+      console.log("✅ Project created successfully:", data?.id);
       return data;
     },
     onSuccess: () => {

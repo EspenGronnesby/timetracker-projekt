@@ -155,6 +155,11 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <AddProjectDialog
+              onAddProject={(name, color, customerInfo) =>
+                addProject({ name, color, customerInfo })
+              }
+            />
             {isAdmin && (
               <Button
                 variant="outline"
