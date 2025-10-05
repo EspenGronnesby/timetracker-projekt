@@ -86,34 +86,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">
-              <span className="hidden sm:inline">Prosjekt tidsporing - </span>
-              <span className="sm:hidden">Tidsporing - </span>
-              {profile.name}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <OnlineUsersIndicator
-              userId={user.id}
-              userName={profile.name}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={signOut}
-              className="flex items-center gap-1 sm:gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logg ut</span>
-            </Button>
-            <AddProjectDialog
-              onAddProject={(name, color, customerInfo) =>
-                addProject({ name, color, customerInfo })
-              }
-            />
-          </div>
+        <div className="flex items-center">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground">
+            {profile.name}
+          </h1>
         </div>
       </header>
 
