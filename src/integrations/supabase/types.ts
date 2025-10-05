@@ -57,7 +57,7 @@ export type Database = {
             foreignKeyName: "drive_entries_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_with_access"
+            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
           {
@@ -115,7 +115,7 @@ export type Database = {
             foreignKeyName: "materials_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_with_access"
+            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
           {
@@ -218,7 +218,7 @@ export type Database = {
             foreignKeyName: "project_invites_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_with_access"
+            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
         ]
@@ -257,7 +257,7 @@ export type Database = {
             foreignKeyName: "project_members_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_with_access"
+            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
         ]
@@ -365,7 +365,7 @@ export type Database = {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_with_access"
+            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
           {
@@ -429,7 +429,7 @@ export type Database = {
       }
     }
     Views: {
-      projects_with_access: {
+      projects_member_view: {
         Row: {
           color: string | null
           contract_number: string | null
@@ -442,7 +442,6 @@ export type Database = {
           description: string | null
           id: string | null
           name: string | null
-          organization_id: string | null
         }
         Insert: {
           color?: string | null
@@ -456,7 +455,6 @@ export type Database = {
           description?: string | null
           id?: string | null
           name?: string | null
-          organization_id?: string | null
         }
         Update: {
           color?: string | null
@@ -470,7 +468,6 @@ export type Database = {
           description?: string | null
           id?: string | null
           name?: string | null
-          organization_id?: string | null
         }
         Relationships: [
           {
@@ -478,13 +475,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -510,6 +500,10 @@ export type Database = {
       }
       is_admin: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_project_owner: {
+        Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
     }
