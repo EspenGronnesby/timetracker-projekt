@@ -265,60 +265,20 @@ const Index = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <OfflineIndicator />
         
-        <div className="mb-4 sm:mb-6">
-          <ActivityFilter onFilterChange={handleFilterChange} />
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex-shrink-0">
+            <ActivityFilter onFilterChange={handleFilterChange} />
+          </div>
+          <div className="flex-1">
+            <SearchAndSort
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+          </div>
         </div>
 
-        <SearchAndSort
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Total Projects</p>
-                <p className="text-2xl sm:text-3xl font-bold">{projects?.length || 0}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
-                <div className={`w-3 h-3 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Active Now</p>
-                <p className="text-2xl sm:text-3xl font-bold">{activeCount}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Total Time</p>
-                <p className="text-2xl sm:text-3xl font-bold">
-                  {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
         {projects.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter ennå</h2>
@@ -387,6 +347,50 @@ const Index = () => {
             })}
           </div>
         )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Projects</p>
+                <p className="text-2xl sm:text-3xl font-bold">{projects?.length || 0}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
+                <div className={`w-3 h-3 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-muted-foreground">Active Now</p>
+                <p className="text-2xl sm:text-3xl font-bold">{activeCount}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Time</p>
+                <p className="text-2xl sm:text-3xl font-bold">
+                  {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
       </main>
     </div>
   );

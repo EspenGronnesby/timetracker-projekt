@@ -22,7 +22,7 @@ export function SearchAndSort({
   onSortChange,
 }: SearchAndSortProps) {
   return (
-    <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6 flex-col sm:flex-row">
+    <div className="flex gap-2 sm:gap-3 flex-col sm:flex-row">
       <div className="relative flex-1">
         <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
