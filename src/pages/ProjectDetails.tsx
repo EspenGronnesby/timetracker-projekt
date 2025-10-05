@@ -409,72 +409,72 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
-            <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
+        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-2">
+            <h2 className="text-xs font-semibold mb-1.5 flex items-center gap-1">
+              <Users className="h-3 w-3" />
               Team & Invites
             </h2>
             
-            <div className="space-y-2.5">
+            <div className="space-y-1.5">
               {/* Team Members */}
               <div>
-                <h3 className="text-xs font-medium mb-1.5">Team Members ({teamMembers?.length || 0})</h3>
-                <div className="space-y-1.5">
+                <h3 className="text-[10px] font-medium mb-1">Team Members ({teamMembers?.length || 0})</h3>
+                <div className="space-y-1">
                   {teamMembers && teamMembers.length > 0 ? (
                     teamMembers.map((member: any) => (
-                      <div key={member.user_id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded">
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <User className="h-3 w-3 text-primary" />
+                      <div key={member.user_id} className="flex items-center gap-1.5 p-1 bg-muted/50 rounded">
+                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <User className="h-2.5 w-2.5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">
-                            {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • {new Date(member.joined_at).toLocaleDateString('no-NO')}
+                          <p className="text-[10px] font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
+                          <p className="text-[9px] text-muted-foreground truncate">
+                            {member.role === 'owner' ? '👑' : '👤'} {new Date(member.joined_at).toLocaleDateString('no-NO')}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">Ingen teammedlemmer ennå</p>
+                    <p className="text-[10px] text-muted-foreground text-center py-1.5">Ingen teammedlemmer ennå</p>
                   )}
                 </div>
               </div>
               
               {/* Invite Section */}
-              <div className="pt-2 border-t">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1.5">
-                  <h3 className="text-xs font-medium">Project Invites</h3>
-                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs h-7">
-                    <Share2 className="h-3 w-3 mr-1.5" />
-                    {generating ? "Generating..." : "Generate New Invite"}
+              <div className="pt-1.5 border-t">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1.5 gap-1">
+                  <h3 className="text-[10px] font-medium">Project Invites</h3>
+                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-[10px] h-6 px-2">
+                    <Share2 className="h-2.5 w-2.5 mr-1" />
+                    {generating ? "Generating..." : "Generate New"}
                   </Button>
                 </div>
                 
-                {inviteUrl && <div className="mb-2 p-1.5 bg-green-500/10 border border-green-500/20 rounded">
-                    <p className="text-[10px] text-muted-foreground mb-1">New invite link:</p>
-                    <div className="flex gap-1.5">
-                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded bg-background min-w-0" />
-                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-7 w-7">
-                        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                {inviteUrl && <div className="mb-1.5 p-1 bg-green-500/10 border border-green-500/20 rounded">
+                    <p className="text-[9px] text-muted-foreground mb-0.5">New invite link:</p>
+                    <div className="flex gap-1">
+                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-1.5 py-0.5 text-[10px] border rounded bg-background min-w-0" />
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-6 w-6">
+                        {copied ? <Check className="h-2.5 w-2.5" /> : <Copy className="h-2.5 w-2.5" />}
                       </Button>
                     </div>
                   </div>}
                 
-                {activeInvites && activeInvites.length > 0 && <div className="space-y-1.5">
-                    <p className="text-[10px] text-muted-foreground mb-1">Active Invites:</p>
-                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-1.5 p-1.5 bg-muted/30 rounded text-xs">
+                {activeInvites && activeInvites.length > 0 && <div className="space-y-1">
+                    <p className="text-[9px] text-muted-foreground mb-0.5">Active Invites:</p>
+                    {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-1 p-1 bg-muted/30 rounded text-[10px]">
                         <div className="flex-1 min-w-0">
-                          <code className="text-[10px] bg-background px-1.5 py-0.5 rounded block truncate">
+                          <code className="text-[9px] bg-background px-1 py-0.5 rounded block truncate">
                             {window.location.origin}/join/{invite.invite_code}
                           </code>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Used {invite.use_count} times
-                            {invite.max_uses && ` • ${invite.max_uses - invite.use_count} remaining`}
-                            {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
+                          <p className="text-[9px] text-muted-foreground mt-0.5">
+                            Used {invite.use_count}×
+                            {invite.max_uses && ` • ${invite.max_uses - invite.use_count} left`}
+                            {invite.expires_at && ` • ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-7 w-7">
-                          <Copy className="h-3 w-3" />
+                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-6 w-6">
+                          <Copy className="h-2.5 w-2.5" />
                         </Button>
                       </div>)}
                   </div>}
