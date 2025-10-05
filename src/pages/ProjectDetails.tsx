@@ -28,6 +28,8 @@ const ProjectDetails = () => {
     );
   }
 
+  const userState = project.activeUsers[activeUser.id] || { isActive: false, isDriving: false };
+
   const allActivities = [
     ...project.entries.map((e) => ({
       type: "time" as const,
@@ -190,16 +192,16 @@ const ProjectDetails = () => {
         <div className="flex gap-3 flex-wrap">
           <Button
             onClick={() => toggleProject(project.id)}
-            variant={project.isActive ? "destructive" : "default"}
+            variant={userState.isActive ? "destructive" : "default"}
             className="flex-1 min-w-[150px]"
           >
             <Clock className="mr-2 h-5 w-5" />
-            {project.isActive ? "Stopp tid" : "Start tid"}
+            {userState.isActive ? "Stopp tid" : "Start tid"}
           </Button>
 
           <DriveDialog
             projectId={project.id}
-            isDriving={project.isDriving}
+            isDriving={userState.isDriving}
             onToggleDriving={toggleDriving}
           />
 

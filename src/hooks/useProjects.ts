@@ -10,60 +10,107 @@ export const useProjects = (userId: string, userName: string) => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return parsed.map((p: any) => ({
-        ...p,
-        // Migration: Add default customerInfo if missing
-        customerInfo: p.customerInfo || {
-          name: p.name || "Ukjent kunde",
-          address: "",
-          phone: "",
-          email: "",
-          contractNumber: "",
-          description: "",
-        },
-        createdAt: new Date(p.createdAt),
-        currentEntry: p.currentEntry
-          ? {
-              ...p.currentEntry,
-              startTime: new Date(p.currentEntry.startTime),
-              endTime: p.currentEntry.endTime ? new Date(p.currentEntry.endTime) : undefined,
-              userId: p.currentEntry.userId || p.userId || userId,
-              userName: p.currentEntry.userName || userName,
-            }
-          : undefined,
-        currentDrive: p.currentDrive
-          ? {
-              ...p.currentDrive,
-              startTime: new Date(p.currentDrive.startTime),
-              endTime: p.currentDrive.endTime ? new Date(p.currentDrive.endTime) : undefined,
-              userId: p.currentDrive.userId || p.userId || userId,
-              userName: p.currentDrive.userName || userName,
-            }
-          : undefined,
-        entries: (p.entries || []).map((e: any) => ({
-          ...e,
-          startTime: new Date(e.startTime),
-          endTime: e.endTime ? new Date(e.endTime) : undefined,
-          userId: e.userId || p.userId || userId,
-          userName: e.userName || userName,
-        })),
-        driveEntries: (p.driveEntries || []).map((e: any) => ({
-          ...e,
-          startTime: new Date(e.startTime),
-          endTime: e.endTime ? new Date(e.endTime) : undefined,
-          userId: e.userId || p.userId || userId,
-          userName: e.userName || userName,
-        })),
-        materials: (p.materials || []).map((m: any) => ({
-          ...m,
-          addedAt: new Date(m.addedAt),
-          userId: m.userId || p.userId || userId,
-          userName: m.userName || userName,
-        })),
-        totalKilometers: p.totalKilometers || 0,
-        totalMaterialCost: p.totalMaterialCost || 0,
-        isDriving: p.isDriving || false,
-      }));
+      return parsed.map((p: any) => {
+        // Migration: Convert old structure to new per-user structure
+        const activeUsers: Record<string, { isActive: boolean; isDriving: boolean }> = 
+          p.activeUsers || {};
+        const currentEntries: Record<string, TimeEntry> = {};
+        const currentDrives: Record<string, DriveEntry> = {};
+
+        // Migrate old currentEntry to new structure
+        if (p.currentEntry && !p.currentEntries) {
+          const entry = {
+            ...p.currentEntry,
+            startTime: new Date(p.currentEntry.startTime),
+            endTime: p.currentEntry.endTime ? new Date(p.currentEntry.endTime) : undefined,
+            userId: p.currentEntry.userId || p.userId || userId,
+            userName: p.currentEntry.userName || userName,
+          };
+          currentEntries[entry.userId] = entry;
+          activeUsers[entry.userId] = { 
+            isActive: true, 
+            isDriving: activeUsers[entry.userId]?.isDriving || false 
+          };
+        } else if (p.currentEntries) {
+          Object.entries(p.currentEntries).forEach(([uid, e]: [string, any]) => {
+            currentEntries[uid] = {
+              ...e,
+              startTime: new Date(e.startTime),
+              endTime: e.endTime ? new Date(e.endTime) : undefined,
+            };
+          });
+        }
+
+        // Migrate old currentDrive to new structure
+        if (p.currentDrive && !p.currentDrives) {
+          const drive = {
+            ...p.currentDrive,
+            startTime: new Date(p.currentDrive.startTime),
+            endTime: p.currentDrive.endTime ? new Date(p.currentDrive.endTime) : undefined,
+            userId: p.currentDrive.userId || p.userId || userId,
+            userName: p.currentDrive.userName || userName,
+          };
+          currentDrives[drive.userId] = drive;
+          activeUsers[drive.userId] = { 
+            isActive: activeUsers[drive.userId]?.isActive || false,
+            isDriving: true 
+          };
+        } else if (p.currentDrives) {
+          Object.entries(p.currentDrives).forEach(([uid, d]: [string, any]) => {
+            currentDrives[uid] = {
+              ...d,
+              startTime: new Date(d.startTime),
+              endTime: d.endTime ? new Date(d.endTime) : undefined,
+            };
+          });
+        }
+
+        // Migrate old isActive/isDriving flags
+        if (p.isActive !== undefined && p.userId && !activeUsers[p.userId]) {
+          activeUsers[p.userId] = {
+            isActive: p.isActive || false,
+            isDriving: p.isDriving || false,
+          };
+        }
+
+        return {
+          ...p,
+          customerInfo: p.customerInfo || {
+            name: p.name || "Ukjent kunde",
+            address: "",
+            phone: "",
+            email: "",
+            contractNumber: "",
+            description: "",
+          },
+          createdAt: new Date(p.createdAt),
+          activeUsers,
+          currentEntries,
+          currentDrives,
+          entries: (p.entries || []).map((e: any) => ({
+            ...e,
+            startTime: new Date(e.startTime),
+            endTime: e.endTime ? new Date(e.endTime) : undefined,
+            userId: e.userId || p.userId || userId,
+            userName: e.userName || userName,
+          })),
+          driveEntries: (p.driveEntries || []).map((e: any) => ({
+            ...e,
+            startTime: new Date(e.startTime),
+            endTime: e.endTime ? new Date(e.endTime) : undefined,
+            userId: e.userId || p.userId || userId,
+            userName: e.userName || userName,
+          })),
+          materials: (p.materials || []).map((m: any) => ({
+            ...m,
+            addedAt: new Date(m.addedAt),
+            userId: m.userId || p.userId || userId,
+            userName: m.userName || userName,
+          })),
+          totalKilometers: p.totalKilometers || 0,
+          totalMaterialCost: p.totalMaterialCost || 0,
+        };
+      });
     }
     return [];
   });
@@ -72,20 +119,26 @@ export const useProjects = (userId: string, userName: string) => {
     const toStore = projects.map((p) => ({
       ...p,
       createdAt: p.createdAt.toISOString(),
-      currentEntry: p.currentEntry
-        ? {
-            ...p.currentEntry,
-            startTime: p.currentEntry.startTime.toISOString(),
-            endTime: p.currentEntry.endTime?.toISOString(),
-          }
-        : undefined,
-      currentDrive: p.currentDrive
-        ? {
-            ...p.currentDrive,
-            startTime: p.currentDrive.startTime.toISOString(),
-            endTime: p.currentDrive.endTime?.toISOString(),
-          }
-        : undefined,
+      currentEntries: Object.fromEntries(
+        Object.entries(p.currentEntries).map(([uid, e]) => [
+          uid,
+          {
+            ...e,
+            startTime: e.startTime.toISOString(),
+            endTime: e.endTime?.toISOString(),
+          },
+        ])
+      ),
+      currentDrives: Object.fromEntries(
+        Object.entries(p.currentDrives).map(([uid, d]) => [
+          uid,
+          {
+            ...d,
+            startTime: d.startTime.toISOString(),
+            endTime: d.endTime?.toISOString(),
+          },
+        ])
+      ),
       entries: p.entries.map((e) => ({
         ...e,
         startTime: e.startTime.toISOString(),
@@ -113,9 +166,10 @@ export const useProjects = (userId: string, userName: string) => {
       totalTime: 0,
       totalKilometers: 0,
       totalMaterialCost: 0,
-      isActive: false,
-      isDriving: false,
       userId,
+      activeUsers: {},
+      currentEntries: {},
+      currentDrives: {},
       entries: [],
       driveEntries: [],
       materials: [],
@@ -130,29 +184,38 @@ export const useProjects = (userId: string, userName: string) => {
       prev.map((project) => {
         if (project.id !== id) return project;
 
-        if (project.isActive) {
-          // Stop the project
-          if (project.currentEntry) {
+        const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
+        
+        if (userState.isActive) {
+          // Stop the project for this user
+          const currentEntry = project.currentEntries[userId];
+          if (currentEntry) {
             const endTime = new Date();
-            const duration = getTotalSeconds(project.currentEntry.startTime, endTime);
+            const duration = getTotalSeconds(currentEntry.startTime, endTime);
             const completedEntry: TimeEntry = {
-              ...project.currentEntry,
+              ...currentEntry,
               endTime,
               duration,
             };
 
             toast.success(`Stoppet "${project.name}"`);
             
+            const newCurrentEntries = { ...project.currentEntries };
+            delete newCurrentEntries[userId];
+            
             return {
               ...project,
-              isActive: false,
+              activeUsers: {
+                ...project.activeUsers,
+                [userId]: { ...userState, isActive: false },
+              },
+              currentEntries: newCurrentEntries,
               totalTime: project.totalTime + duration,
               entries: [...project.entries, completedEntry],
-              currentEntry: undefined,
             };
           }
         } else {
-          // Start the project
+          // Start the project for this user
           const newEntry: TimeEntry = {
             id: Date.now().toString(),
             startTime: new Date(),
@@ -165,8 +228,14 @@ export const useProjects = (userId: string, userName: string) => {
           
           return {
             ...project,
-            isActive: true,
-            currentEntry: newEntry,
+            activeUsers: {
+              ...project.activeUsers,
+              [userId]: { ...userState, isActive: true },
+            },
+            currentEntries: {
+              ...project.currentEntries,
+              [userId]: newEntry,
+            },
           };
         }
 
@@ -180,28 +249,37 @@ export const useProjects = (userId: string, userName: string) => {
       prev.map((project) => {
         if (project.id !== id) return project;
 
-        if (project.isDriving) {
-          // Stop driving
-          if (project.currentDrive && kilometers !== undefined) {
+        const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
+
+        if (userState.isDriving) {
+          // Stop driving for this user
+          const currentDrive = project.currentDrives[userId];
+          if (currentDrive && kilometers !== undefined) {
             const endTime = new Date();
             const completedDrive: DriveEntry = {
-              ...project.currentDrive,
+              ...currentDrive,
               endTime,
               kilometers,
             };
 
             toast.success(`Registrert ${kilometers} km på "${project.name}"`);
             
+            const newCurrentDrives = { ...project.currentDrives };
+            delete newCurrentDrives[userId];
+            
             return {
               ...project,
-              isDriving: false,
+              activeUsers: {
+                ...project.activeUsers,
+                [userId]: { ...userState, isDriving: false },
+              },
+              currentDrives: newCurrentDrives,
               totalKilometers: project.totalKilometers + kilometers,
               driveEntries: [...project.driveEntries, completedDrive],
-              currentDrive: undefined,
             };
           }
         } else {
-          // Start driving
+          // Start driving for this user
           const newDrive: DriveEntry = {
             id: Date.now().toString(),
             startTime: new Date(),
@@ -213,8 +291,14 @@ export const useProjects = (userId: string, userName: string) => {
           
           return {
             ...project,
-            isDriving: true,
-            currentDrive: newDrive,
+            activeUsers: {
+              ...project.activeUsers,
+              [userId]: { ...userState, isDriving: true },
+            },
+            currentDrives: {
+              ...project.currentDrives,
+              [userId]: newDrive,
+            },
           };
         }
 

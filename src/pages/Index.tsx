@@ -11,7 +11,10 @@ const Index = () => {
   const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
 
   const totalTime = projects.reduce((acc, p) => acc + p.totalTime, 0);
-  const activeCount = projects.filter((p) => p.isActive).length;
+  const activeCount = projects.filter((p) => {
+    const userState = p.activeUsers[activeUser.id];
+    return userState?.isActive || false;
+  }).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,6 +86,7 @@ const Index = () => {
               <ProjectCard
                 key={project.id}
                 project={project}
+                userId={activeUser.id}
                 onToggle={toggleProject}
                 onDelete={deleteProject}
               />

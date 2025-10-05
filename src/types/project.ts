@@ -49,11 +49,10 @@ export interface Project {
   totalTime: number; // in seconds
   totalKilometers: number;
   totalMaterialCost: number;
-  isActive: boolean;
-  isDriving: boolean;
   userId: string;
-  currentEntry?: TimeEntry;
-  currentDrive?: DriveEntry;
+  activeUsers: Record<string, { isActive: boolean; isDriving: boolean }>;
+  currentEntries: Record<string, TimeEntry>;
+  currentDrives: Record<string, DriveEntry>;
   entries: TimeEntry[];
   driveEntries: DriveEntry[];
   materials: Material[];

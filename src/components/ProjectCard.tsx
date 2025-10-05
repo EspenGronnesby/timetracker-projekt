@@ -8,29 +8,33 @@ import { formatDuration } from "@/lib/timeUtils";
 
 interface ProjectCardProps {
   project: Project;
+  userId: string;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) => {
+export const ProjectCard = ({ project, userId, onToggle, onDelete }: ProjectCardProps) => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(project.totalTime);
+  
+  const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
+  const currentEntry = project.currentEntries[userId];
 
   useEffect(() => {
-    if (!project.isActive) {
+    if (!userState.isActive) {
       setCurrentTime(project.totalTime);
       return;
     }
 
     const interval = setInterval(() => {
-      if (project.currentEntry?.startTime) {
-        const elapsed = Math.floor((Date.now() - project.currentEntry.startTime.getTime()) / 1000);
+      if (currentEntry?.startTime) {
+        const elapsed = Math.floor((Date.now() - currentEntry.startTime.getTime()) / 1000);
         setCurrentTime(project.totalTime + elapsed);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [project.isActive, project.totalTime, project.currentEntry]);
+  }, [userState.isActive, project.totalTime, currentEntry]);
 
   return (
     <Card 
@@ -42,8 +46,8 @@ export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) =
           <div 
             className="w-4 h-4 rounded-full transition-all duration-300"
             style={{ 
-              backgroundColor: project.isActive ? 'hsl(var(--accent))' : project.color,
-              boxShadow: project.isActive ? '0 0 12px hsl(var(--accent))' : 'none'
+              backgroundColor: userState.isActive ? 'hsl(var(--accent))' : project.color,
+              boxShadow: userState.isActive ? '0 0 12px hsl(var(--accent))' : 'none'
             }}
           />
           <div>
@@ -78,13 +82,13 @@ export const ProjectCard = ({ project, onToggle, onDelete }: ProjectCardProps) =
             onToggle(project.id);
           }}
           className={`transition-all duration-300 ${
-            project.isActive
+            userState.isActive
               ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
               : "bg-primary hover:bg-primary/90 text-primary-foreground"
           }`}
           size="lg"
         >
-          {project.isActive ? (
+          {userState.isActive ? (
             <>
               <Pause className="mr-2 h-5 w-5" />
               Pause
