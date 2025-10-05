@@ -43,9 +43,8 @@ export const AddMaterialDialog = ({ onAddMaterial }: AddMaterialDialogProps) => 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex-1 min-w-[150px]" variant="outline">
-          <Package className="mr-2 h-5 w-5" />
-          Legg til materiale
+        <Button size="sm" variant="outline">
+          <Package className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
