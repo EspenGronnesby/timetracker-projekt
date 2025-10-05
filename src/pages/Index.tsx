@@ -10,7 +10,13 @@ const Index = () => {
   const { activeUser, setActiveUser, users } = useActiveUser();
   const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
 
-  const totalTime = projects.reduce((acc, p) => acc + p.totalTime, 0);
+  // Calculate stats for the active user only
+  const totalTime = projects.reduce((acc, p) => {
+    const userEntries = p.entries.filter(e => e.userId === activeUser.id);
+    const userTime = userEntries.reduce((sum, e) => sum + e.duration, 0);
+    return acc + userTime;
+  }, 0);
+  
   const activeCount = projects.filter((p) => {
     const userState = p.activeUsers[activeUser.id];
     return userState?.isActive || false;

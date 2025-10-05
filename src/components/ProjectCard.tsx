@@ -15,26 +15,32 @@ interface ProjectCardProps {
 
 export const ProjectCard = ({ project, userId, onToggle, onDelete }: ProjectCardProps) => {
   const navigate = useNavigate();
-  const [currentTime, setCurrentTime] = useState(project.totalTime);
   
   const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
   const currentEntry = project.currentEntries[userId];
+  
+  // Calculate total time for this specific user
+  const userTotalTime = project.entries
+    .filter(e => e.userId === userId)
+    .reduce((sum, e) => sum + e.duration, 0);
+  
+  const [currentTime, setCurrentTime] = useState(userTotalTime);
 
   useEffect(() => {
     if (!userState.isActive) {
-      setCurrentTime(project.totalTime);
+      setCurrentTime(userTotalTime);
       return;
     }
 
     const interval = setInterval(() => {
       if (currentEntry?.startTime) {
         const elapsed = Math.floor((Date.now() - currentEntry.startTime.getTime()) / 1000);
-        setCurrentTime(project.totalTime + elapsed);
+        setCurrentTime(userTotalTime + elapsed);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [userState.isActive, project.totalTime, currentEntry]);
+  }, [userState.isActive, userTotalTime, currentEntry]);
 
   return (
     <Card 
