@@ -108,8 +108,8 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
-  // Search and sort projects - must be before early return
-  const filteredAndSortedProjects = useMemo(() => {
+  // Search and sort projects - compute without hooks to avoid hook order issues
+  const filteredAndSortedProjects = (() => {
     let filtered = projects.filter((project) =>
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -144,7 +144,7 @@ const Index = () => {
     }
 
     return filtered;
-  }, [projects, searchQuery, sortBy, filteredTimeEntries, activeTimeEntries, activeDriveEntries]);
+  })();
 
   // Early return AFTER all hooks
   if (loading || !user) {
