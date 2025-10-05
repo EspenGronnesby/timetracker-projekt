@@ -1,14 +1,14 @@
-import { Clock } from "lucide-react";
+import { Clock, LogOut } from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-import { UserSelector } from "@/components/UserSelector";
 import { UserLogin } from "@/components/UserLogin";
+import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/useProjects";
 import { useActiveUser } from "@/hooks/useActiveUser";
 import { formatDuration } from "@/lib/timeUtils";
 
 const Index = () => {
-  const { activeUser, setActiveUser, users, isLoggedIn, login, logout } = useActiveUser();
+  const { activeUser, users, isLoggedIn, login, logout } = useActiveUser();
   const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
 
   if (!isLoggedIn) {
@@ -45,12 +45,15 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
-              <UserSelector 
-                users={users} 
-                activeUser={activeUser} 
-                onUserChange={setActiveUser}
-                onLogout={logout}
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={logout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Bytt bruker
+              </Button>
               <AddProjectDialog onAdd={addProject} />
             </div>
           </div>
