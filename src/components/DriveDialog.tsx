@@ -13,17 +13,16 @@ import { Label } from "@/components/ui/label";
 import { Car } from "lucide-react";
 
 interface DriveDialogProps {
-  projectId: string;
   isDriving: boolean;
-  onToggleDriving: (projectId: string, kilometers?: number) => void;
+  onToggleDriving: (kilometers?: number) => void;
 }
 
-export const DriveDialog = ({ projectId, isDriving, onToggleDriving }: DriveDialogProps) => {
+export const DriveDialog = ({ isDriving, onToggleDriving }: DriveDialogProps) => {
   const [open, setOpen] = useState(false);
   const [kilometers, setKilometers] = useState("");
 
   const handleStart = () => {
-    onToggleDriving(projectId);
+    onToggleDriving();
     setOpen(false);
   };
 
@@ -31,7 +30,7 @@ export const DriveDialog = ({ projectId, isDriving, onToggleDriving }: DriveDial
     e.preventDefault();
     const km = parseFloat(kilometers);
     if (!isNaN(km) && km > 0) {
-      onToggleDriving(projectId, km);
+      onToggleDriving(km);
       setKilometers("");
       setOpen(false);
     }

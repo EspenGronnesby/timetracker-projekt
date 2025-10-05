@@ -16,7 +16,7 @@ import { CustomerInfo } from "@/types/project";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AddProjectDialogProps {
-  onAdd: (name: string, color: string, customerInfo: CustomerInfo) => void;
+  onAddProject: (name: string, color: string, customerInfo: CustomerInfo) => void;
 }
 
 const PRESET_COLORS = [
@@ -24,7 +24,7 @@ const PRESET_COLORS = [
   "#F59E0B", "#10B981", "#EF4444", "#6366F1"
 ];
 
-export const AddProjectDialog = ({ onAdd }: AddProjectDialogProps) => {
+export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
@@ -40,7 +40,7 @@ export const AddProjectDialog = ({ onAdd }: AddProjectDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && customerInfo.name.trim()) {
-      onAdd(name.trim(), selectedColor, customerInfo);
+      onAddProject(name.trim(), selectedColor, customerInfo);
       setName("");
       setSelectedColor(PRESET_COLORS[0]);
       setCustomerInfo({

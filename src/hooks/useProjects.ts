@@ -1,353 +1,356 @@
-import { useState, useEffect } from "react";
-import { Project, TimeEntry, DriveEntry, Material, CustomerInfo } from "@/types/project";
-import { getTotalSeconds } from "@/lib/timeUtils";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const STORAGE_KEY = "timetracker_projects";
+export type Project = {
+  id: string;
+  name: string;
+  color: string;
+  customer_name: string;
+  customer_address: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
+  contract_number: string | null;
+  description: string | null;
+  created_by: string;
+  created_at: string;
+};
 
-export const useProjects = (userId: string, userName: string) => {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.map((p: any) => {
-        // Migration: Convert old structure to new per-user structure
-        const activeUsers: Record<string, { isActive: boolean; isDriving: boolean }> = 
-          p.activeUsers || {};
-        const currentEntries: Record<string, TimeEntry> = {};
-        const currentDrives: Record<string, DriveEntry> = {};
+export type TimeEntry = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  user_name: string;
+  start_time: string;
+  end_time: string | null;
+  duration_seconds: number;
+  created_at: string;
+};
 
-        // Migrate old currentEntry to new structure
-        if (p.currentEntry && !p.currentEntries) {
-          const entry = {
-            ...p.currentEntry,
-            startTime: new Date(p.currentEntry.startTime),
-            endTime: p.currentEntry.endTime ? new Date(p.currentEntry.endTime) : undefined,
-            userId: p.currentEntry.userId || p.userId || userId,
-            userName: p.currentEntry.userName || userName,
-          };
-          currentEntries[entry.userId] = entry;
-          activeUsers[entry.userId] = { 
-            isActive: true, 
-            isDriving: activeUsers[entry.userId]?.isDriving || false 
-          };
-        } else if (p.currentEntries) {
-          Object.entries(p.currentEntries).forEach(([uid, e]: [string, any]) => {
-            currentEntries[uid] = {
-              ...e,
-              startTime: new Date(e.startTime),
-              endTime: e.endTime ? new Date(e.endTime) : undefined,
-            };
-          });
-        }
+export type DriveEntry = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  user_name: string;
+  start_time: string;
+  end_time: string | null;
+  kilometers: number | null;
+  created_at: string;
+};
 
-        // Migrate old currentDrive to new structure
-        if (p.currentDrive && !p.currentDrives) {
-          const drive = {
-            ...p.currentDrive,
-            startTime: new Date(p.currentDrive.startTime),
-            endTime: p.currentDrive.endTime ? new Date(p.currentDrive.endTime) : undefined,
-            userId: p.currentDrive.userId || p.userId || userId,
-            userName: p.currentDrive.userName || userName,
-          };
-          currentDrives[drive.userId] = drive;
-          activeUsers[drive.userId] = { 
-            isActive: activeUsers[drive.userId]?.isActive || false,
-            isDriving: true 
-          };
-        } else if (p.currentDrives) {
-          Object.entries(p.currentDrives).forEach(([uid, d]: [string, any]) => {
-            currentDrives[uid] = {
-              ...d,
-              startTime: new Date(d.startTime),
-              endTime: d.endTime ? new Date(d.endTime) : undefined,
-            };
-          });
-        }
+export type Material = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  user_name: string;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  created_at: string;
+};
 
-        // Migrate old isActive/isDriving flags
-        if (p.isActive !== undefined && p.userId && !activeUsers[p.userId]) {
-          activeUsers[p.userId] = {
-            isActive: p.isActive || false,
-            isDriving: p.isDriving || false,
-          };
-        }
+interface CustomerInfo {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  contractNumber: string;
+  description: string;
+}
 
-        return {
-          ...p,
-          customerInfo: p.customerInfo || {
-            name: p.name || "Ukjent kunde",
-            address: "",
-            phone: "",
-            email: "",
-            contractNumber: "",
-            description: "",
-          },
-          createdAt: new Date(p.createdAt),
-          activeUsers,
-          currentEntries,
-          currentDrives,
-          entries: (p.entries || []).map((e: any) => ({
-            ...e,
-            startTime: new Date(e.startTime),
-            endTime: e.endTime ? new Date(e.endTime) : undefined,
-            userId: e.userId || p.userId || userId,
-            userName: e.userName || userName,
-          })),
-          driveEntries: (p.driveEntries || []).map((e: any) => ({
-            ...e,
-            startTime: new Date(e.startTime),
-            endTime: e.endTime ? new Date(e.endTime) : undefined,
-            userId: e.userId || p.userId || userId,
-            userName: e.userName || userName,
-          })),
-          materials: (p.materials || []).map((m: any) => ({
-            ...m,
-            addedAt: new Date(m.addedAt),
-            userId: m.userId || p.userId || userId,
-            userName: m.userName || userName,
-          })),
-          totalKilometers: p.totalKilometers || 0,
-          totalMaterialCost: p.totalMaterialCost || 0,
-        };
-      });
-    }
-    return [];
+export const useProjects = (userId?: string) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Project[];
+    },
+    enabled: !!userId,
   });
 
-  useEffect(() => {
-    const toStore = projects.map((p) => ({
-      ...p,
-      createdAt: p.createdAt.toISOString(),
-      currentEntries: Object.fromEntries(
-        Object.entries(p.currentEntries).map(([uid, e]) => [
-          uid,
-          {
-            ...e,
-            startTime: e.startTime.toISOString(),
-            endTime: e.endTime?.toISOString(),
-          },
-        ])
-      ),
-      currentDrives: Object.fromEntries(
-        Object.entries(p.currentDrives).map(([uid, d]) => [
-          uid,
-          {
-            ...d,
-            startTime: d.startTime.toISOString(),
-            endTime: d.endTime?.toISOString(),
-          },
-        ])
-      ),
-      entries: p.entries.map((e) => ({
-        ...e,
-        startTime: e.startTime.toISOString(),
-        endTime: e.endTime?.toISOString(),
-      })),
-      driveEntries: p.driveEntries.map((e) => ({
-        ...e,
-        startTime: e.startTime.toISOString(),
-        endTime: e.endTime?.toISOString(),
-      })),
-      materials: p.materials.map((m) => ({
-        ...m,
-        addedAt: m.addedAt.toISOString(),
-      })),
-    }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
-  }, [projects]);
+  const { data: timeEntries = [] } = useQuery({
+    queryKey: ["time_entries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("*")
+        .order("start_time", { ascending: false });
 
-  const addProject = (name: string, color: string, customerInfo: CustomerInfo) => {
-    const newProject: Project = {
-      id: Date.now().toString(),
+      if (error) throw error;
+      return data as TimeEntry[];
+    },
+    enabled: !!userId,
+  });
+
+  const { data: driveEntries = [] } = useQuery({
+    queryKey: ["drive_entries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("drive_entries")
+        .select("*")
+        .order("start_time", { ascending: false });
+
+      if (error) throw error;
+      return data as DriveEntry[];
+    },
+    enabled: !!userId,
+  });
+
+  const { data: materials = [] } = useQuery({
+    queryKey: ["materials"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("materials")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Material[];
+    },
+    enabled: !!userId,
+  });
+
+  const addProject = useMutation({
+    mutationFn: async ({
       name,
       color,
       customerInfo,
-      totalTime: 0,
-      totalKilometers: 0,
-      totalMaterialCost: 0,
-      userId,
-      activeUsers: {},
-      currentEntries: {},
-      currentDrives: {},
-      entries: [],
-      driveEntries: [],
-      materials: [],
-      createdAt: new Date(),
-    };
-    setProjects((prev) => [...prev, newProject]);
-    toast.success(`Prosjekt "${name}" opprettet!`);
-  };
+    }: {
+      name: string;
+      color: string;
+      customerInfo: CustomerInfo;
+    }) => {
+      if (!userId) throw new Error("Must be logged in");
 
-  const toggleProject = (id: string) => {
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project.id !== id) return project;
-
-        const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
-        
-        if (userState.isActive) {
-          // Stop the project for this user
-          const currentEntry = project.currentEntries[userId];
-          if (currentEntry) {
-            const endTime = new Date();
-            const duration = getTotalSeconds(currentEntry.startTime, endTime);
-            const completedEntry: TimeEntry = {
-              ...currentEntry,
-              endTime,
-              duration,
-            };
-
-            toast.success(`Stoppet "${project.name}"`);
-            
-            const newCurrentEntries = { ...project.currentEntries };
-            delete newCurrentEntries[userId];
-            
-            return {
-              ...project,
-              activeUsers: {
-                ...project.activeUsers,
-                [userId]: { ...userState, isActive: false },
-              },
-              currentEntries: newCurrentEntries,
-              totalTime: project.totalTime + duration,
-              entries: [...project.entries, completedEntry],
-            };
-          }
-        } else {
-          // Start the project for this user
-          const newEntry: TimeEntry = {
-            id: Date.now().toString(),
-            startTime: new Date(),
-            duration: 0,
-            userId,
-            userName,
-          };
-          
-          toast.success(`Startet "${project.name}"`);
-          
-          return {
-            ...project,
-            activeUsers: {
-              ...project.activeUsers,
-              [userId]: { ...userState, isActive: true },
-            },
-            currentEntries: {
-              ...project.currentEntries,
-              [userId]: newEntry,
-            },
-          };
-        }
-
-        return project;
-      })
-    );
-  };
-
-  const toggleDriving = (id: string, kilometers?: number) => {
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project.id !== id) return project;
-
-        const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
-
-        if (userState.isDriving) {
-          // Stop driving for this user
-          const currentDrive = project.currentDrives[userId];
-          if (currentDrive && kilometers !== undefined) {
-            const endTime = new Date();
-            const completedDrive: DriveEntry = {
-              ...currentDrive,
-              endTime,
-              kilometers,
-            };
-
-            toast.success(`Registrert ${kilometers} km på "${project.name}"`);
-            
-            const newCurrentDrives = { ...project.currentDrives };
-            delete newCurrentDrives[userId];
-            
-            return {
-              ...project,
-              activeUsers: {
-                ...project.activeUsers,
-                [userId]: { ...userState, isDriving: false },
-              },
-              currentDrives: newCurrentDrives,
-              totalKilometers: project.totalKilometers + kilometers,
-              driveEntries: [...project.driveEntries, completedDrive],
-            };
-          }
-        } else {
-          // Start driving for this user
-          const newDrive: DriveEntry = {
-            id: Date.now().toString(),
-            startTime: new Date(),
-            userId,
-            userName,
-          };
-          
-          toast.success(`Startet kjøring for "${project.name}"`);
-          
-          return {
-            ...project,
-            activeUsers: {
-              ...project.activeUsers,
-              [userId]: { ...userState, isDriving: true },
-            },
-            currentDrives: {
-              ...project.currentDrives,
-              [userId]: newDrive,
-            },
-          };
-        }
-
-        return project;
-      })
-    );
-  };
-
-  const addMaterial = (projectId: string, name: string, quantity: number, unitPrice: number) => {
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project.id !== projectId) return project;
-
-        const material: Material = {
-          id: Date.now().toString(),
+      const { data, error } = await supabase
+        .from("projects")
+        .insert({
           name,
-          quantity,
-          unitPrice,
-          totalPrice: quantity * unitPrice,
-          addedAt: new Date(),
-          userId,
-          userName,
-        };
+          color,
+          customer_name: customerInfo.name,
+          customer_address: customerInfo.address,
+          customer_phone: customerInfo.phone,
+          customer_email: customerInfo.email,
+          contract_number: customerInfo.contractNumber,
+          description: customerInfo.description,
+          created_by: userId,
+        })
+        .select()
+        .single();
 
-        toast.success(`Lagt til materiale: ${name}`);
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({ title: "Prosjekt opprettet!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke opprette prosjekt",
+        description: error.message,
+      });
+    },
+  });
 
-        return {
-          ...project,
-          totalMaterialCost: project.totalMaterialCost + material.totalPrice,
-          materials: [...project.materials, material],
-        };
-      })
-    );
-  };
+  const toggleProject = useMutation({
+    mutationFn: async ({
+      projectId,
+      userName,
+    }: {
+      projectId: string;
+      userName: string;
+    }) => {
+      if (!userId) throw new Error("Must be logged in");
 
-  const deleteProject = (id: string) => {
-    const project = projects.find((p) => p.id === id);
-    setProjects((prev) => prev.filter((p) => p.id !== id));
-    if (project) {
-      toast.success(`Prosjekt "${project.name}" slettet`);
-    }
-  };
+      const activeEntry = timeEntries.find(
+        (entry) =>
+          entry.project_id === projectId &&
+          entry.user_id === userId &&
+          !entry.end_time
+      );
+
+      if (activeEntry) {
+        const endTime = new Date().toISOString();
+        const startTime = new Date(activeEntry.start_time);
+        const duration = Math.floor(
+          (new Date(endTime).getTime() - startTime.getTime()) / 1000
+        );
+
+        const { error } = await supabase
+          .from("time_entries")
+          .update({
+            end_time: endTime,
+            duration_seconds: duration,
+          })
+          .eq("id", activeEntry.id);
+
+        if (error) throw error;
+        return { action: "stop", entryId: activeEntry.id };
+      } else {
+        const { error } = await supabase.from("time_entries").insert({
+          project_id: projectId,
+          user_id: userId,
+          user_name: userName,
+          start_time: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+        return { action: "start" };
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Feil ved tidssporing",
+        description: error.message,
+      });
+    },
+  });
+
+  const toggleDriving = useMutation({
+    mutationFn: async ({
+      projectId,
+      userName,
+      kilometers,
+    }: {
+      projectId: string;
+      userName: string;
+      kilometers?: number;
+    }) => {
+      if (!userId) throw new Error("Must be logged in");
+
+      const activeDrive = driveEntries.find(
+        (entry) =>
+          entry.project_id === projectId &&
+          entry.user_id === userId &&
+          !entry.end_time
+      );
+
+      if (activeDrive) {
+        const { error } = await supabase
+          .from("drive_entries")
+          .update({
+            end_time: new Date().toISOString(),
+            kilometers: kilometers || null,
+          })
+          .eq("id", activeDrive.id);
+
+        if (error) throw error;
+        return { action: "stop" };
+      } else {
+        const { error } = await supabase.from("drive_entries").insert({
+          project_id: projectId,
+          user_id: userId,
+          user_name: userName,
+          start_time: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+        return { action: "start" };
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drive_entries"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Feil ved kjøresporing",
+        description: error.message,
+      });
+    },
+  });
+
+  const addMaterial = useMutation({
+    mutationFn: async ({
+      projectId,
+      userName,
+      name,
+      quantity,
+      unitPrice,
+    }: {
+      projectId: string;
+      userName: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+    }) => {
+      if (!userId) throw new Error("Must be logged in");
+
+      const { error } = await supabase.from("materials").insert({
+        project_id: projectId,
+        user_id: userId,
+        user_name: userName,
+        name,
+        quantity,
+        unit_price: unitPrice,
+        total_price: quantity * unitPrice,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["materials"] });
+      toast({ title: "Materiale lagt til!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke legge til materiale",
+        description: error.message,
+      });
+    },
+  });
+
+  const deleteProject = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["drive_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["materials"] });
+      toast({ title: "Prosjekt slettet!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke slette prosjekt",
+        description: error.message,
+      });
+    },
+  });
 
   return {
     projects,
-    addProject,
-    toggleProject,
-    toggleDriving,
-    addMaterial,
-    deleteProject,
+    timeEntries,
+    driveEntries,
+    materials,
+    isLoading,
+    addProject: addProject.mutate,
+    toggleProject: toggleProject.mutate,
+    toggleDriving: toggleDriving.mutate,
+    addMaterial: addMaterial.mutate,
+    deleteProject: deleteProject.mutate,
   };
 };

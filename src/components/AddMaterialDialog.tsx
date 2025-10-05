@@ -13,11 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Package } from "lucide-react";
 
 interface AddMaterialDialogProps {
-  projectId: string;
-  onAdd: (projectId: string, name: string, quantity: number, unitPrice: number) => void;
+  onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
 }
 
-export const AddMaterialDialog = ({ projectId, onAdd }: AddMaterialDialogProps) => {
+export const AddMaterialDialog = ({ onAddMaterial }: AddMaterialDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -29,7 +28,7 @@ export const AddMaterialDialog = ({ projectId, onAdd }: AddMaterialDialogProps) 
     const price = parseFloat(unitPrice);
     
     if (name.trim() && !isNaN(qty) && qty > 0 && !isNaN(price) && price >= 0) {
-      onAdd(projectId, name.trim(), qty, price);
+      onAddMaterial(name.trim(), qty, price);
       setName("");
       setQuantity("");
       setUnitPrice("");
