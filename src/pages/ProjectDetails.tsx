@@ -8,7 +8,6 @@ import { formatDuration } from "@/lib/timeUtils";
 import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
 import { Separator } from "@/components/ui/separator";
-import { ActivityFilter, FilterType } from "@/components/ActivityFilter";
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -19,7 +18,6 @@ const ProjectDetails = () => {
   const { projects, toggleProject, toggleDriving, addMaterial } = useProjects(activeUser.id, activeUser.name);
   
   const [statsView, setStatsView] = useState<"my" | "total">("my");
-  const [activityFilter, setActivityFilter] = useState<FilterType>(activeUser.id as FilterType);
   const [liveTime, setLiveTime] = useState(0);
   
   const project = projects.find((p) => p.id === id);
@@ -117,7 +115,7 @@ const ProjectDetails = () => {
 
   // Filter activities by user
   const filteredActivities = allActivities.filter(activity => {
-    return activity.userId === activityFilter;
+    return activity.userId === activeUser.id;
   });
 
   return (
@@ -345,11 +343,6 @@ const ProjectDetails = () => {
         {/* Activity Log */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Aktivitetslogg</h2>
-          
-          <ActivityFilter 
-            activeFilter={activityFilter} 
-            onFilterChange={setActivityFilter} 
-          />
 
           {filteredActivities.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
