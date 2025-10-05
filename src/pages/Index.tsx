@@ -184,7 +184,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-0 py-4 sm:py-4 sticky top-0 z-10">
+      <header className="bg-card border-b border-border px-0 py-2 sm:py-3 sticky top-0 z-10">
         <div className="flex items-center justify-between gap-2 px-0">
           <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate px-4">
             {profile?.name}
@@ -209,7 +209,7 @@ const Index = () => {
           <OfflineIndicator />
         </div>
         
-        <div className="px-0">
+        <div className="px-4">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
