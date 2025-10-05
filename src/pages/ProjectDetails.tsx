@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText } from "lucide-react";
+import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useProjects } from "@/hooks/useProjects";
@@ -8,12 +8,19 @@ import { formatDuration } from "@/lib/timeUtils";
 import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
 import { Separator } from "@/components/ui/separator";
+import { ActivityFilter, FilterType } from "@/components/ActivityFilter";
+import { useState, useEffect } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { activeUser } = useActiveUser();
   const { projects, toggleProject, toggleDriving, addMaterial } = useProjects(activeUser.id, activeUser.name);
+  
+  const [statsView, setStatsView] = useState<"my" | "total">("my");
+  const [activityFilter, setActivityFilter] = useState<FilterType>("all");
+  const [liveTime, setLiveTime] = useState(0);
   
   const project = projects.find((p) => p.id === id);
 
@@ -29,6 +36,48 @@ const ProjectDetails = () => {
   }
 
   const userState = project.activeUsers[activeUser.id] || { isActive: false, isDriving: false };
+  const currentEntry = project.currentEntries[activeUser.id];
+
+  // Calculate user-specific stats
+  const userEntries = project.entries.filter(e => e.userId === activeUser.id);
+  const userDrives = project.driveEntries.filter(d => d.userId === activeUser.id);
+  const userMaterials = project.materials.filter(m => m.userId === activeUser.id);
+  
+  const userTotalTime = userEntries.reduce((sum, e) => sum + e.duration, 0);
+  const userTotalKm = userDrives.reduce((sum, d) => sum + (d.kilometers || 0), 0);
+  const userTotalMaterialCost = userMaterials.reduce((sum, m) => sum + m.totalPrice, 0);
+
+  // Live time tracking
+  useEffect(() => {
+    if (!userState.isActive || !currentEntry) {
+      setLiveTime(userTotalTime);
+      return;
+    }
+
+    const updateTime = () => {
+      const elapsed = Math.floor((Date.now() - currentEntry.startTime.getTime()) / 1000);
+      setLiveTime(userTotalTime + elapsed);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [userState.isActive, userTotalTime, currentEntry]);
+
+  // Active users count
+  const activeUsers = Object.entries(project.activeUsers)
+    .filter(([_, state]) => state.isActive)
+    .map(([userId]) => userId);
+
+  // Get user color for activity log
+  const getUserColor = (userId: string) => {
+    const colors: Record<string, string> = {
+      espen: "bg-blue-500/10 border-l-4 border-blue-500",
+      benjamin: "bg-green-500/10 border-l-4 border-green-500",
+      lukas: "bg-purple-500/10 border-l-4 border-purple-500",
+    };
+    return colors[userId] || "bg-muted";
+  };
 
   const allActivities = [
     ...project.entries.map((e) => ({
@@ -64,6 +113,20 @@ const ProjectDetails = () => {
     const dateA = "startTime" in a ? a.startTime : a.addedAt;
     const dateB = "startTime" in b ? b.startTime : b.addedAt;
     return dateB.getTime() - dateA.getTime();
+  });
+
+  // Filter activities
+  const filteredActivities = allActivities.filter(activity => {
+    const activityUserId = activity.userId;
+    
+    if (activityFilter === "my") return activityUserId === activeUser.id;
+    if (activityFilter === "espen") return activityUserId === "espen";
+    if (activityFilter === "benjamin") return activityUserId === "benjamin";
+    if (activityFilter === "lukas") return activityUserId === "lukas";
+    if (activityFilter === "time") return activity.type === "time";
+    if (activityFilter === "drive") return activity.type === "drive";
+    if (activityFilter === "material") return activity.type === "material";
+    return true;
   });
 
   return (
@@ -143,50 +206,130 @@ const ProjectDetails = () => {
           </div>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4 bg-primary/10">
+        {/* Active Users Indicator */}
+        {activeUsers.length > 0 && (
+          <Card className="p-4 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/20 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-primary" />
-              </div>
+              <Users className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Total tid</p>
-                <p className="text-2xl font-bold font-mono text-primary">
-                  {formatDuration(project.totalTime)}
+                <p className="text-sm font-medium">
+                  {activeUsers.length} {activeUsers.length === 1 ? "person" : "personer"} jobber nå
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {activeUsers.map(id => project.currentEntries[id]?.userName).filter(Boolean).join(", ")}
                 </p>
               </div>
             </div>
           </Card>
+        )}
 
-          <Card className="p-4 bg-accent/10">
-            <div className="flex items-center gap-3">
-              <div className="bg-accent/20 p-3 rounded-lg">
-                <Car className="h-6 w-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total kjøring</p>
-                <p className="text-2xl font-bold font-mono text-accent">
-                  {project.totalKilometers} km
-                </p>
-              </div>
+        {/* Stats Cards with Tabs */}
+        <Card className="p-6">
+          <Tabs value={statsView} onValueChange={(v) => setStatsView(v as "my" | "total")}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Statistikk</h2>
+              <TabsList>
+                <TabsTrigger value="my">Min statistikk</TabsTrigger>
+                <TabsTrigger value="total">Total statistikk</TabsTrigger>
+              </TabsList>
             </div>
-          </Card>
 
-          <Card className="p-4 bg-secondary">
-            <div className="flex items-center gap-3">
-              <div className="bg-secondary-foreground/10 p-3 rounded-lg">
-                <Package className="h-6 w-6 text-foreground" />
+            <TabsContent value="my" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/20 p-3 rounded-lg">
+                      <Clock className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Min tid</p>
+                      <p className="text-2xl font-bold font-mono text-primary">
+                        {formatDuration(userState.isActive ? liveTime : userTotalTime)}
+                      </p>
+                      {userState.isActive && (
+                        <p className="text-xs text-primary animate-pulse">● Kjører nå</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-accent/20 p-3 rounded-lg">
+                      <Car className="h-6 w-6 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Min kjøring</p>
+                      <p className="text-2xl font-bold font-mono text-accent">
+                        {userTotalKm} km
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-secondary-foreground/10 p-3 rounded-lg">
+                      <Package className="h-6 w-6 text-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Mine materialer</p>
+                      <p className="text-2xl font-bold font-mono text-foreground">
+                        {userTotalMaterialCost.toFixed(0)} kr
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Materialkostnad</p>
-                <p className="text-2xl font-bold font-mono text-foreground">
-                  {project.totalMaterialCost.toFixed(0)} kr
-                </p>
+            </TabsContent>
+
+            <TabsContent value="total" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/20 p-3 rounded-lg">
+                      <Clock className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total tid</p>
+                      <p className="text-2xl font-bold font-mono text-primary">
+                        {formatDuration(project.totalTime)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-accent/20 p-3 rounded-lg">
+                      <Car className="h-6 w-6 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total kjøring</p>
+                      <p className="text-2xl font-bold font-mono text-accent">
+                        {project.totalKilometers} km
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-secondary-foreground/10 p-3 rounded-lg">
+                      <Package className="h-6 w-6 text-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Materialkostnad</p>
+                      <p className="text-2xl font-bold font-mono text-foreground">
+                        {project.totalMaterialCost.toFixed(0)} kr
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </Card>
-        </div>
+            </TabsContent>
+          </Tabs>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex gap-3 flex-wrap">
@@ -211,21 +354,27 @@ const ProjectDetails = () => {
         {/* Activity Log */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Aktivitetslogg</h2>
-          {allActivities.length === 0 ? (
+          
+          <ActivityFilter 
+            activeFilter={activityFilter} 
+            onFilterChange={setActivityFilter} 
+          />
+
+          {filteredActivities.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              Ingen aktiviteter registrert ennå
+              Ingen aktiviteter funnet med valgt filter
             </p>
           ) : (
             <div className="space-y-3">
-              {allActivities.map((activity, index) => (
+              {filteredActivities.map((activity, index) => (
                 <div key={activity.id}>
                   {activity.type === "time" && (
-                    <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg">
+                    <div className={`flex items-start gap-3 p-3 rounded-lg ${getUserColor(activity.userId)}`}>
                       <Clock className="h-5 w-5 text-primary mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="font-medium">Tidsregistrering</p>
-                          <p className="text-sm text-muted-foreground">{activity.userName}</p>
+                          <p className="text-sm font-medium">{activity.userName}</p>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {activity.startTime.toLocaleString("no-NO")} 
@@ -241,12 +390,12 @@ const ProjectDetails = () => {
                   )}
 
                   {activity.type === "drive" && (
-                    <div className="flex items-start gap-3 p-3 bg-accent/5 rounded-lg">
+                    <div className={`flex items-start gap-3 p-3 rounded-lg ${getUserColor(activity.userId)}`}>
                       <Car className="h-5 w-5 text-accent mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="font-medium">Kjøring</p>
-                          <p className="text-sm text-muted-foreground">{activity.userName}</p>
+                          <p className="text-sm font-medium">{activity.userName}</p>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {activity.startTime.toLocaleString("no-NO")}
@@ -262,12 +411,12 @@ const ProjectDetails = () => {
                   )}
 
                   {activity.type === "material" && (
-                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg">
+                    <div className={`flex items-start gap-3 p-3 rounded-lg ${getUserColor(activity.userId)}`}>
                       <Package className="h-5 w-5 text-foreground mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="font-medium">{activity.name}</p>
-                          <p className="text-sm text-muted-foreground">{activity.userName}</p>
+                          <p className="text-sm font-medium">{activity.userName}</p>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {activity.addedAt.toLocaleString("no-NO")}
@@ -279,7 +428,7 @@ const ProjectDetails = () => {
                     </div>
                   )}
 
-                  {index < allActivities.length - 1 && <Separator className="my-2" />}
+                  {index < filteredActivities.length - 1 && <Separator className="my-2" />}
                 </div>
               ))}
             </div>
