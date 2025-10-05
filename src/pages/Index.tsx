@@ -2,6 +2,7 @@ import { Clock, LogOut } from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { UserLogin } from "@/components/UserLogin";
+import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/useProjects";
 import { useActiveUser } from "@/hooks/useActiveUser";
@@ -45,6 +46,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
+              <OnlineUsersIndicator />
               <Button
                 variant="outline"
                 size="sm"
