@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Project, TimeEntry, DriveEntry } from "@/hooks/useProjects";
+import { Project, TimeEntry, DriveEntry, Material } from "@/hooks/useProjects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   Copy,
   Check,
   Clock,
+  Package,
 } from "lucide-react";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
@@ -30,6 +31,7 @@ interface ProjectCardProps {
   project: Project;
   timeEntries: TimeEntry[];
   driveEntries: DriveEntry[];
+  materials: Material[];
   isActive: boolean;
   isDriving: boolean;
   onToggle: () => void;
@@ -46,6 +48,7 @@ export const ProjectCard = ({
   project,
   timeEntries,
   driveEntries,
+  materials,
   isActive,
   isDriving,
   onToggle,
@@ -104,7 +107,7 @@ export const ProjectCard = ({
 
   // Filter entries based on period
   const getFilteredEntries = () => {
-    if (!filterPeriod) return { timeEntries, driveEntries };
+    if (!filterPeriod) return { timeEntries, driveEntries, materials };
     
     const now = new Date();
     let startDate: Date;
@@ -118,18 +121,19 @@ export const ProjectCard = ({
     } else if (filterPeriod === 'month') {
       startDate = new Date(now.setMonth(now.getMonth() - 1));
     } else {
-      return { timeEntries, driveEntries };
+      return { timeEntries, driveEntries, materials };
     }
     
     const filtered = {
       timeEntries: timeEntries.filter(e => new Date(e.start_time) >= startDate),
-      driveEntries: driveEntries.filter(e => new Date(e.start_time) >= startDate)
+      driveEntries: driveEntries.filter(e => new Date(e.start_time) >= startDate),
+      materials: materials.filter(e => new Date(e.created_at) >= startDate)
     };
     
     return filtered;
   };
   
-  const { timeEntries: filteredTime, driveEntries: filteredDrive } = getFilteredEntries();
+  const { timeEntries: filteredTime, driveEntries: filteredDrive, materials: filteredMaterials } = getFilteredEntries();
 
   const totalTime = filteredTime.reduce(
     (acc, entry) => acc + entry.duration_seconds,
@@ -138,6 +142,11 @@ export const ProjectCard = ({
 
   const totalKilometers = filteredDrive.reduce(
     (acc, entry) => acc + (entry.kilometers || 0),
+    0
+  );
+
+  const totalMaterialCost = filteredMaterials.reduce(
+    (acc, material) => acc + material.total_price,
     0
   );
 
@@ -209,6 +218,15 @@ export const ProjectCard = ({
                 <span>Kjørt:</span>
               </div>
               <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
+            </div>
+          )}
+          {totalMaterialCost > 0 && (
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Package className="h-4 w-4" />
+                <span>Materialer:</span>
+              </div>
+              <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
             </div>
           )}
         </div>

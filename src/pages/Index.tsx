@@ -38,6 +38,7 @@ const Index = () => {
     projects,
     timeEntries,
     driveEntries,
+    materials,
     addProject,
     toggleProject,
     toggleDriving,
@@ -253,6 +254,9 @@ const Index = () => {
               const projectDriveEntries = driveEntries.filter(
                 (entry) => entry.project_id === project.id
               );
+              const projectMaterials = materials.filter(
+                (material) => material.project_id === project.id
+              );
               const isActive = activeTimeEntries.some(
                 (entry) => entry.project_id === project.id
               );
@@ -266,6 +270,7 @@ const Index = () => {
                   project={project}
                   timeEntries={projectTimeEntries}
                   driveEntries={projectDriveEntries}
+                  materials={projectMaterials}
                   isActive={isActive}
                   isDriving={isDriving}
                   onToggle={() => handleToggleProject(project.id)}
