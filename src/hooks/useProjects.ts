@@ -146,13 +146,15 @@ export const useProjects = (userId?: string) => {
       color: string;
       customerInfo: CustomerInfo;
     }) => {
-      // CRITICAL: Get fresh session to ensure auth.uid() matches
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // CRITICAL: Refresh session to get a valid JWT for RLS
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
       
-      if (sessionError || !session) {
-        throw new Error("You must be logged in to create a project. Please refresh and try again.");
+      if (refreshError || !session) {
+        console.error("Session refresh failed:", refreshError);
+        throw new Error("Your session has expired. Please log in again.");
       }
 
+      console.log("✅ Session refreshed, user:", session.user.id);
       const authUserId = session.user.id;
 
       // Get user's organization (gracefully handle missing org)
