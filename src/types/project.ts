@@ -1,3 +1,8 @@
+export interface User {
+  id: string;
+  name: string;
+}
+
 export interface TimeEntry {
   id: string;
   startTime: Date;
@@ -11,6 +16,7 @@ export interface Project {
   color: string;
   totalTime: number; // in seconds
   isActive: boolean;
+  userId: string;
   currentEntry?: TimeEntry;
   entries: TimeEntry[];
   createdAt: Date;

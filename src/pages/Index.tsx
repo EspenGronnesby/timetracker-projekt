@@ -1,11 +1,14 @@
 import { Clock } from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
+import { UserSelector } from "@/components/UserSelector";
 import { useProjects } from "@/hooks/useProjects";
+import { useActiveUser } from "@/hooks/useActiveUser";
 import { formatDuration } from "@/lib/timeUtils";
 
 const Index = () => {
-  const { projects, addProject, toggleProject, deleteProject } = useProjects();
+  const { activeUser, setActiveUser, users } = useActiveUser();
+  const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id);
 
   const totalTime = projects.reduce((acc, p) => acc + p.totalTime, 0);
   const activeCount = projects.filter((p) => p.isActive).length;
@@ -22,10 +25,19 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">TimeTracker</h1>
-                <p className="text-sm text-muted-foreground">Prosjekt tidsporing</p>
+                <p className="text-sm text-muted-foreground">
+                  Prosjekt tidsporing - {activeUser.name}
+                </p>
               </div>
             </div>
-            <AddProjectDialog onAdd={addProject} />
+            <div className="flex items-center gap-3 flex-wrap">
+              <UserSelector 
+                users={users} 
+                activeUser={activeUser} 
+                onUserChange={setActiveUser} 
+              />
+              <AddProjectDialog onAdd={addProject} />
+            </div>
           </div>
         </div>
       </header>

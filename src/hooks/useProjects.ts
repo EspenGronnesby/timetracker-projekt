@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 const STORAGE_KEY = "timetracker_projects";
 
-export const useProjects = () => {
+export const useProjects = (userId: string) => {
   const [projects, setProjects] = useState<Project[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -57,12 +57,15 @@ export const useProjects = () => {
       color,
       totalTime: 0,
       isActive: false,
+      userId,
       entries: [],
       createdAt: new Date(),
     };
     setProjects((prev) => [...prev, newProject]);
     toast.success(`Prosjekt "${name}" opprettet!`);
   };
+
+  const userProjects = projects.filter((p) => p.userId === userId);
 
   const toggleProject = (id: string) => {
     setProjects((prev) =>
@@ -121,7 +124,7 @@ export const useProjects = () => {
   };
 
   return {
-    projects,
+    projects: userProjects,
     addProject,
     toggleProject,
     deleteProject,
