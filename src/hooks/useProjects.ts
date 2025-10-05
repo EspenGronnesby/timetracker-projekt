@@ -59,22 +59,25 @@ interface CustomerInfo {
   description: string;
 }
 
-export const useProjects = (userId?: string) => {
+export const useProjects = (userId?: string, organizationId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", organizationId],
     queryFn: async () => {
+      if (!organizationId) return [];
+      
       const { data, error } = await supabase
         .from("projects")
         .select("*")
+        .eq("organization_id", organizationId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Project[];
     },
-    enabled: !!userId,
+    enabled: !!userId && !!organizationId,
   });
 
   const { data: timeEntries = [] } = useQuery({
@@ -130,6 +133,7 @@ export const useProjects = (userId?: string) => {
       customerInfo: CustomerInfo;
     }) => {
       if (!userId) throw new Error("Must be logged in");
+      if (!organizationId) throw new Error("No organization selected");
 
       const { data, error } = await supabase
         .from("projects")
@@ -143,6 +147,7 @@ export const useProjects = (userId?: string) => {
           contract_number: customerInfo.contractNumber,
           description: customerInfo.description,
           created_by: userId,
+          organization_id: organizationId,
         })
         .select()
         .single();

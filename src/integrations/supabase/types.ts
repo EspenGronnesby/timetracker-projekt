@@ -127,6 +127,30 @@ export type Database = {
           },
         ]
       }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_name: string
+          organization_number: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_name: string
+          organization_number: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_name?: string
+          organization_number?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -164,6 +188,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          organization_id: string | null
         }
         Insert: {
           color: string
@@ -177,6 +202,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          organization_id?: string | null
         }
         Update: {
           color?: string
@@ -190,6 +216,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          organization_id?: string | null
         }
         Relationships: [
           {
@@ -197,6 +224,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -256,6 +290,35 @@ export type Database = {
           },
         ]
       }
+      user_organizations: {
+        Row: {
+          id: string
+          joined_at: string
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_organizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -292,6 +355,7 @@ export type Database = {
           description: string | null
           id: string | null
           name: string | null
+          organization_id: string | null
         }
         Insert: {
           color?: string | null
@@ -305,6 +369,7 @@ export type Database = {
           description?: string | null
           id?: string | null
           name?: string | null
+          organization_id?: string | null
         }
         Update: {
           color?: string | null
@@ -318,6 +383,7 @@ export type Database = {
           description?: string | null
           id?: string | null
           name?: string | null
+          organization_id?: string | null
         }
         Relationships: [
           {
@@ -327,12 +393,21 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Functions: {
       can_access_project_sensitive_data: {
-        Args: { project_created_by: string }
+        Args:
+          | { project_created_by: string }
+          | { project_created_by: string; project_org_id: string }
         Returns: boolean
       }
       get_user_organization: {
