@@ -204,12 +204,12 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-0 py-0 sm:py-8">
+      <main className="px-0 py-0 sm:py-8">
         <div className="px-4">
           <OfflineIndicator />
         </div>
         
-        <div className="mb-6 sm:mb-6 px-4">
+        <div className="px-4">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
