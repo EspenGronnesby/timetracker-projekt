@@ -1,14 +1,15 @@
 import { User } from "@/types/project";
 import { Button } from "@/components/ui/button";
-import { UserCircle } from "lucide-react";
+import { UserCircle, LogOut } from "lucide-react";
 
 interface UserSelectorProps {
   users: User[];
   activeUser: User;
   onUserChange: (user: User) => void;
+  onLogout?: () => void;
 }
 
-export const UserSelector = ({ users, activeUser, onUserChange }: UserSelectorProps) => {
+export const UserSelector = ({ users, activeUser, onUserChange, onLogout }: UserSelectorProps) => {
   return (
     <div className="flex items-center gap-2">
       <UserCircle className="h-5 w-5 text-muted-foreground" />
@@ -29,6 +30,17 @@ export const UserSelector = ({ users, activeUser, onUserChange }: UserSelectorPr
           </Button>
         ))}
       </div>
+      {onLogout && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Bytt bruker
+        </Button>
+      )}
     </div>
   );
 };

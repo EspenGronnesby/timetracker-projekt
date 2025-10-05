@@ -2,13 +2,18 @@ import { Clock } from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { UserSelector } from "@/components/UserSelector";
+import { UserLogin } from "@/components/UserLogin";
 import { useProjects } from "@/hooks/useProjects";
 import { useActiveUser } from "@/hooks/useActiveUser";
 import { formatDuration } from "@/lib/timeUtils";
 
 const Index = () => {
-  const { activeUser, setActiveUser, users } = useActiveUser();
+  const { activeUser, setActiveUser, users, isLoggedIn, login, logout } = useActiveUser();
   const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
+
+  if (!isLoggedIn) {
+    return <UserLogin users={users} onUserSelect={login} />;
+  }
 
   // Calculate stats for the active user only
   const totalTime = projects.reduce((acc, p) => {
@@ -43,7 +48,8 @@ const Index = () => {
               <UserSelector 
                 users={users} 
                 activeUser={activeUser} 
-                onUserChange={setActiveUser} 
+                onUserChange={setActiveUser}
+                onLogout={logout}
               />
               <AddProjectDialog onAdd={addProject} />
             </div>

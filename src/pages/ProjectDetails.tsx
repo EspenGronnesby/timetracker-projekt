@@ -19,7 +19,7 @@ const ProjectDetails = () => {
   const { projects, toggleProject, toggleDriving, addMaterial } = useProjects(activeUser.id, activeUser.name);
   
   const [statsView, setStatsView] = useState<"my" | "total">("my");
-  const [activityFilter, setActivityFilter] = useState<FilterType>("espen");
+  const [activityFilter, setActivityFilter] = useState<FilterType>(activeUser.id as FilterType);
   const [liveTime, setLiveTime] = useState(0);
   
   const project = projects.find((p) => p.id === id);
