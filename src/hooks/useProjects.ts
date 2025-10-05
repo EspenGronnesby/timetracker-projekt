@@ -59,26 +59,37 @@ interface CustomerInfo {
   description: string;
 }
 
-export const useProjects = (userId?: string, organizationId?: string) => {
+export const useProjects = (userId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ["projects", organizationId],
+    queryKey: ["projects"],
     queryFn: async () => {
-      if (!organizationId) return [];
+      if (!userId) return [];
       
-      // Query from secure view that only shows customer data to authorized users
+      // Query projects where user is a member
+      const { data: memberships, error: memberError } = await supabase
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", userId);
+
+      if (memberError) throw memberError;
+      
+      if (!memberships || memberships.length === 0) return [];
+      
+      const projectIds = memberships.map(m => m.project_id);
+      
       const { data, error } = await supabase
-        .from("projects_with_access")
+        .from("projects")
         .select("*")
-        .eq("organization_id", organizationId)
+        .in("id", projectIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Project[];
     },
-    enabled: !!userId && !!organizationId,
+    enabled: !!userId,
   });
 
   const { data: timeEntries = [] } = useQuery({
@@ -134,7 +145,6 @@ export const useProjects = (userId?: string, organizationId?: string) => {
       customerInfo: CustomerInfo;
     }) => {
       if (!userId) throw new Error("Must be logged in");
-      if (!organizationId) throw new Error("No organization selected");
 
       const { data, error } = await supabase
         .from("projects")
@@ -148,12 +158,13 @@ export const useProjects = (userId?: string, organizationId?: string) => {
           contract_number: customerInfo.contractNumber,
           description: customerInfo.description,
           created_by: userId,
-          organization_id: organizationId,
         })
         .select()
         .single();
 
       if (error) throw error;
+      
+      // Trigger to add creator as owner happens automatically
       return data;
     },
     onSuccess: () => {

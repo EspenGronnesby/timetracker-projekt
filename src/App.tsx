@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import ProjectDetails from "./pages/ProjectDetails";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
-import OrganizationSelector from "./pages/OrganizationSelector";
+import JoinProject from "./pages/JoinProject";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,9 +21,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/select-organization" element={<OrganizationSelector />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/project/:id" element={<ProjectDetails />} />
+          <Route path="/join/:inviteCode" element={<JoinProject />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

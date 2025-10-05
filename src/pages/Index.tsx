@@ -5,17 +5,15 @@ import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { formatTime } from "@/lib/timeUtils";
-import { Clock, Play, FolderOpen, LogOut, Building2, ArrowLeft } from "lucide-react";
+import { Clock, Play, FolderOpen, LogOut } from "lucide-react";
 import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
-import { OrganizationProvider, useOrganization } from "@/contexts/OrganizationContext";
 
-const IndexContent = () => {
+const Index = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
-  const { selectedOrganization } = useOrganization();
+  const { user, profile, loading, signOut } = useAuth();
   const isAdmin = useIsAdmin(user?.id);
   const { trackPresence } = usePresenceTracking();
   const {
@@ -27,16 +25,20 @@ const IndexContent = () => {
     toggleDriving,
     addMaterial,
     deleteProject,
-  } = useProjects(user?.id, selectedOrganization?.id);
+  } = useProjects(user?.id);
 
   useEffect(() => {
-    if (!selectedOrganization) {
-      navigate("/select-organization");
+    if (!loading && !user) {
+      navigate("/auth");
     }
-  }, [selectedOrganization, navigate]);
+  }, [user, loading, navigate]);
 
-  if (!selectedOrganization) {
-    return null;
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Laster...</p>
+      </div>
+    );
   }
 
   const myTimeEntries = timeEntries.filter(
@@ -87,24 +89,13 @@ const IndexContent = () => {
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/select-organization")}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-foreground">
-                {profile?.name}
-              </h1>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Building2 className="h-3 w-3" />
-                {selectedOrganization.organization_name}
-              </div>
-            </div>
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground">
+              {profile?.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Your Projects
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
@@ -213,31 +204,6 @@ const IndexContent = () => {
         )}
       </main>
     </div>
-  );
-};
-
-const Index = () => {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Laster...</p>
-      </div>
-    );
-  }
-
-  return (
-    <OrganizationProvider userId={user.id}>
-      <IndexContent />
-    </OrganizationProvider>
   );
 };
 
