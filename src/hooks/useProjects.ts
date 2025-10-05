@@ -68,8 +68,9 @@ export const useProjects = (userId?: string, organizationId?: string) => {
     queryFn: async () => {
       if (!organizationId) return [];
       
+      // Query from secure view that only shows customer data to authorized users
       const { data, error } = await supabase
-        .from("projects")
+        .from("projects_with_access")
         .select("*")
         .eq("organization_id", organizationId)
         .order("created_at", { ascending: false });
