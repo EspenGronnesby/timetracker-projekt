@@ -20,8 +20,15 @@ import {
   MapPin,
   FileText,
   Lock,
+  Share2,
+  Copy,
+  Check,
+  Users,
 } from "lucide-react";
 import { formatTime } from "@/lib/timeUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 const ProjectDetails = () => {
   // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
@@ -41,6 +48,10 @@ const ProjectDetails = () => {
 
   const [statsView, setStatsView] = useState<"my" | "total">("my");
   const [liveTime, setLiveTime] = useState(0);
+  const [inviteUrl, setInviteUrl] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const { toast } = useToast();
 
   // Find project early to use in all logic
   const project = projects.find((p) => p.id === id);
@@ -49,6 +60,41 @@ const ProjectDetails = () => {
   const isAdmin = useIsAdmin(user?.id);
   const isProjectCreator = project?.created_by === user?.id;
   const canViewSensitiveData = isAdmin || isProjectCreator;
+  
+  // Fetch team members
+  const { data: teamMembers } = useQuery({
+    queryKey: ["project-members", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("project_members")
+        .select(`
+          user_id,
+          role,
+          joined_at,
+          profiles:user_id (name)
+        `)
+        .eq("project_id", id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+  
+  // Fetch active invites
+  const { data: activeInvites } = useQuery({
+    queryKey: ["project-invites", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("project_invites")
+        .select("*")
+        .eq("project_id", id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && (isAdmin || isProjectCreator),
+  });
 
   // Calculate data regardless of loading state to keep hooks consistent
   const projectTimeEntries = project
@@ -197,6 +243,43 @@ const ProjectDetails = () => {
   const myActivities = allActivities.filter((activity) => {
     return activity.data.user_id === user.id;
   });
+  
+  const handleGenerateInvite = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-project-invite', {
+        body: { projectId: id },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setInviteUrl(data.inviteUrl);
+      toast({
+        title: "Invite generated!",
+        description: "Share the link below with your team.",
+      });
+    } catch (err: any) {
+      console.error('Error generating invite:', err);
+      toast({
+        variant: "destructive",
+        title: "Failed to generate invite",
+        description: err.message,
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleCopyInvite = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast({
+      title: "Copied!",
+      description: "Invite link copied to clipboard",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -389,6 +472,96 @@ const ProjectDetails = () => {
             </TabsContent>
           </Tabs>
         </Card>
+
+        {(isAdmin || isProjectCreator) && (
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Team & Invites
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Team Members */}
+              <div>
+                <h3 className="text-sm font-medium mb-3">Team Members ({teamMembers?.length || 0})</h3>
+                <div className="space-y-2">
+                  {teamMembers?.map((member: any) => (
+                    <div key={member.user_id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{member.profiles?.name || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • Joined {new Date(member.joined_at).toLocaleDateString('no-NO')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Invite Section */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium">Project Invites</h3>
+                  <Button 
+                    onClick={handleGenerateInvite}
+                    disabled={generating}
+                    size="sm"
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    {generating ? "Generating..." : "Generate New Invite"}
+                  </Button>
+                </div>
+                
+                {inviteUrl && (
+                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">New invite link:</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={inviteUrl}
+                        readOnly
+                        className="flex-1 px-3 py-2 text-sm border rounded-md bg-background"
+                      />
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline">
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {activeInvites && activeInvites.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground mb-2">Active Invites:</p>
+                    {activeInvites.map((invite: any) => (
+                      <div key={invite.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-sm">
+                        <div className="flex-1">
+                          <code className="text-xs bg-background px-2 py-1 rounded">
+                            {window.location.origin}/join/{invite.invite_code}
+                          </code>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Used {invite.use_count} times
+                            {invite.max_uses && ` • ${invite.max_uses - invite.use_count} remaining`}
+                            {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
+                          </p>
+                        </div>
+                        <Button 
+                          size="icon" 
+                          variant="ghost"
+                          onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Button

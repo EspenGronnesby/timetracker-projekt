@@ -10,6 +10,8 @@ import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { ActivityFilter, FilterPeriod } from "@/components/ActivityFilter";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
 
 const Index = () => {
@@ -19,6 +21,18 @@ const Index = () => {
   const { trackPresence } = usePresenceTracking();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
+  
+  // Fetch project member counts
+  const { data: projectMembers } = useQuery({
+    queryKey: ["project-members"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_members")
+        .select("project_id, user_id");
+      if (error) throw error;
+      return data;
+    },
+  });
   const {
     projects,
     timeEntries,
@@ -261,6 +275,9 @@ const Index = () => {
                   }
                   onDelete={() => deleteProject(project.id)}
                   userName={profile!.name}
+                  filterPeriod={filterPeriod}
+                  customRange={customRange}
+                  teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
                 />
               );
             })}

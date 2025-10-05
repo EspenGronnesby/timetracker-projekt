@@ -37,6 +37,9 @@ interface ProjectCardProps {
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
   onDelete: () => void;
   userName: string;
+  filterPeriod?: string;
+  customRange?: { from: Date; to: Date };
+  teamMemberCount?: number;
 }
 
 export const ProjectCard = ({
@@ -50,6 +53,9 @@ export const ProjectCard = ({
   onAddMaterial,
   onDelete,
   userName,
+  filterPeriod,
+  customRange,
+  teamMemberCount = 1,
 }: ProjectCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -96,12 +102,41 @@ export const ProjectCard = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalTime = timeEntries.reduce(
+  // Filter entries based on period
+  const getFilteredEntries = () => {
+    if (!filterPeriod) return { timeEntries, driveEntries };
+    
+    const now = new Date();
+    let startDate: Date;
+    
+    if (filterPeriod === 'custom' && customRange) {
+      startDate = customRange.from;
+    } else if (filterPeriod === 'day') {
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+    } else if (filterPeriod === 'week') {
+      startDate = new Date(now.setDate(now.getDate() - 7));
+    } else if (filterPeriod === 'month') {
+      startDate = new Date(now.setMonth(now.getMonth() - 1));
+    } else {
+      return { timeEntries, driveEntries };
+    }
+    
+    const filtered = {
+      timeEntries: timeEntries.filter(e => new Date(e.start_time) >= startDate),
+      driveEntries: driveEntries.filter(e => new Date(e.start_time) >= startDate)
+    };
+    
+    return filtered;
+  };
+  
+  const { timeEntries: filteredTime, driveEntries: filteredDrive } = getFilteredEntries();
+
+  const totalTime = filteredTime.reduce(
     (acc, entry) => acc + entry.duration_seconds,
     0
   );
 
-  const totalKilometers = driveEntries.reduce(
+  const totalKilometers = filteredDrive.reduce(
     (acc, entry) => acc + (entry.kilometers || 0),
     0
   );
@@ -123,12 +158,17 @@ export const ProjectCard = ({
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: project.color }}
           />
-          <div>
+          <div className="flex-1">
             <h3 className="font-semibold text-lg">{project.name}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Building2 className="h-3 w-3" />
-              {project.customer_name}
-            </p>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Building2 className="h-3 w-3" />
+                {project.customer_name}
+              </span>
+              <span className="flex items-center gap-1 text-xs">
+                👥 {teamMemberCount} {teamMemberCount === 1 ? 'medlem' : 'medlemmer'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
