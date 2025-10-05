@@ -157,21 +157,21 @@ export type Database = {
           id: string
           name: string
           organization_name: string | null
-          organization_number: string
+          organization_number: string | null
         }
         Insert: {
           created_at?: string
           id: string
           name: string
           organization_name?: string | null
-          organization_number: string
+          organization_number?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
           organization_name?: string | null
-          organization_number?: string
+          organization_number?: string | null
         }
         Relationships: []
       }
