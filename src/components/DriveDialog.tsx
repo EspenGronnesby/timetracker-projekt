@@ -7,13 +7,20 @@ import { Car } from "lucide-react";
 interface DriveDialogProps {
   isDriving: boolean;
   onToggleDriving: (kilometers?: number) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 export const DriveDialog = ({
   isDriving,
-  onToggleDriving
+  onToggleDriving,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange
 }: DriveDialogProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [kilometers, setKilometers] = useState("");
+  
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   const handleStart = () => {
     onToggleDriving();
     setOpen(false);

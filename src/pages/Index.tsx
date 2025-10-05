@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
+import { QuickStartProjectCard } from "@/components/QuickStartProjectCard";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -187,6 +188,89 @@ const Index = () => {
         <div className="mb-6">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
+
+        {/* Quick Start Section */}
+        {projects.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Quick Start</h2>
+            <div className="space-y-3">
+              {projects
+                .filter(project => {
+                  const isActive = activeTimeEntries.some(entry => entry.project_id === project.id);
+                  const isDriving = activeDriveEntries.some(entry => entry.project_id === project.id);
+                  return isActive || isDriving;
+                })
+                .slice(0, 5)
+                .map(project => {
+                  const isActive = activeTimeEntries.some(entry => entry.project_id === project.id);
+                  const isDriving = activeDriveEntries.some(entry => entry.project_id === project.id);
+                  
+                  return (
+                    <QuickStartProjectCard
+                      key={project.id}
+                      projectId={project.id}
+                      projectName={project.name}
+                      projectColor={project.color}
+                      customerInfo={project.customer_name}
+                      teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
+                      isActive={isActive}
+                      isDriving={isDriving}
+                      onToggle={() => handleToggleProject(project.id)}
+                      onToggleDriving={(km) => handleToggleDriving(project.id, km)}
+                      onAddMaterial={(name, quantity, unitPrice) =>
+                        addMaterial({
+                          projectId: project.id,
+                          userName: profile!.name,
+                          name,
+                          quantity,
+                          unitPrice,
+                        })
+                      }
+                    />
+                  );
+                })}
+              {projects.filter(project => {
+                const isActive = activeTimeEntries.some(entry => entry.project_id === project.id);
+                const isDriving = activeDriveEntries.some(entry => entry.project_id === project.id);
+                return !isActive && !isDriving;
+              }).length > 0 && 
+                projects.filter(project => {
+                  const isActive = activeTimeEntries.some(entry => entry.project_id === project.id);
+                  const isDriving = activeDriveEntries.some(entry => entry.project_id === project.id);
+                  return isActive || isDriving;
+                }).length === 0 && (
+                  projects.slice(0, 3).map(project => {
+                    const isActive = activeTimeEntries.some(entry => entry.project_id === project.id);
+                    const isDriving = activeDriveEntries.some(entry => entry.project_id === project.id);
+                    
+                    return (
+                      <QuickStartProjectCard
+                        key={project.id}
+                        projectId={project.id}
+                        projectName={project.name}
+                        projectColor={project.color}
+                        customerInfo={project.customer_name}
+                        teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
+                        isActive={isActive}
+                        isDriving={isDriving}
+                        onToggle={() => handleToggleProject(project.id)}
+                        onToggleDriving={(km) => handleToggleDriving(project.id, km)}
+                        onAddMaterial={(name, quantity, unitPrice) =>
+                          addMaterial({
+                            projectId: project.id,
+                            userName: profile!.name,
+                            name,
+                            quantity,
+                            unitPrice,
+                          })
+                        }
+                      />
+                    );
+                  })
+                )}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">

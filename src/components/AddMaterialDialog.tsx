@@ -13,17 +13,22 @@ const materialSchema = z.object({
 });
 interface AddMaterialDialogProps {
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 export const AddMaterialDialog = ({
-  onAddMaterial
+  onAddMaterial,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange
 }: AddMaterialDialogProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
