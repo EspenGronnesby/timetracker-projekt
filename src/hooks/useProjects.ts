@@ -125,8 +125,6 @@ export const useProjects = (userId: string, userName: string) => {
     toast.success(`Prosjekt "${name}" opprettet!`);
   };
 
-  const userProjects = projects.filter((p) => p.userId === userId);
-
   const toggleProject = (id: string) => {
     setProjects((prev) =>
       prev.map((project) => {
@@ -261,7 +259,7 @@ export const useProjects = (userId: string, userName: string) => {
   };
 
   return {
-    projects: userProjects,
+    projects,
     addProject,
     toggleProject,
     toggleDriving,
