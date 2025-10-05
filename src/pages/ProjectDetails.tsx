@@ -51,6 +51,7 @@ const ProjectDetails = () => {
   const [inviteUrl, setInviteUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [activityFilter, setActivityFilter] = useState<"all" | "time" | "drive" | "material">("all");
   const { toast } = useToast();
 
   // Find project early to use in all logic
@@ -241,7 +242,9 @@ const ProjectDetails = () => {
   });
 
   const myActivities = allActivities.filter((activity) => {
-    return activity.data.user_id === user.id;
+    if (activity.data.user_id !== user.id) return false;
+    if (activityFilter === "all") return true;
+    return activity.type === activityFilter;
   });
   
   const handleGenerateInvite = async () => {
@@ -565,33 +568,84 @@ const ProjectDetails = () => {
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Button
-            onClick={handleToggleProject}
+            onClick={() => {
+              handleToggleProject();
+              if (!activeEntry) {
+                setActivityFilter("time");
+                document.getElementById("activity-log")?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
             variant={activeEntry ? "destructive" : "default"}
-            className="h-12 sm:h-10"
+            className="h-12 sm:h-10 hover:scale-105 transition-transform"
           >
-            <Clock className="h-5 w-5 sm:mr-2" />
-            <span className="hidden sm:inline ml-2">
-              {activeEntry ? "Stopp tid" : "Start tid"}
-            </span>
+            <Clock className="h-6 w-6" />
           </Button>
 
-          <DriveDialog isDriving={!!activeDrive} onToggleDriving={handleToggleDriving} />
-
-          <AddMaterialDialog
-            onAddMaterial={(name, quantity, unitPrice) =>
-              addMaterial({
-                projectId: project.id,
-                userName: profile.name,
-                name,
-                quantity,
-                unitPrice,
-              })
+          <div onClick={() => {
+            if (!activeDrive) {
+              setActivityFilter("drive");
+              document.getElementById("activity-log")?.scrollIntoView({ behavior: "smooth" });
             }
-          />
+          }}>
+            <DriveDialog isDriving={!!activeDrive} onToggleDriving={handleToggleDriving} />
+          </div>
+
+          <div onClick={() => {
+            setActivityFilter("material");
+            document.getElementById("activity-log")?.scrollIntoView({ behavior: "smooth" });
+          }}>
+            <AddMaterialDialog
+              onAddMaterial={(name, quantity, unitPrice) =>
+                addMaterial({
+                  projectId: project.id,
+                  userName: profile.name,
+                  name,
+                  quantity,
+                  unitPrice,
+                })
+              }
+            />
+          </div>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Aktivitetslogg</h2>
+        <Card id="activity-log" className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Aktivitetslogg</h2>
+            <div className="flex gap-2">
+              <Button
+                variant={activityFilter === "all" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setActivityFilter("all")}
+                className="hover:scale-105 transition-transform"
+              >
+                <FileText className="h-5 w-5" />
+              </Button>
+              <Button
+                variant={activityFilter === "time" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setActivityFilter("time")}
+                className="hover:scale-105 transition-transform"
+              >
+                <Clock className="h-5 w-5" />
+              </Button>
+              <Button
+                variant={activityFilter === "drive" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setActivityFilter("drive")}
+                className="hover:scale-105 transition-transform"
+              >
+                <Car className="h-5 w-5" />
+              </Button>
+              <Button
+                variant={activityFilter === "material" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setActivityFilter("material")}
+                className="hover:scale-105 transition-transform"
+              >
+                <Package className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
 
           {myActivities.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
