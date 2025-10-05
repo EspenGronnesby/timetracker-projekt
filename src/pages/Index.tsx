@@ -185,11 +185,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border px-0 py-4 sm:py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between gap-2 px-4">
-          <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate">
+        <div className="flex items-center justify-between gap-2 px-0">
+          <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate px-4">
             {profile?.name}
           </h1>
-          <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0 px-4">
             <ThemeToggle />
             <Button
               variant="outline"
@@ -205,11 +205,11 @@ const Index = () => {
       </header>
 
       <main className="px-0 py-0 sm:py-8">
-        <div className="px-4">
+        <div className="px-0">
           <OfflineIndicator />
         </div>
         
-        <div className="px-4">
+        <div className="px-0">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
@@ -233,7 +233,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 animate-fade-in px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 animate-fade-in px-0">
             {sortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
@@ -282,7 +282,7 @@ const Index = () => {
           </div>
         )}
 
-        <div className="mt-8 space-y-4 px-4">
+        <div className="mt-8 space-y-4 px-0">
           <div className="flex items-center gap-2">
             <AddProjectDialog
               onAddProject={(name, color, customerInfo) =>
@@ -302,7 +302,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-8 px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-8 px-0">
           <Card className="p-5 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <div className="flex items-center gap-4 sm:gap-4">
               <div className="p-3 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
