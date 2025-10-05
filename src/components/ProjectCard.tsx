@@ -7,14 +7,11 @@ import {
   Pause,
   Trash2,
   Car,
-  Package,
-  Clock,
   Building2,
   Share2,
   Copy,
   Check,
 } from "lucide-react";
-import { formatTime } from "@/lib/timeUtils";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TimeBreakdown } from "./TimeBreakdown";
+import { ActiveTimer } from "./ActiveTimer";
+import { calculateTimeBreakdown } from "@/lib/analyticsUtils";
 
 interface ProjectCardProps {
   project: Project;
@@ -108,6 +108,9 @@ export const ProjectCard = ({
     0
   );
 
+  const breakdown = calculateTimeBreakdown(timeEntries);
+  const activeEntry = timeEntries.find(e => !e.end_time);
+
   return (
     <Card
       className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
@@ -148,18 +151,26 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              Total tid: {formatTime(totalTime)}
-            </span>
+        {activeEntry && (
+          <div className="mb-4 flex justify-center">
+            <ActiveTimer 
+              startTime={new Date(activeEntry.start_time)} 
+              color={project.color}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Car className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              Kjørt: {totalKilometers.toFixed(1)} km
-            </span>
+        )}
+
+        <div className="space-y-3 mb-4 p-3 bg-muted/50 rounded-lg">
+          <TimeBreakdown 
+            day={breakdown.day}
+            week={breakdown.week}
+            month={breakdown.month}
+            total={totalTime}
+          />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border">
+            <Car className="h-3 w-3" />
+            <span>Driven:</span>
+            <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
           </div>
         </div>
 

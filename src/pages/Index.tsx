@@ -4,12 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-import { formatTime } from "@/lib/timeUtils";
-import { Clock, Play, FolderOpen, LogOut } from "lucide-react";
+import { Calendar, Activity, LogOut } from "lucide-react";
 import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { StreakCounter } from "@/components/StreakCounter";
+import { calculateStreak, calculateTimeBreakdown, formatCompactTime } from "@/lib/analyticsUtils";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -56,6 +57,9 @@ const Index = () => {
     (entry) => entry.user_id === user?.id && !entry.end_time
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
+
+  const streak = calculateStreak(timeEntries.filter(e => e.user_id === user?.id));
+  const todayBreakdown = calculateTimeBreakdown(timeEntries.filter(e => e.user_id === user?.id));
 
   const handleToggleProject = (projectId: string) => {
     const isActive = activeTimeEntries.some(
@@ -122,27 +126,17 @@ const Index = () => {
       </header>
 
       <div className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Totalt prosjekter</p>
-              <p className="text-xl sm:text-2xl font-bold">{projects.length}</p>
-            </div>
+        <div className="flex items-center justify-between max-w-5xl gap-4">
+          <StreakCounter streak={streak} />
+          
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">{formatCompactTime(todayBreakdown.day)}</span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Play className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Aktive nå</p>
-              <p className="text-xl sm:text-2xl font-bold">{activeCount}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Total tid</p>
-              <p className="text-xl sm:text-2xl font-bold">{formatTime(totalTime)}</p>
-            </div>
+          
+          <div className="flex items-center gap-2">
+            <Activity className={`h-4 w-4 ${activeCount > 0 ? 'text-green-500' : 'text-muted-foreground'}`} />
+            <span className="text-sm font-semibold">{activeCount} active</span>
           </div>
         </div>
       </div>
