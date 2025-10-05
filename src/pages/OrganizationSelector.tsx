@@ -53,50 +53,95 @@ const OrganizationSelectorContent = () => {
     try {
       const validated = z.string().trim().min(1).max(20).parse(orgNumber);
 
-      // Check if organization exists
-      const { data: existingOrg, error: searchError } = await supabase
-        .from('organizations')
-        .select('id, organization_number, organization_name')
-        .eq('organization_number', validated)
-        .maybeSingle();
+      // Search Brønnøysundregisteret first
+      console.log('Searching Brønnøysundregisteret for org number:', validated);
+      const { data: brregData, error: brregError } = await supabase.functions.invoke('search-brreg', {
+        body: { query: validated, type: 'number' }
+      });
 
-      if (searchError) throw searchError;
+      if (brregError) throw brregError;
 
-      if (existingOrg) {
-        // Organization exists - join it
-        const { error: joinError } = await supabase
-          .from('user_organizations')
-          .insert({
-            user_id: user!.id,
-            organization_id: existingOrg.id,
+      if (brregData?.results && brregData.results.length > 0) {
+        const brregOrg = brregData.results[0];
+        console.log('Found in Brønnøysundregisteret:', brregOrg);
+        
+        // Check if organization exists in our database
+        const { data: existingOrg, error: searchError } = await supabase
+          .from('organizations')
+          .select('id, organization_number, organization_name')
+          .eq('organization_number', validated)
+          .maybeSingle();
+
+        if (searchError) throw searchError;
+
+        if (existingOrg) {
+          // Organization exists in our DB - join it
+          const { error: joinError } = await supabase
+            .from('user_organizations')
+            .insert({
+              user_id: user!.id,
+              organization_id: existingOrg.id,
+            });
+
+          if (joinError) {
+            if (joinError.code === '23505') {
+              toast({
+                title: 'Allerede medlem',
+                description: 'Du er allerede medlem av denne organisasjonen',
+                variant: 'destructive',
+              });
+              return;
+            }
+            throw joinError;
+          }
+
+          toast({
+            title: 'Velkommen!',
+            description: `Du har blitt lagt til i ${existingOrg.organization_name}`,
           });
 
-        if (joinError) {
-          if (joinError.code === '23505') {
-            toast({
-              title: 'Allerede medlem',
-              description: 'Du er allerede medlem av denne organisasjonen',
-              variant: 'destructive',
+          await refreshOrganizations();
+          selectOrganization(existingOrg);
+          navigate('/');
+        } else {
+          // Organization not in our DB - create it with Brreg data
+          const { data: newOrg, error: createError } = await supabase
+            .from('organizations')
+            .insert({
+              organization_number: brregOrg.organisasjonsnummer,
+              organization_name: brregOrg.navn,
+              created_by: user!.id,
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+
+          // Add user to organization
+          const { error: joinError } = await supabase
+            .from('user_organizations')
+            .insert({
+              user_id: user!.id,
+              organization_id: newOrg.id,
             });
-            return;
-          }
-          throw joinError;
+
+          if (joinError) throw joinError;
+
+          toast({
+            title: 'Organisasjon opprettet!',
+            description: `${brregOrg.navn} er nå opprettet`,
+          });
+
+          await refreshOrganizations();
+          selectOrganization(newOrg);
+          navigate('/');
         }
-
-        toast({
-          title: 'Velkommen!',
-          description: `Du har blitt lagt til i ${existingOrg.organization_name}`,
-        });
-
-        await refreshOrganizations();
-        selectOrganization(existingOrg);
-        navigate('/');
       } else {
-        // Organization doesn't exist - show name field
-        setShowNameField(true);
+        // Not found in Brønnøysundregisteret
         toast({
-          title: 'Ny organisasjon',
-          description: 'Organisasjonen finnes ikke. Oppgi firmanavn for å opprette den.',
+          title: 'Ikke funnet',
+          description: 'Fant ikke organisasjonen i Brønnøysundregisteret. Sjekk organisasjonsnummeret.',
+          variant: 'destructive',
         });
       }
     } catch (error) {
@@ -128,21 +173,27 @@ const OrganizationSelectorContent = () => {
     try {
       const searchTerm = orgName.trim();
       
-      // Search for organizations by name (case insensitive, partial match)
-      const { data: results, error: searchError } = await supabase
-        .from('organizations')
-        .select('id, organization_number, organization_name')
-        .ilike('organization_name', `%${searchTerm}%`)
-        .limit(10);
+      // Search Brønnøysundregisteret
+      console.log('Searching Brønnøysundregisteret for name:', searchTerm);
+      const { data: brregData, error: brregError } = await supabase.functions.invoke('search-brreg', {
+        body: { query: searchTerm, type: 'name' }
+      });
 
-      if (searchError) throw searchError;
+      if (brregError) throw brregError;
 
-      if (results && results.length > 0) {
-        setSearchResults(results);
+      if (brregData?.results && brregData.results.length > 0) {
+        console.log(`Found ${brregData.results.length} organizations in Brønnøysundregisteret`);
+        setSearchResults(brregData.results.map((org: any) => ({
+          id: org.organisasjonsnummer, // Use org number as temporary ID
+          organization_number: org.organisasjonsnummer,
+          organization_name: org.navn,
+          organisasjonsform: org.organisasjonsform,
+          adresse: org.adresse,
+        })));
       } else {
         toast({
           title: 'Ingen treff',
-          description: 'Fant ingen organisasjoner med det navnet',
+          description: 'Fant ingen organisasjoner med det navnet i Brønnøysundregisteret',
         });
         setSearchResults([]);
       }
@@ -158,14 +209,42 @@ const OrganizationSelectorContent = () => {
     }
   };
 
-  const handleJoinOrganization = async (org: SearchResult) => {
+  const handleJoinOrganization = async (org: any) => {
     setCreating(true);
     try {
+      // Check if organization exists in our database
+      const { data: existingOrg, error: findError } = await supabase
+        .from('organizations')
+        .select('id, organization_number, organization_name')
+        .eq('organization_number', org.organization_number)
+        .maybeSingle();
+
+      if (findError) throw findError;
+
+      let orgToJoin = existingOrg;
+
+      if (!existingOrg) {
+        // Create organization in our database
+        const { data: newOrg, error: createError } = await supabase
+          .from('organizations')
+          .insert({
+            organization_number: org.organization_number,
+            organization_name: org.organization_name,
+            created_by: user!.id,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        orgToJoin = newOrg;
+      }
+
+      // Add user to organization
       const { error: joinError } = await supabase
         .from('user_organizations')
         .insert({
           user_id: user!.id,
-          organization_id: org.id,
+          organization_id: orgToJoin.id,
         });
 
       if (joinError) {
@@ -182,11 +261,11 @@ const OrganizationSelectorContent = () => {
 
       toast({
         title: 'Velkommen!',
-        description: `Du har blitt lagt til i ${org.organization_name}`,
+        description: `Du har blitt lagt til i ${orgToJoin.organization_name}`,
       });
 
       await refreshOrganizations();
-      selectOrganization(org);
+      selectOrganization(orgToJoin);
       navigate('/');
     } catch (error) {
       console.error('Error joining organization:', error);
@@ -336,7 +415,7 @@ const OrganizationSelectorContent = () => {
                     />
                     {!showNameField && (
                       <p className="text-xs text-muted-foreground">
-                        Hvis organisasjonen finnes blir du automatisk lagt til
+                        Søker i Brønnøysundregisteret
                       </p>
                     )}
                   </div>
@@ -397,27 +476,37 @@ const OrganizationSelectorContent = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Søk etter eksisterende organisasjoner
+                      Søk i Brønnøysundregisteret etter organisasjonsnavn
                     </p>
                   </div>
 
                   {searchResults.length > 0 && (
                     <div className="space-y-2">
-                      <Label>Søkeresultater</Label>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {searchResults.map((org) => (
+                      <Label>Søkeresultater fra Brønnøysundregisteret</Label>
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {searchResults.map((org: any) => (
                           <Button
-                            key={org.id}
+                            key={org.organization_number}
                             variant="outline"
-                            className="w-full justify-start h-auto py-3"
+                            className="w-full justify-start h-auto py-3 text-left"
                             onClick={() => handleJoinOrganization(org)}
                             disabled={creating}
                           >
-                            <div className="text-left">
+                            <div className="space-y-1 w-full">
                               <div className="font-semibold">{org.organization_name}</div>
                               <div className="text-xs text-muted-foreground">
                                 Org.nr: {org.organization_number}
                               </div>
+                              {org.organisasjonsform && (
+                                <div className="text-xs text-muted-foreground">
+                                  {org.organisasjonsform}
+                                </div>
+                              )}
+                              {org.adresse && (
+                                <div className="text-xs text-muted-foreground">
+                                  {org.adresse}
+                                </div>
+                              )}
                             </div>
                           </Button>
                         ))}
