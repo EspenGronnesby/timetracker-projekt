@@ -182,7 +182,7 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
+      className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in cursor-pointer"
       onClick={() => navigate(`/project/${project.id}`)}
     >
       <div className="flex items-center justify-between mb-4">
@@ -233,7 +233,7 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <div className="space-y-2 mb-4 p-3 bg-muted/50 rounded-lg">
+        <div className="space-y-2 mb-4 p-3 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
           {!hasActivity && filterPeriod ? (
             <div className="text-center py-4 text-muted-foreground text-sm">
               Ingen aktivitet i denne perioden

@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-
+import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { SearchAndSort } from "@/components/SearchAndSort";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +17,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
+import { handleError, handleSuccess } from "@/lib/errorHandler";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,6 +26,8 @@ const Index = () => {
   const { trackPresence } = usePresenceTracking();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("name");
   
   // Fetch project member counts
   const { data: projectMembers } = useQuery({
@@ -55,8 +60,12 @@ const Index = () => {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Laster...</p>
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <ProjectCardSkeleton />
+          <ProjectCardSkeleton />
+          <ProjectCardSkeleton />
+        </div>
       </div>
     );
   }
@@ -110,6 +119,44 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
+  // Search and sort projects
+  const filteredAndSortedProjects = useMemo(() => {
+    let filtered = projects.filter((project) =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    switch (sortBy) {
+      case "name":
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "time": {
+        const getProjectTime = (projectId: string) => {
+          const entries = filteredTimeEntries.filter(e => e.project_id === projectId && e.end_time);
+          return entries.reduce((acc, e) => acc + e.duration_seconds, 0);
+        };
+        filtered.sort((a, b) => getProjectTime(b.id) - getProjectTime(a.id));
+        break;
+      }
+      case "active": {
+        const isProjectActive = (projectId: string) =>
+          activeTimeEntries.some(e => e.project_id === projectId) ||
+          activeDriveEntries.some(e => e.project_id === projectId);
+        filtered.sort((a, b) => {
+          const aActive = isProjectActive(a.id) ? 1 : 0;
+          const bActive = isProjectActive(b.id) ? 1 : 0;
+          return bActive - aActive;
+        });
+        break;
+      }
+      case "recent":
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+    }
+
+    return filtered;
+  }, [projects, searchQuery, sortBy, filteredTimeEntries, activeTimeEntries, activeDriveEntries]);
+
   const handleFilterChange = (period: FilterPeriod, range?: { from: Date; to: Date }) => {
     setFilterPeriod(period);
     if (range) {
@@ -126,6 +173,19 @@ const Index = () => {
       {
         onSuccess: () => {
           trackPresence(!isActive, false);
+          handleSuccess(
+            isActive ? "Timer stoppet" : "Timer startet",
+            isActive ? "Tiden din er registrert" : "Tidtakingen har startet"
+          );
+        },
+        onError: (error: Error) => {
+          handleError(error, {
+            title: "Kunne ikke oppdatere timer",
+            action: {
+              label: "Prøv igjen",
+              onClick: () => handleToggleProject(projectId),
+            },
+          });
         },
       }
     );
@@ -140,6 +200,19 @@ const Index = () => {
       {
         onSuccess: () => {
           trackPresence(false, !isDriving);
+          handleSuccess(
+            isDriving ? "Kjøring stoppet" : "Kjøring startet",
+            isDriving && kilometers ? `${kilometers} km registrert` : undefined
+          );
+        },
+        onError: (error: Error) => {
+          handleError(error, {
+            title: "Kunne ikke oppdatere kjøring",
+            action: {
+              label: "Prøv igjen",
+              onClick: () => handleToggleDriving(projectId, kilometers),
+            },
+          });
         },
       }
     );
@@ -188,9 +261,18 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <OfflineIndicator />
+        
         <div className="mb-6">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
+
+        <SearchAndSort
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
@@ -247,9 +329,16 @@ const Index = () => {
               }
             />
           </div>
+        ) : filteredAndSortedProjects.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter funnet</h2>
+            <p className="text-muted-foreground mb-6">
+              Prøv et annet søk eller opprett et nytt prosjekt
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+            {filteredAndSortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
               );
