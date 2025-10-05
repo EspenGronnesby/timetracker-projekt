@@ -12,12 +12,23 @@ export const useProjects = (userId: string, userName: string) => {
       const parsed = JSON.parse(stored);
       return parsed.map((p: any) => ({
         ...p,
+        // Migration: Add default customerInfo if missing
+        customerInfo: p.customerInfo || {
+          name: p.name || "Ukjent kunde",
+          address: "",
+          phone: "",
+          email: "",
+          contractNumber: "",
+          description: "",
+        },
         createdAt: new Date(p.createdAt),
         currentEntry: p.currentEntry
           ? {
               ...p.currentEntry,
               startTime: new Date(p.currentEntry.startTime),
               endTime: p.currentEntry.endTime ? new Date(p.currentEntry.endTime) : undefined,
+              userId: p.currentEntry.userId || p.userId || userId,
+              userName: p.currentEntry.userName || userName,
             }
           : undefined,
         currentDrive: p.currentDrive
@@ -25,24 +36,33 @@ export const useProjects = (userId: string, userName: string) => {
               ...p.currentDrive,
               startTime: new Date(p.currentDrive.startTime),
               endTime: p.currentDrive.endTime ? new Date(p.currentDrive.endTime) : undefined,
+              userId: p.currentDrive.userId || p.userId || userId,
+              userName: p.currentDrive.userName || userName,
             }
           : undefined,
         entries: (p.entries || []).map((e: any) => ({
           ...e,
           startTime: new Date(e.startTime),
           endTime: e.endTime ? new Date(e.endTime) : undefined,
+          userId: e.userId || p.userId || userId,
+          userName: e.userName || userName,
         })),
         driveEntries: (p.driveEntries || []).map((e: any) => ({
           ...e,
           startTime: new Date(e.startTime),
           endTime: e.endTime ? new Date(e.endTime) : undefined,
+          userId: e.userId || p.userId || userId,
+          userName: e.userName || userName,
         })),
         materials: (p.materials || []).map((m: any) => ({
           ...m,
           addedAt: new Date(m.addedAt),
+          userId: m.userId || p.userId || userId,
+          userName: m.userName || userName,
         })),
         totalKilometers: p.totalKilometers || 0,
         totalMaterialCost: p.totalMaterialCost || 0,
+        isDriving: p.isDriving || false,
       }));
     }
     return [];
