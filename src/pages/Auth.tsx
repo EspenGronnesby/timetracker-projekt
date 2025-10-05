@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { Search, Building2, Loader2 } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const authSchema = z.object({
   email: z.string().email("Ugyldig e-postadresse"),
@@ -26,6 +29,10 @@ export default function Auth() {
   const [organizationNumber, setOrganizationNumber] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -42,6 +49,41 @@ export default function Auth() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const searchOrganization = async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('search-organization', {
+        body: { query }
+      });
+
+      if (error) throw error;
+
+      setSearchResults(data.organizations || []);
+    } catch (error) {
+      console.error('Error searching organizations:', error);
+      toast({
+        variant: "destructive",
+        title: "Søkefeil",
+        description: "Kunne ikke søke i Brønnøysundregistrene",
+      });
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const selectOrganization = (org: any) => {
+    setOrganizationNumber(org.organizationNumber);
+    setOrganizationName(org.name);
+    setOpen(false);
+    setSearchQuery("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,26 +190,67 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="organizationNumber">Organisasjonsnummer</Label>
-                  <Input
-                    id="organizationNumber"
-                    type="text"
-                    placeholder="123456789"
-                    value={organizationNumber}
-                    onChange={(e) => setOrganizationNumber(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="organizationName">Firmanavn</Label>
-                  <Input
-                    id="organizationName"
-                    type="text"
-                    placeholder="Handyhelp"
-                    value={organizationName}
-                    onChange={(e) => setOrganizationName(e.target.value)}
-                    required
-                  />
+                  <Label>Søk etter firma</Label>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        {organizationName || "Søk i Brønnøysundregistrene..."}
+                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Søk etter firmanavn..."
+                          value={searchQuery}
+                          onValueChange={(value) => {
+                            setSearchQuery(value);
+                            searchOrganization(value);
+                          }}
+                        />
+                        <CommandList>
+                          {searching && (
+                            <div className="flex items-center justify-center p-4">
+                              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
+                            <CommandEmpty>Ingen firma funnet</CommandEmpty>
+                          )}
+                          {!searching && searchResults.length > 0 && (
+                            <CommandGroup>
+                              {searchResults.map((org) => (
+                                <CommandItem
+                                  key={org.organizationNumber}
+                                  onSelect={() => selectOrganization(org)}
+                                  className="cursor-pointer"
+                                >
+                                  <Building2 className="mr-2 h-4 w-4" />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{org.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Org.nr: {org.organizationNumber} • {org.type}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {organizationName && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>Valgt firma: <strong>{organizationName}</strong></p>
+                      <p>Org.nr: <strong>{organizationNumber}</strong></p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
