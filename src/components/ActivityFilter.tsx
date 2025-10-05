@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 
 export type FilterPeriod = "day" | "week" | "month" | "custom";
 
@@ -14,18 +15,20 @@ interface ActivityFilterProps {
 
 export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState<FilterPeriod>("week");
-  const [customRange, setCustomRange] = useState<{ from: Date; to: Date } | undefined>();
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
 
   const handlePeriodChange = (period: FilterPeriod) => {
     setSelectedPeriod(period);
     if (period !== "custom") {
+      setCustomRange(undefined);
       onFilterChange(period);
     }
   };
 
-  const handleCustomRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
+  const handleCustomRangeSelect = (range: DateRange | undefined) => {
+    setCustomRange(range);
     if (range?.from && range?.to) {
-      setCustomRange({ from: range.from, to: range.to });
+      setSelectedPeriod("custom");
       onFilterChange("custom", { from: range.from, to: range.to });
     }
   };
@@ -61,7 +64,7 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
             className={cn("gap-2")}
           >
             <CalendarIcon className="h-4 w-4" />
-            {selectedPeriod === "custom" && customRange
+            {selectedPeriod === "custom" && customRange?.from && customRange?.to
               ? `${format(customRange.from, "MMM d")} - ${format(customRange.to, "MMM d")}`
               : "Custom"}
           </Button>
@@ -72,6 +75,7 @@ export const ActivityFilter = ({ onFilterChange }: ActivityFilterProps) => {
             selected={customRange}
             onSelect={handleCustomRangeSelect}
             numberOfMonths={2}
+            initialFocus
             className="pointer-events-auto"
           />
         </PopoverContent>
