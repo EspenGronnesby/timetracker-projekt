@@ -64,9 +64,8 @@ export const AddMaterialDialog = ({ onAddMaterial }: AddMaterialDialogProps) => 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-12 sm:h-10 w-full">
-          <Package className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
-          <span className="hidden sm:inline ml-2">Materiale</span>
+        <Button variant="outline" className="h-12 w-full hover:scale-105 transition-transform">
+          <Package className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

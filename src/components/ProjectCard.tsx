@@ -178,12 +178,12 @@ export const ProjectCard = ({
           <Button
             variant={isActive ? "secondary" : "default"}
             onClick={onToggle}
-            className="h-12 sm:h-10 w-full"
+            className="h-12 w-full hover:scale-105 transition-transform"
           >
             {isActive ? (
-              <Pause className="h-5 w-5" />
+              <Pause className="h-6 w-6" />
             ) : (
-              <Play className="h-5 w-5" />
+              <Play className="h-6 w-6" />
             )}
           </Button>
 
@@ -214,17 +214,22 @@ export const ProjectCard = ({
         <div className="pt-4 border-t flex justify-between items-center">
           <Button 
             variant="outline" 
-            size="sm" 
+            size="icon"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/project/${project.id}#invites`);
             }}
+            className="hover:scale-105 transition-transform"
           >
-            <Share2 className="h-4 w-4 mr-2" />
-            Invite
+            <Share2 className="h-5 w-5" />
           </Button>
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" />
+          <Button 
+            variant="destructive" 
+            size="icon" 
+            onClick={onDelete}
+            className="hover:scale-105 transition-transform"
+          >
+            <Trash2 className="h-5 w-5" />
           </Button>
         </div>
       </div>
