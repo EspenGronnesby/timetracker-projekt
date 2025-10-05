@@ -193,16 +193,18 @@ const ProjectDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">{project.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {project.customer_name}
-            </p>
+      <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 flex-1">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold truncate">{project.name}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                {project.customer_name}
+              </p>
+            </div>
           </div>
           <OnlineUsersIndicator
             userId={user.id}
@@ -371,14 +373,16 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Button
             onClick={handleToggleProject}
             variant={activeEntry ? "destructive" : "default"}
-            className="flex-1 min-w-[150px]"
+            className="h-12 sm:h-10"
           >
-            <Clock className="mr-2 h-5 w-5" />
-            {activeEntry ? "Stopp tid" : "Start tid"}
+            <Clock className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline ml-2">
+              {activeEntry ? "Stopp tid" : "Start tid"}
+            </span>
           </Button>
 
           <DriveDialog isDriving={!!activeDrive} onToggleDriving={handleToggleDriving} />
@@ -414,18 +418,28 @@ const ProjectDetails = () => {
                       className="flex items-start gap-3 p-3 rounded-lg bg-primary/10"
                     >
                       <Clock className="h-5 w-5 text-primary mt-0.5" />
-                      <div className="flex-1">
+                     <div className="flex-1 min-w-0">
                         <p className="font-medium">Tidsregistrering</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(entry.start_time).toLocaleString("no-NO")}
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                          {new Date(entry.start_time).toLocaleString("no-NO", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
                           {entry.end_time &&
                             ` - ${new Date(entry.end_time).toLocaleString(
-                              "no-NO"
+                              "no-NO",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              }
                             )}`}
                         </p>
                         {entry.end_time && (
                           <p className="text-sm font-semibold text-primary">
-                            Varighet: {formatTime(entry.duration_seconds)}
+                            {formatTime(entry.duration_seconds)}
                           </p>
                         )}
                       </div>
@@ -439,13 +453,23 @@ const ProjectDetails = () => {
                       className="flex items-start gap-3 p-3 rounded-lg bg-accent/10"
                     >
                       <Car className="h-5 w-5 text-accent mt-0.5" />
-                      <div className="flex-1">
+                     <div className="flex-1 min-w-0">
                         <p className="font-medium">Kjøring</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(entry.start_time).toLocaleString("no-NO")}
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                          {new Date(entry.start_time).toLocaleString("no-NO", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
                           {entry.end_time &&
                             ` - ${new Date(entry.end_time).toLocaleString(
-                              "no-NO"
+                              "no-NO",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              }
                             )}`}
                         </p>
                         {entry.kilometers !== null && (
@@ -464,12 +488,18 @@ const ProjectDetails = () => {
                       className="flex items-start gap-3 p-3 rounded-lg bg-secondary"
                     >
                       <Package className="h-5 w-5 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="font-medium">{material.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(material.created_at).toLocaleString("no-NO")}
+                     <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{material.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {new Date(material.created_at).toLocaleString("no-NO", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
                         </p>
-                        <p className="text-sm font-semibold">
+                        <p className="text-sm font-semibold break-words">
                           {material.quantity} stk × {material.unit_price} kr ={" "}
                           {material.total_price} kr
                         </p>

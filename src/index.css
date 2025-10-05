@@ -112,5 +112,20 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Forbedre touch targets på mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Optimalisere scroll på mobile */
+  @media (max-width: 640px) {
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
   }
 }

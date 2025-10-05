@@ -85,55 +85,59 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-foreground">
-            Prosjekt tidsporing - {profile.name}
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <OnlineUsersIndicator
-            userId={user.id}
-            userName={profile.name}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={signOut}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Logg ut
-          </Button>
-          <AddProjectDialog
-            onAddProject={(name, color, customerInfo) =>
-              addProject({ name, color, customerInfo })
-            }
-          />
+      <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">
+              <span className="hidden sm:inline">Prosjekt tidsporing - </span>
+              <span className="sm:hidden">Tidsporing - </span>
+              {profile.name}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <OnlineUsersIndicator
+              userId={user.id}
+              userName={profile.name}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={signOut}
+              className="flex items-center gap-1 sm:gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logg ut</span>
+            </Button>
+            <AddProjectDialog
+              onAddProject={(name, color, customerInfo) =>
+                addProject({ name, color, customerInfo })
+              }
+            />
+          </div>
         </div>
       </header>
 
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl">
-          <div className="flex items-center gap-3">
-            <FolderOpen className="h-8 w-8 text-primary" />
+      <div className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <p className="text-sm text-muted-foreground">Totalt prosjekter</p>
-              <p className="text-2xl font-bold">{projects.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Totalt prosjekter</p>
+              <p className="text-xl sm:text-2xl font-bold">{projects.length}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Play className="h-8 w-8 text-accent" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Play className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
             <div>
-              <p className="text-sm text-muted-foreground">Aktive nå</p>
-              <p className="text-2xl font-bold">{activeCount}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Aktive nå</p>
+              <p className="text-xl sm:text-2xl font-bold">{activeCount}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Clock className="h-8 w-8 text-primary" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <p className="text-sm text-muted-foreground">Total tid</p>
-              <p className="text-2xl font-bold">{formatTime(totalTime)}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total tid</p>
+              <p className="text-xl sm:text-2xl font-bold">{formatTime(totalTime)}</p>
             </div>
           </div>
         </div>
