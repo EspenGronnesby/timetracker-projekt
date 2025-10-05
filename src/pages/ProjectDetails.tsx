@@ -474,7 +474,7 @@ const ProjectDetails = () => {
         </Card>
 
         {(isAdmin || isProjectCreator) && (
-          <Card className="p-6">
+          <Card id="invites" className="p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Users className="h-5 w-5" />
               Team & Invites

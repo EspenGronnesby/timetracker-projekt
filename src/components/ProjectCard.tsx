@@ -215,11 +215,13 @@ export const ProjectCard = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={handleGenerateInvite}
-            disabled={generating}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/project/${project.id}#invites`);
+            }}
           >
             <Share2 className="h-4 w-4 mr-2" />
-            {generating ? "Generating..." : "Share"}
+            Invite
           </Button>
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-4 w-4" />

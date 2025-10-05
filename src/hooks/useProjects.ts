@@ -148,15 +148,13 @@ export const useProjects = (userId?: string) => {
     }) => {
       if (!userId) throw new Error("Must be logged in");
 
-      // Get user's organization
-      const { data: userOrg, error: orgError } = await supabase
+      // Get user's organization (gracefully handle missing org)
+      const { data: userOrg } = await supabase
         .from("user_organizations")
         .select("organization_id")
         .eq("user_id", userId)
         .limit(1)
-        .single();
-
-      if (orgError) throw orgError;
+        .maybeSingle();
 
       const { data, error } = await supabase
         .from("projects")
@@ -170,14 +168,30 @@ export const useProjects = (userId?: string) => {
           contract_number: customerInfo.contractNumber,
           description: customerInfo.description,
           created_by: userId,
-          organization_id: userOrg.organization_id,
+          organization_id: userOrg?.organization_id ?? null,
         })
         .select()
         .single();
 
       if (error) throw error;
       
-      // Trigger to add creator as owner happens automatically
+      // Verify membership exists (fallback if trigger didn't fire)
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("id")
+        .eq("project_id", data.id)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!memberCheck) {
+        // Manually add creator as owner if trigger failed
+        await supabase.from("project_members").insert({
+          project_id: data.id,
+          user_id: userId,
+          role: "owner",
+        });
+      }
+      
       return data;
     },
     onSuccess: () => {
