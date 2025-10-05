@@ -9,10 +9,12 @@ import { Clock, Play, FolderOpen, LogOut } from "lucide-react";
 import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
+  const isAdmin = useIsAdmin(user?.id);
   const { trackPresence } = usePresenceTracking();
   const {
     projects,
@@ -97,14 +99,16 @@ const Index = () => {
               </p>
             )}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/admin")}
-            className="flex items-center gap-2"
-          >
-            Admin
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin")}
+              className="flex items-center gap-2"
+            >
+              Admin
+            </Button>
+          )}
         </div>
       </header>
 

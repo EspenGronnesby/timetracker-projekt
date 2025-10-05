@@ -14,6 +14,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { CustomerInfo } from "@/types/project";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+
+const projectSchema = z.object({
+  name: z.string().trim().min(1, "Project name is required").max(100, "Project name must be less than 100 characters"),
+  customerName: z.string().trim().min(1, "Customer name is required").max(100, "Customer name must be less than 100 characters"),
+  customerAddress: z.string().trim().max(200, "Address must be less than 200 characters").optional(),
+  customerPhone: z.string().trim().max(20, "Phone must be less than 20 characters").optional(),
+  customerEmail: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters").or(z.literal("")).optional(),
+  contractNumber: z.string().trim().max(50, "Contract number must be less than 50 characters").optional(),
+  description: z.string().trim().max(1000, "Description must be less than 1000 characters").optional(),
+});
 
 interface AddProjectDialogProps {
   onAddProject: (name: string, color: string, customerInfo: CustomerInfo) => void;
@@ -28,6 +40,7 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
+  const { toast } = useToast();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: "",
     address: "",
@@ -39,8 +52,27 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && customerInfo.name.trim()) {
-      onAddProject(name.trim(), selectedColor, customerInfo);
+    
+    try {
+      const validatedData = projectSchema.parse({
+        name,
+        customerName: customerInfo.name,
+        customerAddress: customerInfo.address,
+        customerPhone: customerInfo.phone,
+        customerEmail: customerInfo.email,
+        contractNumber: customerInfo.contractNumber,
+        description: customerInfo.description,
+      });
+      
+      onAddProject(validatedData.name, selectedColor, {
+        name: validatedData.customerName,
+        address: validatedData.customerAddress || "",
+        phone: validatedData.customerPhone || "",
+        email: validatedData.customerEmail || "",
+        contractNumber: validatedData.contractNumber || "",
+        description: validatedData.description || "",
+      });
+      
       setName("");
       setSelectedColor(PRESET_COLORS[0]);
       setCustomerInfo({
@@ -52,6 +84,14 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
         description: "",
       });
       setOpen(false);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      }
     }
   };
 

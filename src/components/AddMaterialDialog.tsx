@@ -11,6 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package } from "lucide-react";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+
+const materialSchema = z.object({
+  name: z.string().trim().min(1, "Material name is required").max(100, "Material name must be less than 100 characters"),
+  quantity: z.number().positive("Quantity must be positive").max(999999, "Quantity is too large"),
+  unitPrice: z.number().positive("Unit price must be positive").max(999999, "Unit price is too large"),
+});
 
 interface AddMaterialDialogProps {
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
@@ -21,18 +29,31 @@ export const AddMaterialDialog = ({ onAddMaterial }: AddMaterialDialogProps) => 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const qty = parseFloat(quantity);
-    const price = parseFloat(unitPrice);
     
-    if (name.trim() && !isNaN(qty) && qty > 0 && !isNaN(price) && price >= 0) {
-      onAddMaterial(name.trim(), qty, price);
+    try {
+      const validatedData = materialSchema.parse({
+        name,
+        quantity: parseFloat(quantity),
+        unitPrice: parseFloat(unitPrice),
+      });
+      
+      onAddMaterial(validatedData.name, validatedData.quantity, validatedData.unitPrice);
       setName("");
       setQuantity("");
       setUnitPrice("");
       setOpen(false);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
