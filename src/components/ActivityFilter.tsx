@@ -36,7 +36,7 @@ export const ActivityFilter = ({
     }
   };
   return <div className="flex items-center gap-2 flex-wrap py-[11px]">
-      <Button variant={selectedPeriod === "day" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("day")}>
+      <Button variant={selectedPeriod === "day" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("day")} className="px-0 mx-0 py-[10px]">
         Day
       </Button>
       <Button variant={selectedPeriod === "week" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("week")}>
