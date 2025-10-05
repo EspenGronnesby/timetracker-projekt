@@ -476,36 +476,6 @@ const ProjectDetails = () => {
             </div>
           </Card>}
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          
-
-          <div onClick={() => {
-          if (!activeDrive) {
-            setActivityFilter("drive");
-            document.getElementById("activity-log")?.scrollIntoView({
-              behavior: "smooth"
-            });
-          }
-        }}>
-            <DriveDialog isDriving={!!activeDrive} onToggleDriving={handleToggleDriving} />
-          </div>
-
-          <div onClick={() => {
-          setActivityFilter("material");
-          document.getElementById("activity-log")?.scrollIntoView({
-            behavior: "smooth"
-          });
-        }}>
-            <AddMaterialDialog onAddMaterial={(name, quantity, unitPrice) => addMaterial({
-            projectId: project.id,
-            userName: profile.name,
-            name,
-            quantity,
-            unitPrice
-          })} />
-          </div>
-        </div>
-
         <Card id="activity-log" className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Aktivitetslogg</h2>
