@@ -7,57 +7,101 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { useActiveUser } from "@/hooks/useActiveUser";
 
 interface PresenceState {
   [key: string]: {
     userId: string;
     userName: string;
+    projectId?: string;
+    isActive: boolean;
+    isDriving: boolean;
     online_at: string;
   }[];
 }
 
-export const OnlineUsersIndicator = () => {
-  const { activeUser } = useActiveUser();
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const [channel, setChannel] = useState<ReturnType<typeof supabase.channel> | null>(null);
+interface OnlineUsersIndicatorProps {
+  userId: string;
+  userName: string;
+  projectId?: string;
+}
+
+export const OnlineUsersIndicator = ({
+  userId,
+  userName,
+  projectId,
+}: OnlineUsersIndicatorProps) => {
+  const [onlineUsers, setOnlineUsers] = useState<
+    Array<{
+      userName: string;
+      isActive: boolean;
+      isDriving: boolean;
+    }>
+  >([]);
+  const [channel, setChannel] = useState<ReturnType<
+    typeof supabase.channel
+  > | null>(null);
 
   useEffect(() => {
-    // Create channel for presence tracking
-    const presenceChannel = supabase.channel("online-users");
+    const channelName = projectId
+      ? `project-${projectId}-presence`
+      : "online-users";
+    const presenceChannel = supabase.channel(channelName);
 
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState() as PresenceState;
         const users = Object.values(state)
           .flat()
-          .map((presence) => presence.userName);
-        setOnlineUsers([...new Set(users)]); // Remove duplicates
+          .filter((presence) => {
+            if (projectId) {
+              return presence.projectId === projectId;
+            }
+            return true;
+          })
+          .map((presence) => ({
+            userName: presence.userName,
+            isActive: presence.isActive,
+            isDriving: presence.isDriving,
+          }));
+
+        const uniqueUsers = Array.from(
+          new Map(users.map((user) => [user.userName, user])).values()
+        );
+
+        setOnlineUsers(uniqueUsers);
       })
-      .on("presence", { event: "join" }, ({ newPresences }) => {
-        console.log("User joined:", newPresences);
-      })
-      .on("presence", { event: "leave" }, ({ leftPresences }) => {
-        console.log("User left:", leftPresences);
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          // Track this user's presence
-          await presenceChannel.track({
-            userId: activeUser.id,
-            userName: activeUser.name,
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
+      .subscribe();
 
     setChannel(presenceChannel);
 
-    // Cleanup on unmount
     return () => {
       presenceChannel.unsubscribe();
     };
-  }, [activeUser.id, activeUser.name]);
+  }, [projectId, userId, userName]);
+
+  const trackPresence = async (isActive: boolean, isDriving: boolean) => {
+    if (!channel) return;
+
+    if (isActive || isDriving) {
+      await channel.track({
+        userId,
+        userName,
+        projectId: projectId || null,
+        isActive,
+        isDriving,
+        online_at: new Date().toISOString(),
+      });
+    } else {
+      await channel.untrack();
+    }
+  };
+
+  useEffect(() => {
+    (window as any).trackPresence = trackPresence;
+    return () => {
+      delete (window as any).trackPresence;
+    };
+  }, [channel]);
 
   const onlineCount = onlineUsers.length;
 
@@ -76,23 +120,24 @@ export const OnlineUsersIndicator = () => {
             )}
           </div>
           <span className="font-medium">{onlineCount}</span>
-          <span className="hidden sm:inline">online</span>
+          <span className="hidden sm:inline">aktive</span>
         </Button>
       </HoverCardTrigger>
       <HoverCardContent className="w-auto">
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold">Online nå</h4>
+          <h4 className="text-sm font-semibold">
+            {projectId ? "Aktive på prosjekt" : "Aktive nå"}
+          </h4>
           {onlineUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Ingen online</p>
+            <p className="text-sm text-muted-foreground">Ingen aktive</p>
           ) : (
             <ul className="space-y-1">
-              {onlineUsers.map((userName, index) => (
-                <li
-                  key={index}
-                  className="text-sm flex items-center gap-2"
-                >
+              {onlineUsers.map((user, index) => (
+                <li key={index} className="text-sm flex items-center gap-2">
                   <span className="h-2 w-2 bg-green-500 rounded-full" />
-                  {userName === activeUser.name ? "Du" : userName}
+                  {user.userName === userName ? "Du" : user.userName}
+                  {user.isActive && " (Timer)"}
+                  {user.isDriving && " (Kjøring)"}
                 </li>
               ))}
             </ul>
@@ -101,4 +146,14 @@ export const OnlineUsersIndicator = () => {
       </HoverCardContent>
     </HoverCard>
   );
+};
+
+export const usePresenceTracking = () => {
+  const trackPresence = (isActive: boolean, isDriving: boolean) => {
+    if ((window as any).trackPresence) {
+      (window as any).trackPresence(isActive, isDriving);
+    }
+  };
+
+  return { trackPresence };
 };

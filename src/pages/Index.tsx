@@ -1,113 +1,197 @@
-import { Clock, LogOut } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-import { UserLogin } from "@/components/UserLogin";
+import { formatTime } from "@/lib/timeUtils";
+import { Clock, Play, FolderOpen, LogOut } from "lucide-react";
 import { OnlineUsersIndicator } from "@/components/OnlineUsersIndicator";
 import { Button } from "@/components/ui/button";
-import { useProjects } from "@/hooks/useProjects";
-import { useActiveUser } from "@/hooks/useActiveUser";
-import { formatDuration } from "@/lib/timeUtils";
+import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
 
 const Index = () => {
-  const { activeUser, users, isLoggedIn, login, logout } = useActiveUser();
-  const { projects, addProject, toggleProject, deleteProject } = useProjects(activeUser.id, activeUser.name);
+  const navigate = useNavigate();
+  const { user, profile, loading, signOut } = useAuth();
+  const { trackPresence } = usePresenceTracking();
+  const {
+    projects,
+    timeEntries,
+    driveEntries,
+    addProject,
+    toggleProject,
+    toggleDriving,
+    addMaterial,
+    deleteProject,
+  } = useProjects(user?.id);
 
-  if (!isLoggedIn) {
-    return <UserLogin users={users} onUserSelect={login} />;
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || !user || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Laster...</p>
+      </div>
+    );
   }
 
-  // Calculate stats for the active user only
-  const totalTime = projects.reduce((acc, p) => {
-    const userEntries = p.entries.filter(e => e.userId === activeUser.id);
-    const userTime = userEntries.reduce((sum, e) => sum + e.duration, 0);
-    return acc + userTime;
-  }, 0);
-  
-  const activeCount = projects.filter((p) => {
-    const userState = p.activeUsers[activeUser.id];
-    return userState?.isActive || false;
-  }).length;
+  const myTimeEntries = timeEntries.filter(
+    (entry) => entry.user_id === user.id && entry.end_time
+  );
+  const totalTime = myTimeEntries.reduce(
+    (acc, entry) => acc + entry.duration_seconds,
+    0
+  );
+
+  const activeTimeEntries = timeEntries.filter(
+    (entry) => entry.user_id === user.id && !entry.end_time
+  );
+  const activeDriveEntries = driveEntries.filter(
+    (entry) => entry.user_id === user.id && !entry.end_time
+  );
+  const activeCount = activeTimeEntries.length + activeDriveEntries.length;
+
+  const handleToggleProject = (projectId: string) => {
+    const isActive = activeTimeEntries.some(
+      (entry) => entry.project_id === projectId
+    );
+    toggleProject(
+      { projectId, userName: profile.name },
+      {
+        onSuccess: () => {
+          trackPresence(!isActive, false);
+        },
+      }
+    );
+  };
+
+  const handleToggleDriving = (projectId: string, kilometers?: number) => {
+    const isDriving = activeDriveEntries.some(
+      (entry) => entry.project_id === projectId
+    );
+    toggleDriving(
+      { projectId, userName: profile.name, kilometers },
+      {
+        onSuccess: () => {
+          trackPresence(false, !isDriving);
+        },
+      }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-card/95">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-primary to-primary/80 p-3 rounded-xl shadow-md">
-                <Clock className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">TimeTracker</h1>
-                <p className="text-sm text-muted-foreground">
-                  Prosjekt tidsporing - {activeUser.name}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <OnlineUsersIndicator />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Bytt bruker
-              </Button>
-              <AddProjectDialog onAdd={addProject} />
-            </div>
-          </div>
+      <header className="bg-card border-b border-border px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-foreground">
+            Prosjekt tidsporing - {profile.name}
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <OnlineUsersIndicator
+            userId={user.id}
+            userName={profile.name}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={signOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logg ut
+          </Button>
+          <AddProjectDialog
+            onAddProject={(name, color, customerInfo) =>
+              addProject({ name, color, customerInfo })
+            }
+          />
         </div>
       </header>
 
-      {/* Stats Bar */}
-      <div className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-secondary/50 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Totalt prosjekter</p>
-              <p className="text-2xl font-bold text-foreground">{projects.length}</p>
+      <div className="bg-card border-b border-border px-6 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl">
+          <div className="flex items-center gap-3">
+            <FolderOpen className="h-8 w-8 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Totalt prosjekter</p>
+              <p className="text-2xl font-bold">{projects.length}</p>
             </div>
-            <div className="bg-accent/10 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Aktive nå</p>
-              <p className="text-2xl font-bold text-accent">{activeCount}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Play className="h-8 w-8 text-accent" />
+            <div>
+              <p className="text-sm text-muted-foreground">Aktive nå</p>
+              <p className="text-2xl font-bold">{activeCount}</p>
             </div>
-            <div className="bg-primary/10 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Total tid</p>
-              <p className="text-2xl font-bold font-mono text-primary">{formatDuration(totalTime)}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Clock className="h-8 w-8 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Total tid</p>
+              <p className="text-2xl font-bold">{formatTime(totalTime)}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {projects.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="bg-muted/50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Ingen prosjekter ennå
-            </h2>
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter ennå</h2>
             <p className="text-muted-foreground mb-6">
               Kom i gang ved å opprette ditt første prosjekt
             </p>
-            <AddProjectDialog onAdd={addProject} />
+            <AddProjectDialog
+              onAddProject={(name, color, customerInfo) =>
+                addProject({ name, color, customerInfo })
+              }
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                userId={activeUser.id}
-                onToggle={toggleProject}
-                onDelete={deleteProject}
-              />
-            ))}
+            {projects.map((project) => {
+              const projectTimeEntries = timeEntries.filter(
+                (entry) => entry.project_id === project.id
+              );
+              const projectDriveEntries = driveEntries.filter(
+                (entry) => entry.project_id === project.id
+              );
+              const isActive = activeTimeEntries.some(
+                (entry) => entry.project_id === project.id
+              );
+              const isDriving = activeDriveEntries.some(
+                (entry) => entry.project_id === project.id
+              );
+
+              return (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  timeEntries={projectTimeEntries}
+                  driveEntries={projectDriveEntries}
+                  isActive={isActive}
+                  isDriving={isDriving}
+                  onToggle={() => handleToggleProject(project.id)}
+                  onToggleDriving={(km) => handleToggleDriving(project.id, km)}
+                  onAddMaterial={(name, quantity, unitPrice) =>
+                    addMaterial({
+                      projectId: project.id,
+                      userName: profile.name,
+                      name,
+                      quantity,
+                      unitPrice,
+                    })
+                  }
+                  onDelete={() => deleteProject(project.id)}
+                  userName={profile.name}
+                />
+              );
+            })}
           </div>
         )}
       </main>

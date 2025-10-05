@@ -14,7 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      drive_entries: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          id: string
+          kilometers: number | null
+          project_id: string
+          start_time: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          kilometers?: number | null
+          project_id: string
+          start_time: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          kilometers?: number | null
+          project_id?: string
+          start_time?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drive_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          project_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          project_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          project_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          color: string
+          contract_number: string | null
+          created_at: string
+          created_by: string
+          customer_address: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color: string
+          contract_number?: string | null
+          created_at?: string
+          created_by: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          contract_number?: string | null
+          created_at?: string
+          created_by?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          end_time: string | null
+          id: string
+          project_id: string
+          start_time: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number
+          end_time?: string | null
+          id?: string
+          project_id: string
+          start_time: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          end_time?: string | null
+          id?: string
+          project_id?: string
+          start_time?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

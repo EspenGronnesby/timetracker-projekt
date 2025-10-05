@@ -1,120 +1,133 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Project, TimeEntry, DriveEntry } from "@/hooks/useProjects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Trash2, Clock } from "lucide-react";
-import { Project } from "@/types/project";
-import { formatDuration } from "@/lib/timeUtils";
+import {
+  Play,
+  Pause,
+  Trash2,
+  Car,
+  Package,
+  Clock,
+  Building2,
+} from "lucide-react";
+import { formatTime } from "@/lib/timeUtils";
+import { DriveDialog } from "./DriveDialog";
+import { AddMaterialDialog } from "./AddMaterialDialog";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectCardProps {
   project: Project;
-  userId: string;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
+  timeEntries: TimeEntry[];
+  driveEntries: DriveEntry[];
+  isActive: boolean;
+  isDriving: boolean;
+  onToggle: () => void;
+  onToggleDriving: (kilometers?: number) => void;
+  onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
+  onDelete: () => void;
+  userName: string;
 }
 
-export const ProjectCard = ({ project, userId, onToggle, onDelete }: ProjectCardProps) => {
+export const ProjectCard = ({
+  project,
+  timeEntries,
+  driveEntries,
+  isActive,
+  isDriving,
+  onToggle,
+  onToggleDriving,
+  onAddMaterial,
+  onDelete,
+  userName,
+}: ProjectCardProps) => {
   const navigate = useNavigate();
-  
-  const userState = project.activeUsers[userId] || { isActive: false, isDriving: false };
-  const currentEntry = project.currentEntries[userId];
-  
-  // Calculate total time for this specific user
-  const userTotalTime = project.entries
-    .filter(e => e.userId === userId)
-    .reduce((sum, e) => sum + e.duration, 0);
-  
-  const [currentTime, setCurrentTime] = useState(userTotalTime);
 
-  useEffect(() => {
-    if (!userState.isActive) {
-      setCurrentTime(userTotalTime);
-      return;
-    }
+  const handleDrivingSubmit = (kilometers: number) => {
+    onToggleDriving(kilometers);
+  };
 
-    const interval = setInterval(() => {
-      if (currentEntry?.startTime) {
-        const elapsed = Math.floor((Date.now() - currentEntry.startTime.getTime()) / 1000);
-        setCurrentTime(userTotalTime + elapsed);
-      }
-    }, 1000);
+  const totalTime = timeEntries.reduce(
+    (acc, entry) => acc + entry.duration_seconds,
+    0
+  );
 
-    return () => clearInterval(interval);
-  }, [userState.isActive, userTotalTime, currentEntry]);
+  const totalKilometers = driveEntries.reduce(
+    (acc, entry) => acc + (entry.kilometers || 0),
+    0
+  );
 
   return (
-    <Card 
-      className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card cursor-pointer"
+    <Card
+      className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
       onClick={() => navigate(`/project/${project.id}`)}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div 
-            className="w-4 h-4 rounded-full transition-all duration-300"
-            style={{ 
-              backgroundColor: userState.isActive ? 'hsl(var(--accent))' : project.color,
-              boxShadow: userState.isActive ? '0 0 12px hsl(var(--accent))' : 'none'
-            }}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-4 h-4 rounded-full"
+            style={{ backgroundColor: project.color }}
           />
           <div>
-            <h3 className="font-semibold text-lg text-foreground">{project.name}</h3>
-            <p className="text-sm text-muted-foreground">{project.customerInfo.name}</p>
+            <h3 className="font-semibold text-lg">{project.name}</h3>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Building2 className="h-3 w-3" />
+              {project.customer_name}
+            </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(project.id);
-          }}
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="text-2xl font-mono font-semibold text-foreground">
-            {formatDuration(currentTime)}
-          </span>
+      <div onClick={(e) => e.stopPropagation()}>
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={isActive ? "secondary" : "default"}
+            size="sm"
+            onClick={onToggle}
+            className="flex-1"
+          >
+            {isActive ? (
+              <>
+                <Pause className="mr-2 h-4 w-4" />
+                Stopp timer
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Start timer
+              </>
+            )}
+          </Button>
+
+          <DriveDialog isDriving={isDriving} onToggleDriving={handleDrivingSubmit} />
+
+          <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle(project.id);
-          }}
-          className={`transition-all duration-300 ${
-            userState.isActive
-              ? "bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
-              : "bg-primary hover:bg-primary/90 text-primary-foreground"
-          }`}
-          size="lg"
-        >
-          {userState.isActive ? (
-            <>
-              <Pause className="mr-2 h-5 w-5" />
-              Pause
-            </>
-          ) : (
-            <>
-              <Play className="mr-2 h-5 w-5" />
-              Start
-            </>
-          )}
-        </Button>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Total tid: {formatTime(totalTime)}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Car className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Kjørt: {totalKilometers.toFixed(1)} km
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t flex justify-end">
+          <Button variant="destructive" size="sm" onClick={onDelete}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-
-      {project.entries.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            {project.entries.length} {project.entries.length === 1 ? 'økt' : 'økter'} totalt
-          </p>
-        </div>
-      )}
     </Card>
   );
 };
