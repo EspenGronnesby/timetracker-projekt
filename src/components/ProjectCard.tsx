@@ -174,16 +174,18 @@ export const ProjectCard = ({
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <Button
-            variant={isActive ? "secondary" : "default"}
+            variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className="h-12 w-full hover:scale-105 transition-transform"
+            className={`h-16 w-full hover:scale-105 transition-all ${
+              isActive ? "bg-green-500 hover:bg-green-600 animate-pulse" : ""
+            }`}
           >
             {isActive ? (
-              <Pause className="h-6 w-6" />
+              <Pause className="h-8 w-8" />
             ) : (
-              <Play className="h-6 w-6" />
+              <Play className="h-8 w-8" />
             )}
           </Button>
 

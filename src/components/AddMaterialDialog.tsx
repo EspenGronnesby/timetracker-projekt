@@ -55,7 +55,12 @@ export const AddMaterialDialog = ({
   const totalPrice = !isNaN(parseFloat(quantity)) && !isNaN(parseFloat(unitPrice)) ? (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2) : "0.00";
   return <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        
+        <Button 
+          variant="outline" 
+          className="h-16 w-full hover:scale-105 transition-transform hover:bg-amber-500/10 hover:border-amber-500/50"
+        >
+          <Package className="h-8 w-8" />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
