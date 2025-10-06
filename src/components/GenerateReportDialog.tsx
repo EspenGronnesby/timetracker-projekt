@@ -99,9 +99,8 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="destructive" size="icon">
           <FileText className="h-4 w-4" />
-          Generer Rapport
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh]">
