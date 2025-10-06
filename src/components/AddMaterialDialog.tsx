@@ -59,7 +59,7 @@ export const AddMaterialDialog = ({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="h-16 w-full hover:scale-105 transition-transform hover:bg-amber-500/10 hover:border-amber-500/50"
+          className="h-16 w-full transition-all active:scale-95 active:brightness-150 hover:bg-background"
         >
           <Package className="h-8 w-8" />
         </Button>

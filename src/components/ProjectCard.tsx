@@ -220,8 +220,8 @@ export const ProjectCard = ({
           <Button
             variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className={`h-16 sm:h-16 w-full hover:scale-105 transition-all ${
-              isActive ? "bg-green-500 hover:bg-green-600 animate-pulse" : ""
+            className={`h-16 sm:h-16 w-full transition-all active:scale-95 active:brightness-150 ${
+              isActive ? "bg-green-500 hover:bg-green-500 animate-pulse" : "hover:bg-background"
             }`}
           >
             {isActive ? (
