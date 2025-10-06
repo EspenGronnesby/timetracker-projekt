@@ -103,7 +103,7 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
           <FileText className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-2xl max-h-[70vh]">
         <DialogHeader>
           <DialogTitle>Generer Prosjektrapport</DialogTitle>
         </DialogHeader>
