@@ -225,9 +225,9 @@ export const ProjectCard = ({
             }`}
           >
             {isActive ? (
-              <Pause className="h-8 w-8 sm:h-8 sm:w-8" />
+              <Pause className="h-8 w-8 sm:h-8 sm:w-8 text-white" />
             ) : (
-              <Play className="h-8 w-8 sm:h-8 sm:w-8" />
+              <Play className="h-8 w-8 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400" />
             )}
           </Button>
 
