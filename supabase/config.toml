@@ -1,1 +1,10 @@
 project_id = "odbqdzmdlelotqfuxbwf"
+
+[functions.generate-project-invite]
+verify_jwt = true
+
+[functions.join-project-via-invite]
+verify_jwt = false
+
+[functions.generate-project-report]
+verify_jwt = true

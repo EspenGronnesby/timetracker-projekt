@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
+import { GenerateReportDialog } from "@/components/GenerateReportDialog";
 import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users } from "lucide-react";
 import { formatTime } from "@/lib/timeUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -252,6 +253,13 @@ const ProjectDetails = () => {
                 {project.customer_name}
               </p>
             </div>
+            {canViewSensitiveData && (
+              <GenerateReportDialog 
+                projectId={project.id} 
+                projectName={project.name}
+                canAccess={canViewSensitiveData}
+              />
+            )}
           </div>
           <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
         </div>
