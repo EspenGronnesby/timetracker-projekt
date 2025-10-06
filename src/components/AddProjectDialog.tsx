@@ -98,7 +98,7 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-500 animate-[pulse_3s_ease-in-out_infinite]">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-500 animate-[pulse_8s_ease-in-out_infinite]">
           <Plus className="mr-2 h-5 w-5" />
           Nytt Prosjekt
         </Button>
