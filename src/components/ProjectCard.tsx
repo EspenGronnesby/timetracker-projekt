@@ -192,9 +192,19 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-5 sm:p-6 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer"
+      className="p-5 sm:p-6 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer relative overflow-hidden group"
       onClick={() => navigate(`/project/${project.id}`)}
     >
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:w-2 transition-all duration-300"
+        style={{ backgroundColor: project.color }}
+      />
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300"
+        style={{ 
+          background: `linear-gradient(135deg, ${project.color}20, ${project.color}05)` 
+        }}
+      />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-3 sm:gap-3 flex-1 min-w-0">
           <div

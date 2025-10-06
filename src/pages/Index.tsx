@@ -185,9 +185,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border py-2 sm:py-3 sticky top-0 z-10">
+      <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-2 sm:py-3 sticky top-0 z-10 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-2 px-1">
-          <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate">
+          <h1 className="text-2xl sm:text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {profile?.name}
           </h1>
           <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
@@ -197,9 +197,9 @@ const Index = () => {
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/admin")}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:border-accent-tertiary/50 hover:bg-accent-tertiary/10 transition-all"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-accent-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -210,7 +210,7 @@ const Index = () => {
               variant="outline"
               size="default"
               onClick={signOut}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-all"
             >
               <LogOut className="h-5 w-5" />
               <span className="hidden sm:inline">Logg ut</span>
@@ -300,50 +300,58 @@ const Index = () => {
         )}
 
         <div className="mt-8 px-1 flex justify-center">
-          <AddProjectDialog
-            onAddProject={(name, color, customerInfo) =>
-              addProject({ name, color, customerInfo })
-            }
-          />
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-300 animate-pulse"></div>
+            <div className="relative">
+              <AddProjectDialog
+                onAddProject={(name, color, customerInfo) =>
+                  addProject({ name, color, customerInfo })
+                }
+              />
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 px-1">
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <div className="flex items-center gap-4 sm:gap-4">
-              <div className="p-3 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                <svg className="w-7 h-7 sm:w-6 sm:h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          <Card className="p-5 sm:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-[var(--gradient-primary)] opacity-10 group-hover:opacity-20 transition-opacity"></div>
+            <div className="relative flex items-center gap-4 sm:gap-4">
+              <div className="p-3 sm:p-3 bg-primary/20 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 sm:w-8 sm:h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm sm:text-sm text-muted-foreground">Total Projects</p>
-                <p className="text-3xl sm:text-3xl font-bold">{projects?.length || 0}</p>
+                <p className="text-sm sm:text-sm text-muted-foreground font-medium">Total Projects</p>
+                <p className="text-4xl sm:text-4xl font-bold text-primary">{projects?.length || 0}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <div className="flex items-center gap-4 sm:gap-4">
-              <div className="p-3 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
-                <div className={`w-4 h-4 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+          <Card className="p-5 sm:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-[var(--gradient-accent)] opacity-10 group-hover:opacity-20 transition-opacity"></div>
+            <div className="relative flex items-center gap-4 sm:gap-4">
+              <div className="p-3 sm:p-3 bg-accent/20 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className={`w-6 h-6 rounded-full ${activeCount > 0 ? 'bg-accent shadow-lg shadow-accent/50 animate-pulse' : 'bg-muted-foreground'}`} />
               </div>
               <div>
-                <p className="text-sm sm:text-sm text-muted-foreground">Active Now</p>
-                <p className="text-3xl sm:text-3xl font-bold">{activeCount}</p>
+                <p className="text-sm sm:text-sm text-muted-foreground font-medium">Active Now</p>
+                <p className="text-4xl sm:text-4xl font-bold text-accent">{activeCount}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <div className="flex items-center gap-4 sm:gap-4">
-              <div className="p-3 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
-                <svg className="w-7 h-7 sm:w-6 sm:h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <Card className="p-5 sm:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-[var(--gradient-ocean)] opacity-10 group-hover:opacity-20 transition-opacity"></div>
+            <div className="relative flex items-center gap-4 sm:gap-4">
+              <div className="p-3 sm:p-3 bg-accent-quaternary/20 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 sm:w-8 sm:h-8 text-accent-quaternary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm sm:text-sm text-muted-foreground">Total Time</p>
-                <p className="text-3xl sm:text-3xl font-bold">
+                <p className="text-sm sm:text-sm text-muted-foreground font-medium">Total Time</p>
+                <p className="text-4xl sm:text-4xl font-bold text-accent-quaternary">
                   {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
                 </p>
               </div>

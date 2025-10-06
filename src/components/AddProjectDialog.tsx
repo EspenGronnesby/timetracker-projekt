@@ -32,26 +32,8 @@ interface AddProjectDialogProps {
 }
 
 const PRESET_COLORS = [
-  "#0d9488", // teal
-  "#3b82f6", // blue
-  "#8b5cf6", // purple
-  "#ec4899", // pink
-  "#f97316", // orange
-  "#10b981", // green
-  "#ef4444", // red
-  "#6366f1", // indigo
-  "#0EA5E9", // sky blue
-  "#7C3AED", // deep purple
-  "#FB7185", // coral
-  "#FB923C", // mango
-  "#34D399", // mint green
-  "#F43F5E", // cherry red
-  "#FACC15", // golden yellow
-  "#A16207", // earth brown
-  "#06B6D4", // bright cyan
-  "#A78BFA", // lavender
-  "#FDBA74", // peach
-  "#F9A8D4", // light pink
+  "#0F766E", "#3B82F6", "#8B5CF6", "#EC4899", 
+  "#F59E0B", "#10B981", "#EF4444", "#6366F1"
 ];
 
 export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
