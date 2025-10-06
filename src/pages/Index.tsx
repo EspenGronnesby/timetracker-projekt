@@ -301,7 +301,7 @@ const Index = () => {
 
         <div className="mt-8 px-1 flex justify-center">
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-300 animate-pulse"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
             <div className="relative">
               <AddProjectDialog
                 onAddProject={(name, color, customerInfo) =>
