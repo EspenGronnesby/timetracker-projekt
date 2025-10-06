@@ -15,6 +15,7 @@ import {
   Clock,
   Package,
   Calendar,
+  CheckCircle2,
 } from "lucide-react";
 import { isWithinInterval, startOfDay, endOfDay, format } from "date-fns";
 import { DriveDialog } from "./DriveDialog";
@@ -41,6 +42,7 @@ interface ProjectCardProps {
   onToggleDriving: (kilometers?: number) => void;
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
   onDelete: () => void;
+  onToggleComplete: () => void;
   userName: string;
   filterPeriod?: string;
   customRange?: { from: Date; to: Date };
@@ -58,6 +60,7 @@ export const ProjectCard = ({
   onToggleDriving,
   onAddMaterial,
   onDelete,
+  onToggleComplete,
   userName,
   filterPeriod,
   customRange,
@@ -192,10 +195,10 @@ export const ProjectCard = ({
             style={{ backgroundColor: project.color }}
           />
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg sm:text-lg truncate">{project.name}</h3>
+            <h3 className="font-semibold text-xl sm:text-2xl truncate">{project.name}</h3>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-1 truncate">
-                <Building2 className="h-4 w-4 flex-shrink-0" />
+                <Building2 className="h-4 w-4 flex-shrink-0 text-purple-500 dark:text-purple-400" />
                 <span className="truncate">{project.customer_name}</span>
               </span>
               <span className="flex items-center gap-1 flex-shrink-0">
@@ -242,7 +245,7 @@ export const ProjectCard = ({
             <>
               <div className="flex items-center justify-between text-sm sm:text-sm">
                 <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <Clock className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                   <span>Total tid:</span>
                 </div>
                 <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
@@ -250,7 +253,7 @@ export const ProjectCard = ({
               {totalKilometers > 0 && (
                 <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
                   <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Car className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <Car className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-green-500 dark:text-green-400" />
                     <span>Kjørt:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
@@ -259,7 +262,7 @@ export const ProjectCard = ({
               {totalMaterialCost > 0 && (
                 <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
                   <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Package className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <Package className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-orange-500 dark:text-orange-400" />
                     <span>Materialer:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
@@ -281,14 +284,26 @@ export const ProjectCard = ({
           >
             <Share2 className="h-5 w-5 sm:h-5 sm:w-5" />
           </Button>
-          <Button 
-            variant="destructive" 
-            size="icon" 
-            onClick={onDelete}
-            className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
-          >
-            <Trash2 className="h-5 w-5 sm:h-5 sm:w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant={project.completed ? "outline" : "default"}
+              size="icon" 
+              onClick={onToggleComplete}
+              className={`hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11 ${
+                project.completed ? "" : "bg-green-500 hover:bg-green-600"
+              }`}
+            >
+              <CheckCircle2 className="h-5 w-5 sm:h-5 sm:w-5" />
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="icon" 
+              onClick={onDelete}
+              className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
+            >
+              <Trash2 className="h-5 w-5 sm:h-5 sm:w-5" />
+            </Button>
+          </div>
         </div>
       </div>
 

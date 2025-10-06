@@ -14,6 +14,7 @@ export type Project = {
   description: string | null;
   created_by: string;
   created_at: string;
+  completed: boolean;
 };
 
 export type TimeEntry = {
@@ -367,6 +368,34 @@ export const useProjects = (userId?: string) => {
     },
   });
 
+  const toggleComplete = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { data: project } = await supabase
+        .from("projects")
+        .select("completed")
+        .eq("id", projectId)
+        .single();
+
+      const { error } = await supabase
+        .from("projects")
+        .update({ completed: !project?.completed })
+        .eq("id", projectId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({ title: "Prosjektstatus oppdatert!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke oppdatere prosjekt",
+        description: error.message,
+      });
+    },
+  });
+
   return {
     projects,
     timeEntries,
@@ -378,5 +407,6 @@ export const useProjects = (userId?: string) => {
     toggleDriving: toggleDriving.mutate,
     addMaterial: addMaterial.mutate,
     deleteProject: deleteProject.mutate,
+    toggleComplete: toggleComplete.mutate,
   };
 };

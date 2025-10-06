@@ -47,6 +47,7 @@ const Index = () => {
     toggleDriving,
     addMaterial,
     deleteProject,
+    toggleComplete,
   } = useProjects(user?.id);
 
   useEffect(() => {
@@ -272,6 +273,7 @@ const Index = () => {
                     })
                   }
                   onDelete={() => deleteProject(project.id)}
+                  onToggleComplete={() => toggleComplete(project.id)}
                   userName={profile!.name}
                   filterPeriod={filterPeriod}
                   customRange={customRange}

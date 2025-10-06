@@ -57,4 +57,5 @@ export interface Project {
   driveEntries: DriveEntry[];
   materials: Material[];
   createdAt: Date;
+  completed: boolean;
 }
