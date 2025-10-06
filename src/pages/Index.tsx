@@ -185,7 +185,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border py-2 sm:py-3 sticky top-0 z-10">
+      <header className="bg-card border-b border-border py-1 sm:py-2 sticky top-0 z-10">
         <div className="flex items-center justify-between gap-2 px-1">
           <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate">
             {profile?.name}
@@ -234,7 +234,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in px-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 animate-fade-in px-1">
             {sortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
@@ -304,8 +304,8 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 px-1">
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-8 px-1">
+          <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <div className="flex items-center gap-4 sm:gap-4">
               <div className="p-3 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
                 <svg className="w-7 h-7 sm:w-6 sm:h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -319,7 +319,7 @@ const Index = () => {
             </div>
           </Card>
 
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+          <Card className="p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
             <div className="flex items-center gap-4 sm:gap-4">
               <div className="p-3 sm:p-3 bg-green-500/10 rounded-lg flex-shrink-0">
                 <div className={`w-4 h-4 rounded-full ${activeCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
@@ -331,7 +331,7 @@ const Index = () => {
             </div>
           </Card>
 
-          <Card className="p-5 sm:p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
             <div className="flex items-center gap-4 sm:gap-4">
               <div className="p-3 sm:p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
                 <svg className="w-7 h-7 sm:w-6 sm:h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
