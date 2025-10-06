@@ -278,6 +278,7 @@ const Index = () => {
                   filterPeriod={filterPeriod}
                   customRange={customRange}
                   teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
+                  userId={user?.id}
                 />
               );
             })}

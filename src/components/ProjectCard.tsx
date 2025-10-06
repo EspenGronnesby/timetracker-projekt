@@ -20,9 +20,11 @@ import {
 import { isWithinInterval, startOfDay, endOfDay, format } from "date-fns";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
+import { GenerateReportDialog } from "./GenerateReportDialog";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +49,7 @@ interface ProjectCardProps {
   filterPeriod?: string;
   customRange?: { from: Date; to: Date };
   teamMemberCount?: number;
+  userId?: string;
 }
 
 export const ProjectCard = ({
@@ -65,6 +68,7 @@ export const ProjectCard = ({
   filterPeriod,
   customRange,
   teamMemberCount = 1,
+  userId,
 }: ProjectCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -72,6 +76,9 @@ export const ProjectCard = ({
   const [inviteUrl, setInviteUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const isAdmin = useIsAdmin(userId);
+  const isProjectCreator = project.created_by === userId;
+  const canViewSensitiveData = isAdmin || isProjectCreator;
 
   const handleDrivingSubmit = (kilometers: number) => {
     onToggleDriving(kilometers);
@@ -273,17 +280,26 @@ export const ProjectCard = ({
         </div>
 
         <div className="pt-3 sm:pt-4 border-t flex justify-between items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/project/${project.id}#invites`);
-            }}
-            className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
-          >
-            <Share2 className="h-5 w-5 sm:h-5 sm:w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/project/${project.id}#invites`);
+              }}
+              className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
+            >
+              <Share2 className="h-5 w-5 sm:h-5 sm:w-5" />
+            </Button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <GenerateReportDialog 
+                projectId={project.id}
+                projectName={project.name}
+                canAccess={canViewSensitiveData}
+              />
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button 
               variant={project.completed ? "outline" : "default"}
