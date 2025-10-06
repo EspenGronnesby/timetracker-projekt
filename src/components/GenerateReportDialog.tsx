@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Download, Copy, Loader2 } from "lucide-react";
+import { FileText, Download, Copy, Loader2, FileSpreadsheet, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -96,6 +96,28 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
     }
   };
 
+  const downloadAsExcel = () => {
+    // Convert report to CSV format
+    const lines = report.split('\n');
+    let csvContent = '';
+    
+    // Simple CSV conversion - each line becomes a row
+    lines.forEach(line => {
+      // Escape quotes and wrap in quotes if contains comma
+      const escaped = line.replace(/"/g, '""');
+      csvContent += `"${escaped}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${projectName}-rapport-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Rapport lastet ned som CSV!");
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -103,7 +125,7 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
           <FileText className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Generer Prosjektrapport</DialogTitle>
         </DialogHeader>
@@ -196,41 +218,28 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
 
           {report && (
             <div className="space-y-4">
-              <ScrollArea className="h-[400px] w-full border rounded-md p-4">
-                <div className="prose prose-sm max-w-none">
-                  {report.split('\n').map((line, i) => (
-                    <p key={i} className="mb-2 whitespace-pre-wrap">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              </ScrollArea>
+              <p className="text-sm text-muted-foreground text-center">
+                Rapporten er klar! Velg eksportformat:
+              </p>
 
-              <div className="flex gap-2">
-                <Button onClick={printReport} variant="outline" className="flex-1 gap-2">
-                  <Download className="h-4 w-4" />
-                  Skriv ut / PDF
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={printReport} variant="outline" className="h-20 flex flex-col gap-2">
+                  <Printer className="h-5 w-5" />
+                  <span className="text-xs">PDF</span>
                 </Button>
-                <Button onClick={downloadAsText} variant="outline" className="flex-1 gap-2">
-                  <Download className="h-4 w-4" />
-                  Last ned TXT
+                <Button onClick={downloadAsExcel} variant="outline" className="h-20 flex flex-col gap-2">
+                  <FileSpreadsheet className="h-5 w-5" />
+                  <span className="text-xs">Excel/CSV</span>
                 </Button>
-                <Button onClick={copyToClipboard} variant="outline" className="flex-1 gap-2">
-                  <Copy className="h-4 w-4" />
-                  Kopier
+                <Button onClick={downloadAsText} variant="outline" className="h-20 flex flex-col gap-2">
+                  <FileText className="h-5 w-5" />
+                  <span className="text-xs">TXT</span>
+                </Button>
+                <Button onClick={copyToClipboard} variant="outline" className="h-20 flex flex-col gap-2">
+                  <Copy className="h-5 w-5" />
+                  <span className="text-xs">Kopier</span>
                 </Button>
               </div>
-
-              <Button 
-                onClick={() => {
-                  setReport("");
-                  setOpen(false);
-                }} 
-                variant="ghost" 
-                className="w-full"
-              >
-                Lukk
-              </Button>
             </div>
           )}
         </div>
