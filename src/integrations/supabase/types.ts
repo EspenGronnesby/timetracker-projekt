@@ -265,6 +265,7 @@ export type Database = {
       projects: {
         Row: {
           color: string
+          completed: boolean
           contract_number: string | null
           created_at: string
           created_by: string
@@ -279,6 +280,7 @@ export type Database = {
         }
         Insert: {
           color: string
+          completed?: boolean
           contract_number?: string | null
           created_at?: string
           created_by: string
@@ -293,6 +295,7 @@ export type Database = {
         }
         Update: {
           color?: string
+          completed?: boolean
           contract_number?: string | null
           created_at?: string
           created_by?: string
@@ -432,6 +435,7 @@ export type Database = {
       projects_member_view: {
         Row: {
           color: string | null
+          completed: boolean | null
           contract_number: string | null
           created_at: string | null
           created_by: string | null
@@ -442,32 +446,6 @@ export type Database = {
           description: string | null
           id: string | null
           name: string | null
-        }
-        Insert: {
-          color?: string | null
-          contract_number?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          customer_address?: never
-          customer_email?: never
-          customer_name?: never
-          customer_phone?: never
-          description?: string | null
-          id?: string | null
-          name?: string | null
-        }
-        Update: {
-          color?: string | null
-          contract_number?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          customer_address?: never
-          customer_email?: never
-          customer_name?: never
-          customer_phone?: never
-          description?: string | null
-          id?: string | null
-          name?: string | null
         }
         Relationships: [
           {
@@ -500,6 +478,7 @@ export type Database = {
         }
         Returns: {
           color: string
+          completed: boolean
           contract_number: string | null
           created_at: string
           created_by: string
