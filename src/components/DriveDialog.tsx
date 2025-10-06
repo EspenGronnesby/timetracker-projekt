@@ -37,8 +37,8 @@ export const DriveDialog = ({
   if (isDriving) {
     return <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="destructive" className="h-12 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 animate-pulse hover:bg-destructive">
-            <Car className="h-6 w-6 text-white" />
+          <Button variant="destructive" className="h-16 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 animate-pulse hover:bg-destructive">
+            <Car className="h-8 w-8 text-white" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -64,9 +64,9 @@ export const DriveDialog = ({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="h-12 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 hover:bg-green-500/10 hover:border-green-500/50"
+          className="h-16 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 hover:bg-green-500/10 hover:border-green-500/50"
         >
-          <Car className="h-6 w-6 text-green-500 dark:text-green-400" />
+          <Car className="h-8 w-8 text-green-500 dark:text-green-400" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

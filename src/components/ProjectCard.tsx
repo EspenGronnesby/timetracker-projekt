@@ -185,10 +185,10 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-3 sm:p-4 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer"
+      className="p-5 sm:p-6 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer"
       onClick={() => navigate(`/project/${project.id}`)}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-3 sm:gap-3 flex-1 min-w-0">
           <div
             className="w-5 h-5 flex-shrink-0 rounded-full"
@@ -216,18 +216,18 @@ export const ProjectCard = ({
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
           <Button
             variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className={`h-12 sm:h-12 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 ${
+            className={`h-16 sm:h-16 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 ${
               isActive ? "bg-green-500 hover:bg-green-500 animate-pulse" : "hover:bg-blue-500/10 hover:border-blue-500/50"
             }`}
           >
             {isActive ? (
-              <Pause className="h-6 w-6 sm:h-6 sm:w-6 text-white" />
+              <Pause className="h-8 w-8 sm:h-8 sm:w-8 text-white" />
             ) : (
-              <Play className="h-6 w-6 sm:h-6 sm:w-6 text-blue-500 dark:text-blue-400" />
+              <Play className="h-8 w-8 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400" />
             )}
           </Button>
 
@@ -236,33 +236,33 @@ export const ProjectCard = ({
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>
 
-        <div className="space-y-1 mb-3 p-2 sm:p-2 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
+        <div className="space-y-2 mb-4 p-3 sm:p-3 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
           {!hasActivity && filterPeriod ? (
-            <div className="text-center py-3 sm:py-3 text-muted-foreground text-xs sm:text-xs">
+            <div className="text-center py-4 sm:py-4 text-muted-foreground text-sm sm:text-sm">
               Ingen aktivitet i denne perioden
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between text-xs sm:text-xs">
-                <div className="flex items-center gap-1.5 sm:gap-1.5 text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+              <div className="flex items-center justify-between text-sm sm:text-sm">
+                <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                  <Clock className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                   <span>Total tid:</span>
                 </div>
                 <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
               </div>
               {totalKilometers > 0 && (
-                <div className="flex items-center justify-between text-xs sm:text-xs pt-1 border-t border-border">
-                  <div className="flex items-center gap-1.5 sm:gap-1.5 text-muted-foreground">
-                    <Car className="h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 flex-shrink-0 text-green-500 dark:text-green-400" />
+                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                    <Car className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-green-500 dark:text-green-400" />
                     <span>Kjørt:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
                 </div>
               )}
               {totalMaterialCost > 0 && (
-                <div className="flex items-center justify-between text-xs sm:text-xs pt-1 border-t border-border">
-                  <div className="flex items-center gap-1.5 sm:gap-1.5 text-muted-foreground">
-                    <Package className="h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 flex-shrink-0 text-orange-500 dark:text-orange-400" />
+                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
+                    <Package className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-orange-500 dark:text-orange-400" />
                     <span>Materialer:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
@@ -272,7 +272,7 @@ export const ProjectCard = ({
           )}
         </div>
 
-        <div className="pt-2 sm:pt-2 border-t flex justify-between items-center gap-2">
+        <div className="pt-3 sm:pt-4 border-t flex justify-between items-center gap-2">
           <Button 
             variant="outline" 
             size="icon"
@@ -280,7 +280,7 @@ export const ProjectCard = ({
               e.stopPropagation();
               navigate(`/project/${project.id}#invites`);
             }}
-            className="hover:scale-105 transition-transform h-10 w-10 sm:h-10 sm:w-10"
+            className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
           >
             <Share2 className="h-5 w-5 sm:h-5 sm:w-5" />
           </Button>
@@ -289,7 +289,7 @@ export const ProjectCard = ({
               variant={project.completed ? "outline" : "default"}
               size="icon" 
               onClick={onToggleComplete}
-              className={`hover:scale-105 transition-transform h-10 w-10 sm:h-10 sm:w-10 ${
+              className={`hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11 ${
                 project.completed ? "" : "bg-green-500 hover:bg-green-600"
               }`}
             >
@@ -299,7 +299,7 @@ export const ProjectCard = ({
               variant="destructive" 
               size="icon" 
               onClick={onDelete}
-              className="hover:scale-105 transition-transform h-10 w-10 sm:h-10 sm:w-10"
+              className="hover:scale-105 transition-transform h-11 w-11 sm:h-11 sm:w-11"
             >
               <Trash2 className="h-5 w-5 sm:h-5 sm:w-5" />
             </Button>

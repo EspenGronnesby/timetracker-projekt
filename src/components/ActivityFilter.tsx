@@ -35,19 +35,19 @@ export const ActivityFilter = ({
       });
     }
   };
-  return <div className="flex items-center gap-1 flex-wrap py-1">
-      <Button variant={selectedPeriod === "day" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("day")} className="px-2">
+  return <div className="flex items-center gap-2 flex-wrap py-[11px]">
+      <Button variant={selectedPeriod === "day" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("day")} className="px-0 mx-0 py-[10px]">
         Day
       </Button>
-      <Button variant={selectedPeriod === "week" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("week")} className="px-2">
+      <Button variant={selectedPeriod === "week" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("week")}>
         Week
       </Button>
-      <Button variant={selectedPeriod === "month" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("month")} className="px-2">
+      <Button variant={selectedPeriod === "month" ? "default" : "outline"} size="sm" onClick={() => handlePeriodChange("month")}>
         Month
       </Button>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant={selectedPeriod === "custom" ? "default" : "outline"} size="sm" className={cn("gap-2 px-2")}>
+          <Button variant={selectedPeriod === "custom" ? "default" : "outline"} size="sm" className={cn("gap-2")}>
             <CalendarIcon className="h-4 w-4" />
             {selectedPeriod === "custom" && customRange?.from && customRange?.to ? `${format(customRange.from, "MMM d")} - ${format(customRange.to, "MMM d")}` : "Custom"}
           </Button>
