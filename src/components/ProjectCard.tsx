@@ -200,7 +200,7 @@ export const ProjectCard = ({
         style={{ backgroundColor: project.color }}
       />
       <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300"
+        className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"
         style={{ 
           background: `linear-gradient(135deg, ${project.color}20, ${project.color}05)` 
         }}
