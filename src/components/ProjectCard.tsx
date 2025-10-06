@@ -185,7 +185,7 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-5 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in cursor-pointer"
+      className="p-5 sm:p-6 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer"
       onClick={() => navigate(`/project/${project.id}`)}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
