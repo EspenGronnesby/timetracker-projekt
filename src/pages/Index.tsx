@@ -186,7 +186,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border py-2 sm:py-3 sticky top-0 z-10">
-        <div className="flex items-center justify-between gap-2 px-2">
+        <div className="flex items-center justify-between gap-2 px-1">
           <h1 className="text-2xl sm:text-lg md:text-2xl font-bold text-foreground truncate">
             {profile?.name}
           </h1>
@@ -210,7 +210,7 @@ const Index = () => {
           <OfflineIndicator />
         </div>
         
-        <div className="px-2">
+        <div className="px-1">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
@@ -234,7 +234,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 animate-fade-in px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in px-1">
             {sortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
@@ -284,7 +284,7 @@ const Index = () => {
           </div>
         )}
 
-        <div className="mt-8 space-y-4 px-2">
+        <div className="mt-8 space-y-4 px-1">
           <div className="flex items-center gap-2">
             <AddProjectDialog
               onAddProject={(name, color, customerInfo) =>
@@ -304,7 +304,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-8 px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 px-1">
           <Card className="p-5 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <div className="flex items-center gap-4 sm:gap-4">
               <div className="p-3 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
