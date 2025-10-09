@@ -55,9 +55,9 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      // Get all profiles in the same organization
+      // Get all profiles in the same organization using secure view (FCM tokens masked)
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_safe_view')
         .select('*');
 
       if (profilesError) throw profilesError;
