@@ -672,7 +672,14 @@ const ProjectDetails = () => {
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              
+              <Button 
+                variant={activityFilter === "all" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => setActivityFilter("all")}
+                className="hover:scale-105 transition-transform"
+              >
+                Alle aktiviteter
+              </Button>
               <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
