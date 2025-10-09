@@ -549,7 +549,7 @@ const ProjectDetails = () => {
 
         <Card className="p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 justify-center">
             {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
             
             {!isProjectOwner && (
