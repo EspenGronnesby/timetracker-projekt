@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ColorTheme } from "@/hooks/useColorTheme";
 
 const themes: { value: ColorTheme; label: string; color: string }[] = [
@@ -18,73 +18,109 @@ interface ColorWheelProps {
 
 export function ColorWheel({ onThemeSelect, currentTheme, isSpinning }: ColorWheelProps) {
   const [rotation, setRotation] = useState(0);
+  const [selectedTheme, setSelectedTheme] = useState<ColorTheme | null>(null);
+  const wheelRef = useRef<SVGSVGElement>(null);
   const segmentAngle = 360 / themes.length;
+
+  // SVG path generator for wheel segments (pizza slices)
+  const createSegmentPath = (index: number, radius: number) => {
+    const startAngle = (index * segmentAngle - 90) * (Math.PI / 180);
+    const endAngle = ((index + 1) * segmentAngle - 90) * (Math.PI / 180);
+    
+    const x1 = radius + radius * Math.cos(startAngle);
+    const y1 = radius + radius * Math.sin(startAngle);
+    const x2 = radius + radius * Math.cos(endAngle);
+    const y2 = radius + radius * Math.sin(endAngle);
+    
+    const largeArc = segmentAngle > 180 ? 1 : 0;
+    
+    return `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+  };
 
   useEffect(() => {
     if (isSpinning) {
       const randomTheme = themes[Math.floor(Math.random() * themes.length)];
       const targetIndex = themes.findIndex(t => t.value === randomTheme.value);
-      const targetRotation = rotation + 360 * 5 + (targetIndex * segmentAngle);
       
-      setRotation(targetRotation);
+      // Beregn rotasjon slik at valgt segment ender under pekeren (toppen)
+      const offsetToTop = -(targetIndex * segmentAngle) - (segmentAngle / 2);
+      const finalRotation = rotation + 360 * 5 + offsetToTop;
       
-      setTimeout(() => {
-        onThemeSelect(randomTheme.value);
-      }, 3000);
+      setRotation(finalRotation);
+      setSelectedTheme(randomTheme.value);
     }
   }, [isSpinning]);
 
+  const handleTransitionEnd = () => {
+    if (isSpinning && selectedTheme) {
+      onThemeSelect(selectedTheme);
+      setSelectedTheme(null);
+    }
+  };
+
   return (
-    <div className="relative w-48 h-48 mx-auto">
-      {/* Center dot */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary border-4 border-background z-20 shadow-lg" />
-      
-      {/* Pointer */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-30">
-        <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-primary" />
+    <div className="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
+      {/* Statisk peker på toppen */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 z-30">
+        <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[24px] border-t-primary drop-shadow-lg" />
       </div>
       
-      {/* Wheel */}
-      <div 
-        className="absolute inset-0 rounded-full shadow-2xl"
+      {/* SVG Wheel */}
+      <svg
+        ref={wheelRef}
+        viewBox="0 0 200 200"
+        className="w-full h-full drop-shadow-2xl"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: isSpinning ? 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
         }}
+        onTransitionEnd={handleTransitionEnd}
       >
+        {/* Outer border ring */}
+        <circle cx="100" cy="100" r="99" fill="none" stroke="hsl(var(--border))" strokeWidth="2" />
+        
+        {/* Wheel segments */}
         {themes.map((theme, index) => {
-          const angle = (index * segmentAngle) - 90;
-          const isActive = theme.value === currentTheme && !isSpinning;
+          const midAngle = (index * segmentAngle + segmentAngle / 2 - 90) * (Math.PI / 180);
+          const textRadius = 65;
+          const textX = 100 + textRadius * Math.cos(midAngle);
+          const textY = 100 + textRadius * Math.sin(midAngle);
+          const textRotation = index * segmentAngle + segmentAngle / 2;
           
           return (
-            <button
-              key={theme.value}
-              onClick={() => !isSpinning && onThemeSelect(theme.value)}
-              disabled={isSpinning}
-              className="absolute top-1/2 left-1/2 origin-left cursor-pointer hover:scale-105 transition-transform disabled:cursor-not-allowed"
-              style={{
-                transform: `rotate(${angle}deg) translateX(0)`,
-                width: '96px',
-                height: `${segmentAngle}deg`,
-              }}
-            >
-              <div 
-                className={`h-24 rounded-r-full flex items-center justify-end pr-4 border-2 ${
-                  isActive ? 'border-primary' : 'border-border/50'
-                }`}
-                style={{ 
-                  backgroundColor: theme.color,
-                  clipPath: `polygon(0 0, 100% ${50 - (segmentAngle/4)}%, 100% ${50 + (segmentAngle/4)}%, 0 100%)`,
-                }}
+            <g key={theme.value}>
+              {/* Segment path */}
+              <path
+                d={createSegmentPath(index, 95)}
+                fill={theme.color}
+                stroke="hsl(var(--background))"
+                strokeWidth="2"
+                className="cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => !isSpinning && onThemeSelect(theme.value)}
+              />
+              
+              {/* Text label */}
+              <text
+                x={textX}
+                y={textY}
+                fill="white"
+                fontSize="10"
+                fontWeight="600"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                className="pointer-events-none"
+                style={{ mixBlendMode: 'difference' }}
               >
-                <span className="text-xs font-medium text-foreground/80 mix-blend-difference">
-                  {theme.label}
-                </span>
-              </div>
-            </button>
+                {theme.label}
+              </text>
+            </g>
           );
         })}
-      </div>
+        
+        {/* Center circle */}
+        <circle cx="100" cy="100" r="15" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="3" />
+      </svg>
     </div>
   );
 }
