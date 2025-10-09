@@ -66,6 +66,47 @@ export default function Goals() {
   }, [user]);
 
   useEffect(() => {
+    if (!user) return;
+
+    const tasksChannel = supabase
+      .channel('goal_tasks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'goal_tasks',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchTasks().then(data => setTasks(data || []));
+        }
+      )
+      .subscribe();
+
+    const listsChannel = supabase
+      .channel('goal_lists_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'goal_lists',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchLists().then(data => setLists(data || []));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tasksChannel);
+      supabase.removeChannel(listsChannel);
+    };
+  }, [user]);
+
+  useEffect(() => {
     if (activeListId && taskInputRefs.current[activeListId]) {
       taskInputRefs.current[activeListId]?.focus();
     }
@@ -119,7 +160,8 @@ export default function Goals() {
       toast.success("Liste opprettet!");
       setNewListName("");
       setIsAddListDialogOpen(false);
-      await fetchLists();
+      const newLists = await fetchLists();
+      setLists(newLists || []);
     } catch (error) {
       console.error("Error creating list:", error);
       toast.error("Kunne ikke opprette liste");
@@ -178,7 +220,9 @@ export default function Goals() {
 
       if (error) throw error;
 
-      await fetchTasks();
+      const newTasks = await fetchTasks();
+      setTasks(newTasks || []);
+      toast.success("Oppgave opprettet!");
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Kunne ikke opprette oppgave");
