@@ -548,7 +548,31 @@ const ProjectDetails = () => {
             <div className="flex flex-wrap gap-3 justify-center">
               {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
               
-              {!isProjectOwner && (
+              {isProjectOwner ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Slett prosjekt
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Dette vil permanent slette prosjektet og alle tilhørende data (timer, kjøring, materialer).
+                        Denne handlingen kan ikke angres.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive hover:bg-destructive/90">
+                        Slett prosjekt
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
                 <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   Forlat og last ned data
