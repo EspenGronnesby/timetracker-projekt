@@ -778,6 +778,7 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           description: string | null
+          hide_customer_info: boolean | null
           id: string | null
           name: string | null
           organization_id: string | null
@@ -785,14 +786,15 @@ export type Database = {
         Insert: {
           color?: string | null
           completed?: boolean | null
-          contract_number?: string | null
+          contract_number?: never
           created_at?: string | null
           created_by?: string | null
           customer_address?: never
           customer_email?: never
-          customer_name?: string | null
+          customer_name?: never
           customer_phone?: never
-          description?: string | null
+          description?: never
+          hide_customer_info?: boolean | null
           id?: string | null
           name?: string | null
           organization_id?: string | null
@@ -800,14 +802,15 @@ export type Database = {
         Update: {
           color?: string | null
           completed?: boolean | null
-          contract_number?: string | null
+          contract_number?: never
           created_at?: string | null
           created_by?: string | null
           customer_address?: never
           customer_email?: never
-          customer_name?: string | null
+          customer_name?: never
           customer_phone?: never
-          description?: string | null
+          description?: never
+          hide_customer_info?: boolean | null
           id?: string | null
           name?: string | null
           organization_id?: string | null

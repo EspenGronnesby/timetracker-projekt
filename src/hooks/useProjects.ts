@@ -92,7 +92,10 @@ export const useProjects = (userId?: string) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Project[];
+      return (data || []).map(project => ({
+        ...project,
+        hide_customer_info: project.hide_customer_info ?? false
+      })) as Project[];
     },
     enabled: !!userId,
   });
