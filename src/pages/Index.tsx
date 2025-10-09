@@ -25,6 +25,14 @@ const Index = () => {
   const { trackPresence } = usePresenceTracking();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
+  const [showShimmer, setShowShimmer] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowShimmer(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Fetch project member counts
   const { data: projectMembers } = useQuery({
@@ -301,6 +309,7 @@ const Index = () => {
                   customRange={customRange}
                   teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
                   userId={user?.id}
+                  showShimmer={showShimmer}
                 />
               );
             })}
