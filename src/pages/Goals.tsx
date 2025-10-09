@@ -257,7 +257,7 @@ export default function Goals() {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-2 sm:py-3 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-2 px-4">
+        <div className="flex items-center justify-between gap-2 px-0">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -285,7 +285,7 @@ export default function Goals() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="px-0 py-8 max-w-7xl mx-auto">
 
       {lists.length === 0 ? (
         <Card className="p-12 text-center max-w-md mx-auto">
