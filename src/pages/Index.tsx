@@ -9,7 +9,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { NotificationBell } from "@/components/NotificationBell";
 import { StreakIndicator } from "@/components/StreakIndicator";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
-import { LogOut, Settings as SettingsIcon } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
@@ -213,6 +213,14 @@ const Index = () => {
             <StreakIndicator />
             <NotificationBell />
             <ThemeToggle />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/goals")}
+              className="flex items-center gap-2 hover:border-primary/50 hover:bg-primary/10 transition-all"
+            >
+              <ListTodo className="h-5 w-5" />
+            </Button>
             {isAdmin && (
               <Button
                 variant="outline"
