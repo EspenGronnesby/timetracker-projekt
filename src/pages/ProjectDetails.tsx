@@ -83,7 +83,7 @@ const ProjectDetails = () => {
   });
   const isProjectOwner = teamMembers?.some(m => m.user_id === user?.id && m.role === 'owner');
   const isProjectMember = teamMembers?.some(m => m.user_id === user?.id);
-  const canViewSensitiveData = isAdmin || isProjectCreator || isProjectMember;
+  const canViewSensitiveData = isAdmin || isProjectOwner; // Only owners and admins can see customer contact info
 
   // Fetch active invites
   const {

@@ -82,9 +82,9 @@ export const useProjects = (userId?: string) => {
       const projectIds = memberships.map(m => m.project_id);
       
       // Use secure view that filters customer data based on role
-      // Project owners see full customer info, members see "Customer" placeholder
+      // Project owners see full customer info, members see NULL for sensitive fields
       const { data, error } = await supabase
-        .from("projects_member_view")
+        .from("projects_secure_member_view")
         .select("*")
         .in("id", projectIds)
         .order("created_at", { ascending: false });
