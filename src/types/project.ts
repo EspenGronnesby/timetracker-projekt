@@ -58,4 +58,5 @@ export interface Project {
   materials: Material[];
   createdAt: Date;
   completed: boolean;
+  hideCustomerInfo: boolean;
 }

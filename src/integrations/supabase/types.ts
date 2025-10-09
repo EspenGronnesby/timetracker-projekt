@@ -480,6 +480,7 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           description: string | null
+          hide_customer_info: boolean
           id: string
           name: string
           organization_id: string | null
@@ -495,6 +496,7 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           description?: string | null
+          hide_customer_info?: boolean
           id?: string
           name: string
           organization_id?: string | null
@@ -510,6 +512,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           description?: string | null
+          hide_customer_info?: boolean
           id?: string
           name?: string
           organization_id?: string | null
@@ -846,16 +849,28 @@ export type Database = {
         Returns: boolean
       }
       create_project: {
-        Args: {
-          p_color: string
-          p_contract_number: string
-          p_customer_address: string
-          p_customer_email: string
-          p_customer_name: string
-          p_customer_phone: string
-          p_description: string
-          p_name: string
-        }
+        Args:
+          | {
+              p_color: string
+              p_contract_number: string
+              p_customer_address: string
+              p_customer_email: string
+              p_customer_name: string
+              p_customer_phone: string
+              p_description: string
+              p_hide_customer_info?: boolean
+              p_name: string
+            }
+          | {
+              p_color: string
+              p_contract_number: string
+              p_customer_address: string
+              p_customer_email: string
+              p_customer_name: string
+              p_customer_phone: string
+              p_description: string
+              p_name: string
+            }
         Returns: {
           color: string
           completed: boolean
@@ -867,6 +882,7 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           description: string | null
+          hide_customer_info: boolean
           id: string
           name: string
           organization_id: string | null

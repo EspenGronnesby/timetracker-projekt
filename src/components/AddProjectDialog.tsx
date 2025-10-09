@@ -28,7 +28,7 @@ const projectSchema = z.object({
 });
 
 interface AddProjectDialogProps {
-  onAddProject: (name: string, color: string, customerInfo: CustomerInfo) => void;
+  onAddProject: (name: string, color: string, customerInfo: CustomerInfo & { hideCustomerInfo?: boolean }) => void;
 }
 
 const PRESET_COLORS = [
@@ -40,6 +40,7 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
+  const [hideCustomerInfo, setHideCustomerInfo] = useState(false);
   const { toast } = useToast();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: "",
@@ -71,10 +72,12 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
         email: validatedData.customerEmail || "",
         contractNumber: validatedData.contractNumber || "",
         description: validatedData.description || "",
+        hideCustomerInfo,
       });
       
       setName("");
       setSelectedColor(PRESET_COLORS[0]);
+      setHideCustomerInfo(false);
       setCustomerInfo({
         name: "",
         address: "",
@@ -190,6 +193,24 @@ export const AddProjectDialog = ({ onAddProject }: AddProjectDialogProps) => {
                   rows={3}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="hide-customer-info"
+                  checked={hideCustomerInfo}
+                  onChange={(e) => setHideCustomerInfo(e.target.checked)}
+                  className="w-4 h-4 rounded border-input"
+                />
+                <Label htmlFor="hide-customer-info" className="cursor-pointer">
+                  Skjul kundekontaktinfo for andre medlemmer
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Hvis aktivert, vil kun prosjekteiere og administratorer kunne se kundens kontaktinformasjon
+              </p>
             </div>
             
             <div className="space-y-2">

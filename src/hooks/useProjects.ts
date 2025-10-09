@@ -15,6 +15,7 @@ export type Project = {
   created_by: string;
   created_at: string;
   completed: boolean;
+  hide_customer_info: boolean;
 };
 
 export type TimeEntry = {
@@ -58,6 +59,7 @@ interface CustomerInfo {
   email: string;
   contractNumber: string;
   description: string;
+  hideCustomerInfo?: boolean;
 }
 
 export const useProjects = (userId?: string) => {
@@ -167,6 +169,7 @@ export const useProjects = (userId?: string) => {
         p_customer_email: customerInfo.email,
         p_contract_number: customerInfo.contractNumber,
         p_description: customerInfo.description,
+        p_hide_customer_info: customerInfo.hideCustomerInfo || false,
       });
 
       if (error) {
