@@ -332,7 +332,6 @@ export type Database = {
         Row: {
           color_theme: string | null
           created_at: string
-          fcm_token: string | null
           id: string
           name: string
           organization_name: string | null
@@ -344,7 +343,6 @@ export type Database = {
         Insert: {
           color_theme?: string | null
           created_at?: string
-          fcm_token?: string | null
           id: string
           name: string
           organization_name?: string | null
@@ -356,7 +354,6 @@ export type Database = {
         Update: {
           color_theme?: string | null
           created_at?: string
-          fcm_token?: string | null
           id?: string
           name?: string
           organization_name?: string | null
@@ -616,6 +613,30 @@ export type Database = {
           },
         ]
       }
+      user_fcm_tokens: {
+        Row: {
+          created_at: string | null
+          fcm_token: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fcm_token?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fcm_token?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_organizations: {
         Row: {
           id: string
@@ -699,7 +720,6 @@ export type Database = {
         Row: {
           color_theme: string | null
           created_at: string | null
-          fcm_token: string | null
           id: string | null
           name: string | null
           organization_name: string | null
@@ -711,7 +731,6 @@ export type Database = {
         Insert: {
           color_theme?: string | null
           created_at?: string | null
-          fcm_token?: never
           id?: string | null
           name?: string | null
           organization_name?: string | null
@@ -723,7 +742,6 @@ export type Database = {
         Update: {
           color_theme?: string | null
           created_at?: string | null
-          fcm_token?: never
           id?: string | null
           name?: string | null
           organization_name?: string | null
