@@ -205,11 +205,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-2 sm:py-3 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-2 px-1">
+        <div className="container mx-auto px-4 flex items-center justify-between gap-2">
           <h1 className="text-2xl sm:text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {profile?.name}
           </h1>
-          <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <StreakIndicator />
             <NotificationBell />
             <ThemeToggle />
@@ -256,12 +256,12 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="py-0 sm:py-8">
+      <main className="py-0 sm:py-8 container mx-auto">
         <div>
           <OfflineIndicator />
         </div>
         
-        <div className="px-1">
+        <div className="px-4">
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 
@@ -285,7 +285,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in px-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in px-4">
             {sortedProjects.map((project) => {
               const projectTimeEntries = filteredTimeEntries.filter(
                 (entry) => entry.project_id === project.id
@@ -337,7 +337,7 @@ const Index = () => {
           </div>
         )}
 
-        <div className="mt-8 px-1 flex justify-center">
+        <div className="mt-8 px-4 flex justify-center">
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
             <div className="relative">
@@ -350,7 +350,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 px-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 px-4">
           <Card className="p-5 sm:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
             <div className="absolute inset-0 bg-[var(--gradient-primary)] opacity-10 group-hover:opacity-20 transition-opacity"></div>
             <div className="relative flex items-center gap-4 sm:gap-4">
