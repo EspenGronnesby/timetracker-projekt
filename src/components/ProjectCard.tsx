@@ -134,17 +134,39 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-5 sm:p-6 shadow-lg -translate-y-1 md:shadow-sm md:translate-y-0 md:hover:shadow-lg transition-all duration-300 md:hover:-translate-y-1 animate-fade-in cursor-pointer relative overflow-hidden group"
+      className="p-5 sm:p-6 relative overflow-hidden group cursor-pointer animate-fade-in
+        backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]
+        shadow-[var(--glass-shadow)] -translate-y-1 md:translate-y-0
+        transition-all duration-500 ease-out
+        md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] md:hover:-translate-y-2
+        dark:md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.6)]
+        before:absolute before:inset-0 before:rounded-lg before:p-[1px] 
+        before:bg-gradient-to-br before:from-[var(--glass-glow)] before:via-transparent before:to-transparent
+        before:opacity-0 before:transition-opacity before:duration-500
+        md:hover:before:opacity-100 before:-z-10"
       onClick={() => navigate(`/project/${project.id}`)}
     >
+      {/* Colored accent bar */}
       <div 
-        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:w-2 transition-all duration-300"
+        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:w-2 transition-all duration-300 shadow-lg"
         style={{ backgroundColor: project.color }}
       />
+      
+      {/* Subtle gradient overlay */}
       <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"
+        className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none rounded-lg"
         style={{ 
-          background: `linear-gradient(135deg, ${project.color}20, ${project.color}05)` 
+          background: `radial-gradient(circle at top right, ${project.color}40, transparent 70%)` 
+        }}
+      />
+      
+      {/* Shimmer effect on hover */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+        style={{
+          background: `linear-gradient(110deg, transparent 40%, ${project.color}15 50%, transparent 60%)`,
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 3s infinite'
         }}
       />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
