@@ -12,6 +12,9 @@ import { DriveDialog } from "@/components/DriveDialog";
 import { GenerateReportDialog } from "@/components/GenerateReportDialog";
 import { ManualTimeDialog } from "@/components/ManualTimeDialog";
 import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download } from "lucide-react";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { formatTime, getTotalSeconds } from "@/lib/timeUtils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -296,16 +299,20 @@ const ProjectDetails = () => {
       });
     }
   };
-  const handleDeleteProject = async () => {
+  const handleDeleteProject = async (downloadData: boolean) => {
     if (!project || !user) return;
     try {
+      if (downloadData) {
+        downloadAllDataAsExcel();
+      }
+      
       const {
         error
       } = await supabase.from('projects').delete().eq('id', project.id);
       if (error) throw error;
       toast({
         title: "Prosjekt slettet",
-        description: "Prosjektet er permanent slettet"
+        description: downloadData ? "Data lastet ned og prosjekt slettet" : "Prosjektet er permanent slettet"
       });
       navigate('/');
     } catch (error: any) {
@@ -337,31 +344,168 @@ const ProjectDetails = () => {
       });
     }
   };
-  const downloadPersonalData = () => {
-    const data = {
-      project: project.name,
-      timeEntries: myTimeEntries,
-      driveEntries: myDriveEntries,
-      materials: myMaterials,
-      totalTime: myTotalTime,
-      totalKilometers: myTotalKm,
-      totalMaterialCost: myTotalMaterialCost
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json'
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${project.name}-personal-data.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadPersonalDataAsPDF = () => {
+    if (!project || !user || !teamMembers) return;
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text('Sluttattest', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(`Prosjekt: ${project.name}`, 20, 40);
+    doc.text(`Kunde: ${project.customer_name}`, 20, 50);
+    doc.text(`Medarbeider: ${profile?.name || 'Ukjent'}`, 20, 60);
+    
+    // Find join date
+    const memberInfo = teamMembers.find(m => m.user_id === user.id);
+    const joinDate = memberInfo ? new Date(memberInfo.joined_at).toLocaleDateString('no-NO') : 'Ukjent';
+    const leaveDate = new Date().toLocaleDateString('no-NO');
+    
+    doc.text(`Periode: ${joinDate} - ${leaveDate}`, 20, 70);
+    
+    // Summary section
+    doc.setFontSize(14);
+    doc.text('Oppsummering', 20, 90);
+    
+    doc.setFontSize(11);
+    doc.text(`Total arbeidstid: ${formatTime(myTotalTime)}`, 30, 100);
+    doc.text(`Total kjøring: ${myTotalKm.toFixed(1)} km`, 30, 110);
+    doc.text(`Total materialkostnad: ${myTotalMaterialCost.toFixed(2)} kr`, 30, 120);
+    
+    // Time entries table
+    if (myTimeEntries.length > 0) {
+      doc.setFontSize(14);
+      doc.text('Tidsregistreringer', 20, 140);
+      
+      const timeData = myTimeEntries
+        .filter(e => e.end_time)
+        .map(entry => [
+          new Date(entry.start_time).toLocaleDateString('no-NO'),
+          new Date(entry.start_time).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' }),
+          entry.end_time ? new Date(entry.end_time).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' }) : '-',
+          formatTime(entry.duration_seconds)
+        ]);
+      
+      autoTable(doc, {
+        startY: 145,
+        head: [['Dato', 'Start', 'Slutt', 'Varighet']],
+        body: timeData,
+        theme: 'striped',
+        styles: { fontSize: 9 }
+      });
+    }
+    
+    // Drive entries table
+    if (myDriveEntries.length > 0 && myTotalKm > 0) {
+      const finalY = (doc as any).lastAutoTable?.finalY || 145;
+      doc.setFontSize(14);
+      doc.text('Kjøring', 20, finalY + 15);
+      
+      const driveData = myDriveEntries
+        .filter(e => e.kilometers)
+        .map(entry => [
+          new Date(entry.start_time).toLocaleDateString('no-NO'),
+          `${entry.kilometers} km`
+        ]);
+      
+      autoTable(doc, {
+        startY: finalY + 20,
+        head: [['Dato', 'Kilometer']],
+        body: driveData,
+        theme: 'striped',
+        styles: { fontSize: 9 }
+      });
+    }
+    
+    doc.save(`${project.name}-sluttattest.pdf`);
+  };
+
+  const downloadAllDataAsExcel = () => {
+    if (!project) return;
+
+    const wb = XLSX.utils.book_new();
+    
+    // Project info sheet
+    const projectInfo = [
+      ['Prosjektnavn', project.name],
+      ['Kunde', project.customer_name],
+      ['Adresse', project.customer_address || ''],
+      ['Telefon', project.customer_phone || ''],
+      ['E-post', project.customer_email || ''],
+      ['Avtalenummer', project.contract_number || ''],
+      ['Beskrivelse', project.description || ''],
+      ['Opprettet', new Date(project.created_at).toLocaleDateString('no-NO')],
+      [''],
+      ['Total arbeidstid', formatTime(totalTime)],
+      ['Total kjøring', `${totalKm.toFixed(1)} km`],
+      ['Total materialkostnad', `${totalMaterialCost.toFixed(2)} kr`]
+    ];
+    const wsProject = XLSX.utils.aoa_to_sheet(projectInfo);
+    XLSX.utils.book_append_sheet(wb, wsProject, 'Prosjektinfo');
+    
+    // Team members sheet
+    if (teamMembers && teamMembers.length > 0) {
+      const membersData = teamMembers.map((m: any) => ({
+        'Navn': m.profiles?.name || 'Ukjent',
+        'Rolle': m.role === 'owner' ? 'Eier' : 'Medlem',
+        'Ble med': new Date(m.joined_at).toLocaleDateString('no-NO')
+      }));
+      const wsMembers = XLSX.utils.json_to_sheet(membersData);
+      XLSX.utils.book_append_sheet(wb, wsMembers, 'Teammedlemmer');
+    }
+    
+    // Time entries sheet
+    if (projectTimeEntries.length > 0) {
+      const timeData = projectTimeEntries
+        .filter(e => e.end_time)
+        .map(entry => ({
+          'Medarbeider': entry.user_name,
+          'Dato': new Date(entry.start_time).toLocaleDateString('no-NO'),
+          'Starttid': new Date(entry.start_time).toLocaleTimeString('no-NO'),
+          'Sluttid': entry.end_time ? new Date(entry.end_time).toLocaleTimeString('no-NO') : '',
+          'Varighet': formatTime(entry.duration_seconds),
+          'Kommentar': entry.comment || ''
+        }));
+      const wsTime = XLSX.utils.json_to_sheet(timeData);
+      XLSX.utils.book_append_sheet(wb, wsTime, 'Tidsregistrering');
+    }
+    
+    // Drive entries sheet
+    if (projectDriveEntries.length > 0) {
+      const driveData = projectDriveEntries
+        .filter(e => e.kilometers)
+        .map(entry => ({
+          'Medarbeider': entry.user_name,
+          'Dato': new Date(entry.start_time).toLocaleDateString('no-NO'),
+          'Kilometer': entry.kilometers
+        }));
+      const wsDrive = XLSX.utils.json_to_sheet(driveData);
+      XLSX.utils.book_append_sheet(wb, wsDrive, 'Kjøring');
+    }
+    
+    // Materials sheet
+    if (projectMaterials.length > 0) {
+      const materialsData = projectMaterials.map(material => ({
+        'Medarbeider': material.user_name,
+        'Dato': new Date(material.created_at).toLocaleDateString('no-NO'),
+        'Navn': material.name,
+        'Antall': material.quantity,
+        'Enhetspris': `${material.unit_price} kr`,
+        'Totalpris': `${material.total_price} kr`
+      }));
+      const wsMaterials = XLSX.utils.json_to_sheet(materialsData);
+      XLSX.utils.book_append_sheet(wb, wsMaterials, 'Materialer');
+    }
+    
+    XLSX.writeFile(wb, `${project.name}-fullstendig-rapport.xlsx`);
   };
   const handleLeaveProject = async (downloadData: boolean) => {
     if (!project || !user) return;
     try {
       if (downloadData) {
-        downloadPersonalData();
+        downloadPersonalDataAsPDF();
       }
       const {
         error
@@ -369,7 +513,7 @@ const ProjectDetails = () => {
       if (error) throw error;
       toast({
         title: "Forlatt prosjekt",
-        description: downloadData ? "Dine data er lastet ned" : "Du har forlatt prosjektet"
+        description: downloadData ? "Sluttattest lastet ned som PDF" : "Du har forlatt prosjektet"
       });
       navigate('/');
     } catch (error: any) {
@@ -558,16 +702,24 @@ const ProjectDetails = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                      <AlertDialogTitle>Slett prosjekt</AlertDialogTitle>
                       <AlertDialogDescription>
                         Dette vil permanent slette prosjektet og alle tilhørende data (timer, kjøring, materialer).
                         Denne handlingen kan ikke angres.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
+                    <div className="py-4">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Vil du laste ned all prosjektdata som Excel-fil før sletting?
+                      </p>
+                    </div>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                       <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive hover:bg-destructive/90">
-                        Slett prosjekt
+                      <Button onClick={() => handleDeleteProject(false)} variant="destructive">
+                        Slett uten nedlasting
+                      </Button>
+                      <AlertDialogAction onClick={() => handleDeleteProject(true)} className="bg-primary hover:bg-primary/90">
+                        Last ned Excel og slett
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

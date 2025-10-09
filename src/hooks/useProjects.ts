@@ -27,6 +27,8 @@ export type TimeEntry = {
   end_time: string | null;
   duration_seconds: number;
   created_at: string;
+  comment: string | null;
+  is_manual: boolean;
 };
 
 export type DriveEntry = {
