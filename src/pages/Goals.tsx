@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Edit2, MoreHorizontal, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit2, MoreHorizontal, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
@@ -37,6 +38,7 @@ type GoalList = Database["public"]["Tables"]["goal_lists"]["Row"];
 type GoalTask = Database["public"]["Tables"]["goal_tasks"]["Row"];
 
 export default function Goals() {
+  const navigate = useNavigate();
   const [lists, setLists] = useState<GoalList[]>([]);
   const [tasks, setTasks] = useState<GoalTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,18 +255,33 @@ export default function Goals() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Daily Goals</h1>
-        <p className="text-muted-foreground">Organiser dine daglige mål og oppgaver</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-2 sm:py-3 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-2 px-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="hover:bg-primary/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Daily Goals
+              </h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">Organiser dine daglige mål og oppgaver</p>
+            </div>
+          </div>
+          <Button onClick={() => setIsAddListDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Ny liste
+          </Button>
+        </div>
+      </header>
 
-      <div className="mb-6">
-        <Button onClick={() => setIsAddListDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Ny liste
-        </Button>
-      </div>
+      <main className="container mx-auto px-4 py-8">
 
       {lists.length === 0 ? (
         <Card className="p-12 text-center">
@@ -417,6 +434,7 @@ export default function Goals() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }
