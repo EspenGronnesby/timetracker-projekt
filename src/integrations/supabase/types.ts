@@ -153,6 +153,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          color_theme: string | null
           created_at: string
           id: string
           name: string
@@ -163,6 +164,7 @@ export type Database = {
           show_team_invite: boolean
         }
         Insert: {
+          color_theme?: string | null
           created_at?: string
           id: string
           name: string
@@ -173,6 +175,7 @@ export type Database = {
           show_team_invite?: boolean
         }
         Update: {
+          color_theme?: string | null
           created_at?: string
           id?: string
           name?: string

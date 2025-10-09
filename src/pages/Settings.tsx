@@ -4,15 +4,56 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { useColorTheme, ColorTheme } from "@/hooks/useColorTheme";
+
+const themes: { value: ColorTheme; label: string; description: string; preview: string }[] = [
+  { 
+    value: 'light', 
+    label: 'Lys', 
+    description: 'Standard lyst tema',
+    preview: 'bg-background border-2 border-border' 
+  },
+  { 
+    value: 'dark', 
+    label: 'Mørk', 
+    description: 'Standard mørkt tema',
+    preview: 'bg-[hsl(180,15%,8%)] border-2 border-[hsl(180,10%,20%)]' 
+  },
+  { 
+    value: 'high-contrast-dark', 
+    label: 'Høy kontrast', 
+    description: 'Optimalisert for bruk i sollys',
+    preview: 'bg-[hsl(180,25%,4%)] border-2 border-[hsl(178,75%,55%)]' 
+  },
+  { 
+    value: 'ocean', 
+    label: 'Ocean blå', 
+    description: 'Blå-basert fargetema',
+    preview: 'bg-[hsl(220,35%,12%)] border-2 border-[hsl(195,85%,55%)]' 
+  },
+  { 
+    value: 'forest', 
+    label: 'Skog grønn', 
+    description: 'Grønn-basert fargetema',
+    preview: 'bg-[hsl(150,30%,10%)] border-2 border-[hsl(142,76%,50%)]' 
+  },
+  { 
+    value: 'sunset', 
+    label: 'Solnedgang lilla', 
+    description: 'Lilla-basert fargetema',
+    preview: 'bg-[hsl(280,25%,10%)] border-2 border-[hsl(280,65%,60%)]' 
+  },
+];
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const { toast } = useToast();
+  const { currentTheme, setColorTheme } = useColorTheme();
   
   const [showTeamInvite, setShowTeamInvite] = useState(false);
   const [showProjectActions, setShowProjectActions] = useState(false);
@@ -91,7 +132,37 @@ const Settings = () => {
         </div>
       </header>
 
-      <main className="py-8 px-4 max-w-2xl mx-auto">
+      <main className="py-8 px-4 max-w-2xl mx-auto space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Palette className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Fargetema</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">
+            Velg fargetema som passer best for deg. "Høy kontrast" anbefales for bruk utendørs.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {themes.map((theme) => (
+              <button
+                key={theme.value}
+                onClick={() => setColorTheme(theme.value)}
+                className={`p-4 rounded-lg border-2 transition-all text-left hover:scale-105 ${
+                  currentTheme === theme.value
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-8 h-8 rounded ${theme.preview}`} />
+                  <span className="font-medium">{theme.label}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{theme.description}</p>
+              </button>
+            ))}
+          </div>
+        </Card>
+
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Prosjektdetaljer visning</h2>
           <p className="text-sm text-muted-foreground mb-6">

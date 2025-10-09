@@ -11,6 +11,7 @@ interface Profile {
   show_team_invite?: boolean;
   show_project_actions?: boolean;
   show_activity_log?: boolean;
+  color_theme?: string;
 }
 
 export const useAuth = () => {
