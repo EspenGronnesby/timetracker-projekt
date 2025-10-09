@@ -552,15 +552,12 @@ const ProjectDetails = () => {
           <div className="flex flex-wrap gap-3">
             {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
             
-            {!isProjectOwner && <>
-              <Button variant="outline" onClick={() => handleLeaveProject(false)}>
-                Forlat prosjekt
-              </Button>
+            {!isProjectOwner && (
               <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 Forlat og last ned data
               </Button>
-            </>}
+            )}
           </div>
         </Card>
 
