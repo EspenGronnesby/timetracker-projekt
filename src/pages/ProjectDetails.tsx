@@ -59,7 +59,6 @@ const ProjectDetails = () => {
   // Check if user is admin or project creator
   const isAdmin = useIsAdmin(user?.id);
   const isProjectCreator = project?.created_by === user?.id;
-  const canViewSensitiveData = isAdmin || isProjectCreator;
 
   // Fetch team members
   const {
@@ -83,6 +82,8 @@ const ProjectDetails = () => {
     enabled: !!id
   });
   const isProjectOwner = teamMembers?.some(m => m.user_id === user?.id && m.role === 'owner');
+  const isProjectMember = teamMembers?.some(m => m.user_id === user?.id);
+  const canViewSensitiveData = isAdmin || isProjectCreator || isProjectMember;
 
   // Fetch active invites
   const {
@@ -398,12 +399,6 @@ const ProjectDetails = () => {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <Card className="p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Kundeinformasjon</h2>
-          {!canViewSensitiveData && <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg">
-              <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Kun admin og prosjektskaper kan se full kundeinformasjon
-              </p>
-            </div>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-start gap-3">
               <User className="h-5 w-5 text-muted-foreground mt-0.5" />
