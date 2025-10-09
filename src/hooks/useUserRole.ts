@@ -23,6 +23,7 @@ export const useUserRole = (userId: string | undefined) => {
       return data?.role as AppRole | null;
     },
     enabled: !!userId,
+    retry: false,
   });
 };
 

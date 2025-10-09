@@ -715,10 +715,16 @@ const ProjectDetails = () => {
                     </div>
                     <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                       <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                      <Button onClick={() => handleDeleteProject(false)} variant="destructive">
+                      <AlertDialogAction onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteProject(false);
+                      }} className="bg-destructive hover:bg-destructive/90">
                         Slett uten nedlasting
-                      </Button>
-                      <AlertDialogAction onClick={() => handleDeleteProject(true)} className="bg-primary hover:bg-primary/90">
+                      </AlertDialogAction>
+                      <AlertDialogAction onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteProject(true);
+                      }} className="bg-primary hover:bg-primary/90">
                         Last ned Excel og slett
                       </AlertDialogAction>
                     </AlertDialogFooter>
