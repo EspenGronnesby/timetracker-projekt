@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -39,6 +40,7 @@ type GoalTask = Database["public"]["Tables"]["goal_tasks"]["Row"];
 
 export default function Goals() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [lists, setLists] = useState<GoalList[]>([]);
   const [tasks, setTasks] = useState<GoalTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,8 +54,16 @@ export default function Goals() {
   const taskInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (activeListId && taskInputRefs.current[activeListId]) {
@@ -94,13 +104,14 @@ export default function Goals() {
   };
 
   const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+    if (!newListName.trim() || !user) return;
 
     try {
       setIsSubmitting(true);
       const { error } = await supabase.from("goal_lists").insert({
         name: newListName.trim(),
         order_index: lists.length,
+        user_id: user.id,
       });
 
       if (error) throw error;
@@ -156,12 +167,13 @@ export default function Goals() {
   };
 
   const handleCreateTask = async (listId: string, name: string) => {
-    if (!name.trim()) return;
+    if (!name.trim() || !user) return;
 
     try {
       const { error } = await supabase.from("goal_tasks").insert({
         name: name.trim(),
         list_id: listId,
+        user_id: user.id,
       });
 
       if (error) throw error;
@@ -246,7 +258,7 @@ export default function Goals() {
     return (completedTasks / listTasks.length) * 100;
   };
 
-  if (loading) {
+  if (loading || authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
