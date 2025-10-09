@@ -381,63 +381,15 @@ const ProjectDetails = () => {
   };
   return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-3 sm:gap-4 flex-1">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold truncate">{project.name}</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                {project.customer_name}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
-              
-              {!inviteUrl && (isAdmin || isProjectCreator) && <Button variant="outline" size="icon" onClick={handleGenerateInvite} disabled={generating}>
-                  <Share2 className="h-5 w-5" />
-                </Button>}
-
-              {isProjectOwner && <>
-                  <Button variant={project.completed ? "outline" : "default"} size="icon" onClick={handleToggleComplete} className={project.completed ? "" : "bg-green-500 hover:bg-green-600"}>
-                    <CheckCircle2 className="h-5 w-5" />
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="icon">
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Slett prosjekt?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Dette vil permanent slette prosjektet og alle tilhørende data.
-                          Denne handlingen kan ikke angres.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProject}>
-                          Slett
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>}
-
-              {!isProjectOwner && <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => handleLeaveProject(false)}>
-                    Forlat prosjekt
-                  </Button>
-                  <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Forlat og last ned data
-                  </Button>
-                </div>}
-            </div>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold truncate">{project.name}</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              {project.customer_name}
+            </p>
           </div>
           <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
         </div>
@@ -553,8 +505,63 @@ const ProjectDetails = () => {
               </div>
             </TabsContent>
 
-            
+            <TabsContent value="total" className="mt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Total tid</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">{formatTime(totalTime)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 sm:p-4 bg-accent/10 rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Total kjøring
+                      </p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">{totalKm.toFixed(1)} km</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Materialkostnad
+                      </p>
+                      <p className="text-xl sm:text-2xl font-bold truncate">
+                        {totalMaterialCost.toFixed(0)} kr
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
+        </Card>
+
+        <Card className="p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
+          <div className="flex flex-wrap gap-3">
+            {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
+            
+            {!isProjectOwner && <>
+              <Button variant="outline" onClick={() => handleLeaveProject(false)}>
+                Forlat prosjekt
+              </Button>
+              <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Forlat og last ned data
+              </Button>
+            </>}
+          </div>
         </Card>
 
         {(isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
@@ -634,7 +641,12 @@ const ProjectDetails = () => {
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button variant={activityFilter === "all" ? "default" : "outline"} size="sm" onClick={() => setActivityFilter("all")} className="hover:scale-105 transition-transform">
+              <Button 
+                variant={activityFilter === "all" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => setActivityFilter("all")}
+                className="hover:scale-105 transition-transform"
+              >
                 Alle aktiviteter
               </Button>
               <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10">
