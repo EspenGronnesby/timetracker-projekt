@@ -216,7 +216,7 @@ export const ProjectCard = ({
             )}
           </Button>
 
-          <DriveDialog isDriving={isDriving} onToggleDriving={handleDrivingSubmit} />
+          <DriveDialog isDriving={isDriving} onToggleDriving={handleDrivingSubmit} projectId={project.id} />
 
           <AddMaterialDialog onAddMaterial={onAddMaterial} />
         </div>

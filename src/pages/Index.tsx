@@ -6,6 +6,9 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { NotificationBell } from "@/components/NotificationBell";
+import { StreakIndicator } from "@/components/StreakIndicator";
+import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
 import { LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -193,6 +196,12 @@ const Index = () => {
     );
   };
 
+  const handleStopTimer = (projectId: string) => {
+    if (profile?.name) {
+      toggleProject({ projectId, userName: profile.name });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-2 sm:py-3 sticky top-0 z-10 backdrop-blur-sm">
@@ -201,6 +210,8 @@ const Index = () => {
             {profile?.name}
           </h1>
           <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
+            <StreakIndicator />
+            <NotificationBell />
             <ThemeToggle />
             {isAdmin && (
               <Button
@@ -377,6 +388,9 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {/* Background timer notification system */}
+        <TimerNotificationSystem onStopTimer={handleStopTimer} />
       </main>
     </div>
   );

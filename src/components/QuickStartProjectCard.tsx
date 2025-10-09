@@ -19,6 +19,7 @@ interface QuickStartProjectCardProps {
 }
 
 export const QuickStartProjectCard = ({
+  projectId,
   projectName,
   projectColor,
   customerInfo,
@@ -92,6 +93,7 @@ export const QuickStartProjectCard = ({
       <DriveDialog
         isDriving={isDriving}
         onToggleDriving={onToggleDriving}
+        projectId={projectId}
         open={driveOpen}
         onOpenChange={setDriveOpen}
       />

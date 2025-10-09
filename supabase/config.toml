@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-project-report]
 verify_jwt = true
+
+[functions.calculate-driving-distance]
+verify_jwt = true
+
+[functions.daily-summary]
+verify_jwt = false

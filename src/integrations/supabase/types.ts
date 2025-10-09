@@ -17,30 +17,39 @@ export type Database = {
       drive_entries: {
         Row: {
           created_at: string
+          end_location: Json | null
           end_time: string | null
           id: string
           kilometers: number | null
           project_id: string
+          route_data: Json | null
+          start_location: Json | null
           start_time: string
           user_id: string
           user_name: string
         }
         Insert: {
           created_at?: string
+          end_location?: Json | null
           end_time?: string | null
           id?: string
           kilometers?: number | null
           project_id: string
+          route_data?: Json | null
+          start_location?: Json | null
           start_time: string
           user_id: string
           user_name: string
         }
         Update: {
           created_at?: string
+          end_location?: Json | null
           end_time?: string | null
           id?: string
           kilometers?: number | null
           project_id?: string
+          route_data?: Json | null
+          start_location?: Json | null
           start_time?: string
           user_id?: string
           user_name?: string
@@ -127,6 +136,78 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          daily_summary_enabled: boolean | null
+          daily_summary_time: string | null
+          email_enabled: boolean | null
+          project_activity_enabled: boolean | null
+          push_enabled: boolean | null
+          timer_reminder_enabled: boolean | null
+          timer_reminder_hours: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          daily_summary_enabled?: boolean | null
+          daily_summary_time?: string | null
+          email_enabled?: boolean | null
+          project_activity_enabled?: boolean | null
+          push_enabled?: boolean | null
+          timer_reminder_enabled?: boolean | null
+          timer_reminder_hours?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          daily_summary_enabled?: boolean | null
+          daily_summary_time?: string | null
+          email_enabled?: boolean | null
+          project_activity_enabled?: boolean | null
+          push_enabled?: boolean | null
+          timer_reminder_enabled?: boolean | null
+          timer_reminder_hours?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string
@@ -155,6 +236,7 @@ export type Database = {
         Row: {
           color_theme: string | null
           created_at: string
+          fcm_token: string | null
           id: string
           name: string
           organization_name: string | null
@@ -166,6 +248,7 @@ export type Database = {
         Insert: {
           color_theme?: string | null
           created_at?: string
+          fcm_token?: string | null
           id: string
           name: string
           organization_name?: string | null
@@ -177,6 +260,7 @@ export type Database = {
         Update: {
           color_theme?: string | null
           created_at?: string
+          fcm_token?: string | null
           id?: string
           name?: string
           organization_name?: string | null
@@ -444,6 +528,33 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          last_activity_date: string | null
+          longest_streak: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
