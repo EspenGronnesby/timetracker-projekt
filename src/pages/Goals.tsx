@@ -274,17 +274,21 @@ export default function Goals() {
               <p className="text-sm text-muted-foreground hidden sm:block">Organiser dine daglige mål og oppgaver</p>
             </div>
           </div>
-          <Button onClick={() => setIsAddListDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ny liste
+          <Button 
+            onClick={() => setIsAddListDialogOpen(true)}
+            size="icon"
+            variant="outline"
+            className="hover:bg-primary/10"
+          >
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
 
       {lists.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card className="p-12 text-center max-w-md mx-auto">
           <p className="text-muted-foreground mb-4">Ingen lister ennå</p>
           <Button onClick={() => setIsAddListDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -292,9 +296,9 @@ export default function Goals() {
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 justify-items-center">
           {lists.map((list) => (
-            <Card key={list.id} className="rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <Card key={list.id} className="rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 {editingList?.id === list.id ? (
                   <Input
