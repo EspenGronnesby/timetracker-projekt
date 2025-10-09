@@ -30,6 +30,8 @@ const Index = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowShimmer(true);
+      // Stop shimmer after animation completes (3s animation)
+      setTimeout(() => setShowShimmer(false), 3000);
     }, 2000);
     return () => clearTimeout(timer);
   }, []);

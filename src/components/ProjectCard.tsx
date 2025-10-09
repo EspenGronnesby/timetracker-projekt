@@ -162,15 +162,15 @@ export const ProjectCard = ({
         }}
       />
       
-      {/* Shimmer effect - auto play after 2 seconds or on hover */}
+      {/* Shimmer effect - plays once on load */}
       <div 
         className={`absolute inset-0 transition-opacity duration-700 pointer-events-none ${
-          showShimmer ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          showShimmer ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           background: `linear-gradient(110deg, transparent 40%, ${project.color}15 50%, transparent 60%)`,
           backgroundSize: '200% 100%',
-          animation: showShimmer ? 'shimmer 3s infinite' : 'none'
+          animation: showShimmer ? 'shimmer 3s ease-in-out' : 'none'
         }}
       />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
