@@ -10,8 +10,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
 import { GenerateReportDialog } from "@/components/GenerateReportDialog";
-import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users } from "lucide-react";
-import { formatTime } from "@/lib/timeUtils";
+import { ManualTimeDialog } from "@/components/ManualTimeDialog";
+import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download } from "lucide-react";
+import { formatTime, getTotalSeconds } from "@/lib/timeUtils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -46,6 +48,7 @@ const ProjectDetails = () => {
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [activityFilter, setActivityFilter] = useState<"all" | "time" | "drive" | "material">("all");
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const {
     toast
   } = useToast();
@@ -79,6 +82,8 @@ const ProjectDetails = () => {
     },
     enabled: !!id
   });
+
+  const isProjectOwner = teamMembers?.some(m => m.user_id === user?.id && m.role === 'owner');
 
   // Fetch active invites
   const {
@@ -240,6 +245,171 @@ const ProjectDetails = () => {
     });
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleManualStartTime = async (datetime: Date, comment: string) => {
+    if (!activeEntry || !user) return;
+
+    try {
+      const currentTime = new Date();
+      const elapsedSeconds = getTotalSeconds(datetime, currentTime);
+      
+      const { error } = await supabase
+        .from('time_entries')
+        .update({ 
+          start_time: datetime.toISOString(),
+          is_manual: true,
+          comment: comment
+        })
+        .eq('id', activeEntry.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Starttid oppdatert",
+        description: `Timer justert til ${elapsedSeconds > 0 ? formatTime(elapsedSeconds) : '0h 0m'}`
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Feil",
+        description: error.message
+      });
+    }
+  };
+
+  const handleManualEndTime = async (datetime: Date, comment: string) => {
+    if (!activeEntry || !user) return;
+
+    try {
+      const durationSeconds = getTotalSeconds(new Date(activeEntry.start_time), datetime);
+      
+      const { error } = await supabase
+        .from('time_entries')
+        .update({ 
+          end_time: datetime.toISOString(),
+          duration_seconds: durationSeconds,
+          is_manual: true,
+          comment: comment
+        })
+        .eq('id', activeEntry.id);
+
+      if (error) throw error;
+
+      trackPresence(false, false);
+
+      toast({
+        title: "Sluttid registrert",
+        description: `Total tid: ${formatTime(durationSeconds)}`
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Feil",
+        description: error.message
+      });
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!project || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Prosjekt slettet",
+        description: "Prosjektet er permanent slettet"
+      });
+
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Feil ved sletting",
+        description: error.message
+      });
+    }
+  };
+
+  const handleToggleComplete = async () => {
+    if (!project) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ completed: !project.completed })
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      toast({
+        title: project.completed ? "Prosjekt gjenåpnet" : "Prosjekt fullført",
+        description: project.completed ? "Prosjektet er aktivt igjen" : "Prosjektet er markert som fullført"
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Feil",
+        description: error.message
+      });
+    }
+  };
+
+  const downloadPersonalData = () => {
+    const data = {
+      project: project.name,
+      timeEntries: myTimeEntries,
+      driveEntries: myDriveEntries,
+      materials: myMaterials,
+      totalTime: myTotalTime,
+      totalKilometers: myTotalKm,
+      totalMaterialCost: myTotalMaterialCost
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name}-personal-data.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLeaveProject = async (downloadData: boolean) => {
+    if (!project || !user) return;
+
+    try {
+      if (downloadData) {
+        downloadPersonalData();
+      }
+
+      const { error } = await supabase
+        .from('project_members')
+        .delete()
+        .eq('project_id', project.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Forlatt prosjekt",
+        description: downloadData ? "Dine data er lastet ned" : "Du har forlatt prosjektet"
+      });
+
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Feil",
+        description: error.message
+      });
+    }
+  };
   return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -253,13 +423,81 @@ const ProjectDetails = () => {
                 {project.customer_name}
               </p>
             </div>
-            {canViewSensitiveData && (
-              <GenerateReportDialog 
-                projectId={project.id} 
-                projectName={project.name}
-                canAccess={canViewSensitiveData}
-              />
-            )}
+            <div className="flex items-center gap-2">
+              {canViewSensitiveData && (
+                <GenerateReportDialog 
+                  projectId={project.id} 
+                  projectName={project.name}
+                  canAccess={canViewSensitiveData}
+                />
+              )}
+              
+              {!inviteUrl && (isAdmin || isProjectCreator) && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleGenerateInvite}
+                  disabled={generating}
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              )}
+
+              {isProjectOwner && (
+                <>
+                  <Button
+                    variant={project.completed ? "outline" : "default"}
+                    size="icon"
+                    onClick={handleToggleComplete}
+                    className={project.completed ? "" : "bg-green-500 hover:bg-green-600"}
+                  >
+                    <CheckCircle2 className="h-5 w-5" />
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="icon">
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Slett prosjekt?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Dette vil permanent slette prosjektet og alle tilhørende data.
+                          Denne handlingen kan ikke angres.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteProject}>
+                          Slett
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+
+              {!isProjectOwner && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleLeaveProject(false)}
+                  >
+                    Forlat prosjekt
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => handleLeaveProject(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Forlat og last ned data
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
         </div>
@@ -491,9 +729,31 @@ const ProjectDetails = () => {
           </Card>}
 
         <Card id="activity-log" className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
-            <h2 className="text-base sm:text-lg font-semibold">Aktivitetslogg</h2>
-            <div className="flex gap-1 sm:gap-2">
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-base sm:text-lg font-semibold">Aktivitetslogg</h2>
+              <div className="flex gap-2 flex-wrap">
+                <ManualTimeDialog 
+                  type="start"
+                  onSubmit={handleManualStartTime}
+                  disabled={!activeEntry}
+                />
+                <ManualTimeDialog 
+                  type="end"
+                  onSubmit={handleManualEndTime}
+                  disabled={!activeEntry}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant={activityFilter === "all" ? "default" : "outline"} 
+                size="icon" 
+                onClick={() => setActivityFilter("all")} 
+                className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10"
+              >
+                <Package className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
               <Button 
                 variant={activityFilter === "time" ? "default" : "outline"} 
                 size="icon" 

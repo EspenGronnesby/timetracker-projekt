@@ -327,30 +327,36 @@ export type Database = {
       }
       time_entries: {
         Row: {
+          comment: string | null
           created_at: string
           duration_seconds: number
           end_time: string | null
           id: string
+          is_manual: boolean
           project_id: string
           start_time: string
           user_id: string
           user_name: string
         }
         Insert: {
+          comment?: string | null
           created_at?: string
           duration_seconds?: number
           end_time?: string | null
           id?: string
+          is_manual?: boolean
           project_id: string
           start_time: string
           user_id: string
           user_name: string
         }
         Update: {
+          comment?: string | null
           created_at?: string
           duration_seconds?: number
           end_time?: string | null
           id?: string
+          is_manual?: boolean
           project_id?: string
           start_time?: string
           user_id?: string
