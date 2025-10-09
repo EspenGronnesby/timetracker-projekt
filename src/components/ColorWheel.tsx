@@ -78,9 +78,6 @@ export function ColorWheel({ onThemeSelect, currentTheme, isSpinning }: ColorWhe
         }}
         onTransitionEnd={handleTransitionEnd}
       >
-        {/* Outer border ring */}
-        <circle cx="100" cy="100" r="99" fill="none" stroke="hsl(var(--border))" strokeWidth="2" />
-        
         {/* Wheel segments */}
         {themes.map((theme, index) => {
           const midAngle = (index * segmentAngle + segmentAngle / 2 - 90) * (Math.PI / 180);
