@@ -1,11 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 export type ColorTheme = 'light' | 'dark' | 'high-contrast-dark' | 'ocean' | 'forest' | 'sunset';
 
+const RECENT_THEMES_KEY = 'recent_color_themes';
+
 export const useColorTheme = () => {
   const { profile, user } = useAuth();
+  const [recentThemes, setRecentThemes] = useState<ColorTheme[]>(() => {
+    const stored = localStorage.getItem(RECENT_THEMES_KEY);
+    return stored ? JSON.parse(stored) : ['light', 'dark'];
+  });
 
   useEffect(() => {
     const applyTheme = (theme: ColorTheme) => {
@@ -26,6 +32,11 @@ export const useColorTheme = () => {
   const setColorTheme = async (theme: ColorTheme) => {
     if (!user?.id) return;
 
+    // Update recent themes
+    const updatedRecent = [theme, ...recentThemes.filter(t => t !== theme)].slice(0, 2);
+    setRecentThemes(updatedRecent);
+    localStorage.setItem(RECENT_THEMES_KEY, JSON.stringify(updatedRecent));
+
     const { error } = await supabase
       .from('profiles')
       .update({ color_theme: theme })
@@ -44,6 +55,7 @@ export const useColorTheme = () => {
 
   return {
     currentTheme: (profile?.color_theme as ColorTheme) || 'light',
-    setColorTheme
+    setColorTheme,
+    recentThemes
   };
 };

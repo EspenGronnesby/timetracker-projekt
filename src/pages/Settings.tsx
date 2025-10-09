@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useColorTheme, ColorTheme } from "@/hooks/useColorTheme";
+import { ColorWheel } from "@/components/ColorWheel";
+import { Sparkles } from "lucide-react";
 
 const themes: { value: ColorTheme; label: string; description: string; preview: string }[] = [
   { 
@@ -59,6 +61,8 @@ const Settings = () => {
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [showAllThemes, setShowAllThemes] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -139,28 +143,58 @@ const Settings = () => {
             <h2 className="text-lg font-semibold">Fargetema</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
-            Velg fargetema som passer best for deg. "Høy kontrast" anbefales for bruk utendørs.
+            Spin hjulet for tilfeldig tema, eller velg selv fra listen under.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {themes.map((theme) => (
-              <button
-                key={theme.value}
-                onClick={() => setColorTheme(theme.value)}
-                className={`p-4 rounded-lg border-2 transition-all text-left hover:scale-105 ${
-                  currentTheme === theme.value
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-8 h-8 rounded ${theme.preview}`} />
-                  <span className="font-medium">{theme.label}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">{theme.description}</p>
-              </button>
-            ))}
+          <ColorWheel 
+            onThemeSelect={(theme) => {
+              setColorTheme(theme);
+              setIsSpinning(false);
+            }}
+            currentTheme={currentTheme}
+            isSpinning={isSpinning}
+          />
+
+          <div className="flex gap-3 mt-6 justify-center">
+            <Button
+              onClick={() => setIsSpinning(true)}
+              disabled={isSpinning}
+              className="flex items-center gap-2"
+              variant="default"
+            >
+              <Sparkles className="h-4 w-4" />
+              {isSpinning ? "Spinner..." : "Feeling Lucky"}
+            </Button>
+            
+            <Button
+              onClick={() => setShowAllThemes(!showAllThemes)}
+              variant="outline"
+            >
+              {showAllThemes ? "Skjul farger" : "Vis flere farger"}
+            </Button>
           </div>
+
+          {showAllThemes && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 animate-fade-in">
+              {themes.map((theme) => (
+                <button
+                  key={theme.value}
+                  onClick={() => setColorTheme(theme.value)}
+                  className={`p-4 rounded-lg border-2 transition-all text-left hover:scale-105 ${
+                    currentTheme === theme.value
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-8 h-8 rounded ${theme.preview}`} />
+                    <span className="font-medium">{theme.label}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{theme.description}</p>
+                </button>
+              ))}
+            </div>
+          )}
         </Card>
 
         <Card className="p-6">
