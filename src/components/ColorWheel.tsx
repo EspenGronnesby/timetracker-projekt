@@ -41,11 +41,13 @@ export function ColorWheel({ onThemeSelect, currentTheme, isSpinning }: ColorWhe
     if (isSpinning) {
       const randomTheme = themes[Math.floor(Math.random() * themes.length)];
       const targetIndex = themes.findIndex(t => t.value === randomTheme.value);
-      
+
       // Beregn rotasjon slik at valgt segment ender under pekeren (toppen)
-      const offsetToTop = -(targetIndex * segmentAngle) - (segmentAngle / 2);
-      const finalRotation = rotation + 360 * 5 + offsetToTop;
-      
+      const currentNormalized = ((rotation % 360) + 360) % 360;
+      const targetAngleAtTop = -(targetIndex * segmentAngle) - (segmentAngle / 2);
+      const deltaToTarget = targetAngleAtTop - currentNormalized;
+      const finalRotation = rotation + 360 * 5 + deltaToTarget;
+
       setRotation(finalRotation);
       setSelectedTheme(randomTheme.value);
     }
@@ -59,7 +61,7 @@ export function ColorWheel({ onThemeSelect, currentTheme, isSpinning }: ColorWhe
   };
 
   return (
-    <div className="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
+    <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 mx-auto">
       {/* Statisk peker på toppen */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 z-30">
         <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[24px] border-t-primary drop-shadow-lg" />
