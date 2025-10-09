@@ -121,8 +121,9 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="icon">
+        <Button variant="destructive" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
+          Generer rapport
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
