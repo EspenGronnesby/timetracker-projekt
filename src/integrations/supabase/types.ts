@@ -78,6 +78,74 @@ export type Database = {
           },
         ]
       }
+      goal_lists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_index?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      goal_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          deadline: string | null
+          id: string
+          is_completed: boolean
+          list_id: string
+          name: string
+          points: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          is_completed?: boolean
+          list_id: string
+          name: string
+          points?: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          is_completed?: boolean
+          list_id?: string
+          name?: string
+          points?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_tasks_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "goal_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
           created_at: string
