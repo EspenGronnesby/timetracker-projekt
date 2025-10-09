@@ -8,6 +8,9 @@ interface Profile {
   name: string;
   organization_number: string | null;
   organization_name: string | null;
+  show_team_invite?: boolean;
+  show_project_actions?: boolean;
+  show_activity_log?: boolean;
 }
 
 export const useAuth = () => {

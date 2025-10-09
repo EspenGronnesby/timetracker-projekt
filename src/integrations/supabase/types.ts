@@ -158,6 +158,9 @@ export type Database = {
           name: string
           organization_name: string | null
           organization_number: string | null
+          show_activity_log: boolean
+          show_project_actions: boolean
+          show_team_invite: boolean
         }
         Insert: {
           created_at?: string
@@ -165,6 +168,9 @@ export type Database = {
           name: string
           organization_name?: string | null
           organization_number?: string | null
+          show_activity_log?: boolean
+          show_project_actions?: boolean
+          show_team_invite?: boolean
         }
         Update: {
           created_at?: string
@@ -172,6 +178,9 @@ export type Database = {
           name?: string
           organization_name?: string | null
           organization_number?: string | null
+          show_activity_log?: boolean
+          show_project_actions?: boolean
+          show_team_invite?: boolean
         }
         Relationships: []
       }

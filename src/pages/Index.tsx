@@ -6,7 +6,7 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
@@ -206,6 +206,14 @@ const Index = () => {
                 <span className="hidden sm:inline">Admin</span>
               </Button>
             )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/settings")}
+              className="flex items-center gap-2 hover:border-accent/50 hover:bg-accent/10 transition-all"
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </Button>
             <Button
               variant="outline"
               size="default"

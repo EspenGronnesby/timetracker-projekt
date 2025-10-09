@@ -547,21 +547,23 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        <Card className="p-4 sm:p-6">
-          <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
-            
-            {!isProjectOwner && (
-              <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Forlat og last ned data
-              </Button>
-            )}
-          </div>
-        </Card>
+        {profile?.show_project_actions && (
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
+              
+              {!isProjectOwner && (
+                <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Forlat og last ned data
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
 
-        {(isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
+        {profile?.show_team_invite && (isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
             <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
               Team & Invites
@@ -628,7 +630,8 @@ const ProjectDetails = () => {
             </div>
           </Card>}
 
-        <Card id="activity-log" className="p-4 sm:p-6">
+        {profile?.show_activity_log && (
+          <Card id="activity-log" className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h2 className="text-base sm:text-lg font-semibold">Aktivitetslogg</h2>
@@ -714,7 +717,7 @@ const ProjectDetails = () => {
               const material = activity.data;
               return <div key={`material-${material.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary">
                       <Package className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
-                     <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{material.name}</p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
                           {new Date(material.created_at).toLocaleString("no-NO", {
@@ -735,6 +738,7 @@ const ProjectDetails = () => {
           })}
             </div>}
         </Card>
+        )}
       </div>
     </div>;
 };

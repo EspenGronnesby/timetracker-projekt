@@ -14,6 +14,7 @@ import "./App.css";
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const JoinProject = lazy(() => import("./pages/JoinProject"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/project/:id" element={<ProjectDetails />} />
               <Route path="/join/:inviteCode" element={<JoinProject />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
