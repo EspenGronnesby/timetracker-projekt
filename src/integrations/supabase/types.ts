@@ -804,14 +804,14 @@ export type Database = {
         Insert: {
           color?: string | null
           completed?: boolean | null
-          contract_number?: never
+          contract_number?: string | null
           created_at?: string | null
           created_by?: string | null
           customer_address?: never
           customer_email?: never
-          customer_name?: never
+          customer_name?: string | null
           customer_phone?: never
-          description?: never
+          description?: string | null
           hide_customer_info?: boolean | null
           id?: string | null
           name?: string | null
@@ -820,14 +820,14 @@ export type Database = {
         Update: {
           color?: string | null
           completed?: boolean | null
-          contract_number?: never
+          contract_number?: string | null
           created_at?: string | null
           created_by?: string | null
           customer_address?: never
           customer_email?: never
-          customer_name?: never
+          customer_name?: string | null
           customer_phone?: never
-          description?: never
+          description?: string | null
           hide_customer_info?: boolean | null
           id?: string | null
           name?: string | null
