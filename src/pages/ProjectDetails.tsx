@@ -692,7 +692,7 @@ const ProjectDetails = () => {
             <div className="flex flex-wrap gap-3">
               {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
               
-              {isProjectOwner && (
+              {(isProjectOwner || isProjectCreator) && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="flex items-center gap-2">
@@ -726,7 +726,7 @@ const ProjectDetails = () => {
                 </AlertDialog>
               )}
               
-              {!isProjectOwner && (
+              {!isProjectOwner && !isProjectCreator && (
                 <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   Forlat og last ned data
