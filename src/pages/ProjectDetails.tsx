@@ -545,10 +545,10 @@ const ProjectDetails = () => {
         {profile?.show_project_actions && (
           <Card className="p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-3">
               {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
               
-              {isProjectOwner ? (
+              {isProjectOwner && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="flex items-center gap-2">
@@ -572,7 +572,9 @@ const ProjectDetails = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              ) : (
+              )}
+              
+              {!isProjectOwner && (
                 <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   Forlat og last ned data
