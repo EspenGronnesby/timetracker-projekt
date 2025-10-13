@@ -12,6 +12,29 @@ serve(async (req) => {
   }
 
   try {
+    // Validate cron secret token for authentication
+    const cronSecret = req.headers.get('X-Cron-Token');
+    const expectedSecret = Deno.env.get('CRON_SECRET');
+    
+    if (!expectedSecret) {
+      console.error('CRON_SECRET not configured');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    if (cronSecret !== expectedSecret) {
+      console.warn('Unauthorized daily-summary attempt:', {
+        timestamp: new Date().toISOString(),
+        ip: req.headers.get('x-forwarded-for') || 'unknown'
+      });
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -22,8 +45,33 @@ serve(async (req) => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayISO = today.toISOString().split('T')[0];
 
-    console.log('Generating daily summaries for:', today.toISOString());
+    console.log('Generating daily summaries for:', todayISO);
+
+    // Idempotency check: prevent duplicate summaries for today
+    const { data: existingSummaries, error: idempotencyError } = await supabaseClient
+      .from('notifications')
+      .select('id')
+      .eq('type', 'daily_summary')
+      .gte('created_at', todayISO + 'T00:00:00Z')
+      .limit(1);
+
+    if (idempotencyError) {
+      console.error('Idempotency check failed:', idempotencyError);
+      throw idempotencyError;
+    }
+
+    if (existingSummaries && existingSummaries.length > 0) {
+      console.log('Daily summaries already sent today, skipping');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Summaries already sent today',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Get all users with daily summary enabled
     const { data: preferences, error: prefsError } = await supabaseClient
@@ -70,7 +118,16 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, usersProcessed: preferences?.length || 0 }), {
+    console.log('Daily summary completed successfully:', {
+      usersProcessed: preferences?.length || 0,
+      timestamp: new Date().toISOString()
+    });
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      usersProcessed: preferences?.length || 0,
+      timestamp: new Date().toISOString()
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
