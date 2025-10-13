@@ -13,9 +13,38 @@ serve(async (req) => {
   }
 
   try {
-    const { projectId, includeCustomerInfo, includeTimeStats, includeDriveStats, includeMaterialCosts, includeAiAnalysis } = await req.json();
+    const body = await req.json();
+    const { 
+      projectId, 
+      includeCustomerInfo = true,
+      includeTimeStats = true,
+      includeDriveStats = true,
+      includeMaterialCosts = true,
+      includeAiAnalysis = true
+    } = body;
+
+    // Validate projectId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!projectId || typeof projectId !== 'string' || !uuidRegex.test(projectId)) {
+      console.error('[Validation Error] Invalid project ID format');
+      throw new Error('Invalid project identifier');
+    }
+
+    // Validate boolean flags
+    const validateBoolean = (val: any, name: string) => {
+      if (typeof val !== 'boolean') {
+        console.error(`[Validation Error] ${name} must be a boolean`);
+        throw new Error('Invalid request parameters');
+      }
+    };
     
-    console.log('Generating report for project:', projectId);
+    validateBoolean(includeCustomerInfo, 'includeCustomerInfo');
+    validateBoolean(includeTimeStats, 'includeTimeStats');
+    validateBoolean(includeDriveStats, 'includeDriveStats');
+    validateBoolean(includeMaterialCosts, 'includeMaterialCosts');
+    validateBoolean(includeAiAnalysis, 'includeAiAnalysis');
+    
+    console.log('[Report Generation] Starting for project:', projectId);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -29,8 +58,8 @@ serve(async (req) => {
       .single();
 
     if (projectError) {
-      console.error('Project fetch error:', projectError);
-      throw new Error('Could not fetch project');
+      console.error('[Database Error] Project fetch:', projectError);
+      throw new Error('Project not found');
     }
 
     // Fetch time entries
@@ -173,15 +202,8 @@ serve(async (req) => {
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        throw new Error('For mange forespørsler. Vennligst prøv igjen senere.');
-      }
-      if (aiResponse.status === 402) {
-        throw new Error('Betalingsfeil. Vennligst legg til kreditt i Lovable AI workspace.');
-      }
-      throw new Error('Kunne ikke generere rapport med AI');
+      console.error('[AI Service Error]', aiResponse.status, errorText);
+      throw new Error('Report generation service temporarily unavailable');
     }
 
     const aiData = await aiResponse.json();
@@ -201,13 +223,25 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in generate-project-report function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'En feil oppstod ved generering av rapport';
+    console.error('[Error] generate-project-report:', error);
+    
+    // Map errors to generic client messages
+    let clientMessage = 'Failed to generate report';
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid project identifier') ||
+          error.message.includes('Invalid request parameters') ||
+          error.message.includes('Project not found') ||
+          error.message.includes('Report generation service temporarily unavailable') ||
+          error.message.includes('LOVABLE_API_KEY is not configured')) {
+        clientMessage = error.message;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }), 
-      {
-        status: 500,
+      JSON.stringify({ error: clientMessage }),
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
       }
     );
   }

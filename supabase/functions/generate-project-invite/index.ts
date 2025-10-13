@@ -28,12 +28,15 @@ serve(async (req) => {
     }
 
     const { projectId } = await req.json();
-    
-    if (!projectId) {
-      throw new Error('Project ID is required');
+
+    // Validate projectId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!projectId || typeof projectId !== 'string' || !uuidRegex.test(projectId)) {
+      console.error('[Validation Error] Invalid project ID format');
+      throw new Error('Invalid project identifier');
     }
 
-    console.log(`Generating invite for project: ${projectId}`);
+    console.log(`[Invite Generation] Starting for project: ${projectId}`);
 
     // Verify user is project owner
     const { data: membership, error: membershipError } = await supabaseClient
@@ -44,7 +47,8 @@ serve(async (req) => {
       .single();
 
     if (membershipError || membership?.role !== 'owner') {
-      throw new Error('Only project owners can generate invites');
+      console.warn('[Authorization Error] Non-owner attempted invite generation', { user_id: user.id, projectId });
+      throw new Error('Not authorized');
     }
 
     // Generate unique invite code
@@ -79,15 +83,23 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error generating invite:', error);
+    console.error('[Error] generate-project-invite:', error);
+    
+    // Map errors to generic client messages
+    let clientMessage = 'Failed to generate invite';
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid project identifier') ||
+          error.message.includes('Not authorized') ||
+          error.message.includes('Unauthorized')) {
+        clientMessage = error.message;
+      }
+    }
     
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to generate invite'
-      }),
+      JSON.stringify({ error: clientMessage }),
       { 
-        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
       }
     );
   }

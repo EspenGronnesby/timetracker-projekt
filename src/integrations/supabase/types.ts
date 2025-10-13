@@ -66,13 +66,6 @@ export type Database = {
             foreignKeyName: "drive_entries_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_member_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "drive_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects_secure_member_view"
             referencedColumns: ["id"]
           },
@@ -193,13 +186,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "materials_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
           {
@@ -393,13 +379,6 @@ export type Database = {
             foreignKeyName: "project_invites_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_member_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_invites_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects_secure_member_view"
             referencedColumns: ["id"]
           },
@@ -433,13 +412,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_members_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_member_view"
             referencedColumns: ["id"]
           },
           {
@@ -566,13 +538,6 @@ export type Database = {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "projects_member_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "time_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects_secure_member_view"
             referencedColumns: ["id"]
           },
@@ -688,31 +653,6 @@ export type Database = {
       }
     }
     Views: {
-      projects_member_view: {
-        Row: {
-          color: string | null
-          completed: boolean | null
-          contract_number: string | null
-          created_at: string | null
-          created_by: string | null
-          customer_address: string | null
-          customer_email: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          description: string | null
-          id: string | null
-          name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projects_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       projects_secure_member_view: {
         Row: {
           color: string | null

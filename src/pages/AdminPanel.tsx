@@ -55,27 +55,28 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      // Get all profiles in the same organization (RLS enforces organization boundaries)
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
+      // Call server-side admin verification endpoint (enforces admin check server-side)
+      const { data, error } = await supabase.functions.invoke('admin-get-users');
+      
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw new Error(error.message || 'Failed to fetch users');
+      }
 
-      if (profilesError) throw profilesError;
-
-      // Get all user roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
-
-      // Combine data
-      const usersWithRoles: UserWithRole[] = profiles.map(profile => ({
-        profile,
-        role: roles.find(r => r.user_id === profile.id)?.role as 'admin' | 'user' | null || null
-      }));
-
-      setUsers(usersWithRoles);
+      if (data?.users) {
+        // Transform to match existing UserWithRole structure
+        const usersWithRoles: UserWithRole[] = data.users.map((user: any) => ({
+          profile: {
+            id: user.id,
+            name: user.name,
+            organization_number: user.organization_number,
+            organization_name: user.organization_name,
+          },
+          role: user.role as 'admin' | 'user' | null
+        }));
+        
+        setUsers(usersWithRoles);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
