@@ -5,6 +5,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation helpers
+const isValidCoordinate = (lat: number, lng: number): boolean => {
+  return typeof lat === 'number' && typeof lng === 'number' &&
+         lat >= -90 && lat <= 90 &&
+         lng >= -180 && lng <= 180;
+};
+
+const isValidLocationString = (location: string): boolean => {
+  return typeof location === 'string' && 
+         location.length > 0 && 
+         location.length < 500 &&
+         !/[<>{}]/.test(location); // Basic injection prevention
+};
+
+const validateLocation = (location: any): boolean => {
+  if (typeof location === 'string') {
+    return isValidLocationString(location);
+  }
+  if (location && typeof location === 'object' && 'lat' in location && 'lng' in location) {
+    return isValidCoordinate(location.lat, location.lng);
+  }
+  return false;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,11 +48,18 @@ serve(async (req) => {
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
 
     if (!GOOGLE_MAPS_API_KEY) {
-      throw new Error('GOOGLE_MAPS_API_KEY not configured');
+      console.error('[Config Error] Google Maps API key not configured');
+      throw new Error('Location service unavailable');
     }
 
+    // Validate locations
     if (!startLocation || !endLocation) {
       throw new Error('Start and end locations are required');
+    }
+
+    if (!validateLocation(startLocation) || !validateLocation(endLocation)) {
+      console.error('[Validation Error] Invalid location format provided');
+      throw new Error('Invalid location format');
     }
 
     console.log('Calculating distance:', { startLocation, endLocation });
@@ -68,8 +99,19 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in calculate-driving-distance:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
+    console.error('[Error] calculate-driving-distance:', error);
+    
+    // Map errors to generic client messages
+    let clientMessage = 'An error occurred while calculating distance';
+    if (error instanceof Error) {
+      if (error.message.includes('Location service unavailable') || 
+          error.message.includes('Invalid location format') ||
+          error.message.includes('Start and end locations are required')) {
+        clientMessage = error.message;
+      }
+    }
+    
+    return new Response(JSON.stringify({ error: clientMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
