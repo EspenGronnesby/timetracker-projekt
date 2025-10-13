@@ -83,13 +83,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "drive_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       goal_lists: {
@@ -221,13 +214,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "materials_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
         ]
@@ -523,13 +509,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "projects_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "projects_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -602,13 +581,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "time_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
         ]
@@ -716,42 +688,6 @@ export type Database = {
       }
     }
     Views: {
-      profiles_safe_view: {
-        Row: {
-          color_theme: string | null
-          created_at: string | null
-          id: string | null
-          name: string | null
-          organization_name: string | null
-          organization_number: string | null
-          show_activity_log: boolean | null
-          show_project_actions: boolean | null
-          show_team_invite: boolean | null
-        }
-        Insert: {
-          color_theme?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          organization_name?: string | null
-          organization_number?: string | null
-          show_activity_log?: boolean | null
-          show_project_actions?: boolean | null
-          show_team_invite?: boolean | null
-        }
-        Update: {
-          color_theme?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          organization_name?: string | null
-          organization_number?: string | null
-          show_activity_log?: boolean | null
-          show_project_actions?: boolean | null
-          show_team_invite?: boolean | null
-        }
-        Relationships: []
-      }
       projects_member_view: {
         Row: {
           color: string | null
@@ -773,13 +709,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
         ]
@@ -839,13 +768,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
           {
