@@ -1,9 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  projectId: z.string().uuid('Invalid project ID format'),
+  userId: z.string().uuid('Invalid user ID format').optional(),
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -29,8 +35,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { projectId, userId } = await req.json();
-    console.log('Calculating project cost:', { projectId, userId });
+    const body = await req.json();
+    const validation = requestSchema.safeParse(body);
+
+    if (!validation.success) {
+      console.error('[Validation Error] Invalid input format');
+      return new Response(
+        JSON.stringify({ error: 'Invalid request parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { projectId, userId } = validation.data;
+    console.log('[Cost Calculation] Processing request for project');
 
     // Verify user has access to this project
     const { data: memberCheck, error: memberError } = await supabaseClient
@@ -153,11 +170,7 @@ Deno.serve(async (req) => {
     const myTotalCost = myLaborCost + myDrivingCost + myMaterialsCost;
     const allTotalCost = allLaborCost + allDrivingCost + allMaterialsCost;
 
-    console.log('Cost calculation completed:', {
-      projectId,
-      myTotal: myTotalCost,
-      allTotal: allTotalCost,
-    });
+    console.log('[Cost Calculation] Completed successfully');
 
     return new Response(
       JSON.stringify({
@@ -206,9 +219,9 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error calculating project cost:', error);
+    console.error('[Cost Calculation Error]', error instanceof Error ? error.message : 'Unknown error');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Failed to calculate project cost' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
