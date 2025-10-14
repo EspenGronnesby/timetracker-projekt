@@ -537,7 +537,12 @@ const ProjectDetails = () => {
               {project.customer_name}
             </p>
           </div>
-          <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
+          <div className="flex items-center gap-2">
+            {(profile as any)?.show_cost_calculator && (
+              <ProjectCostCalculator projectId={project.id} userId={user.id} />
+            )}
+            <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
+          </div>
         </div>
       </header>
 
@@ -691,9 +696,6 @@ const ProjectDetails = () => {
           <Card className="p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
             <div className="flex flex-wrap gap-3">
-              {(profile as any)?.show_cost_calculator && (
-                <ProjectCostCalculator projectId={project.id} userId={user.id} />
-              )}
               {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
               
               {(isProjectOwner || isProjectCreator) && (
