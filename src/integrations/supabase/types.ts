@@ -309,6 +309,7 @@ export type Database = {
           organization_name: string | null
           organization_number: string | null
           show_activity_log: boolean
+          show_cost_calculator: boolean
           show_project_actions: boolean
           show_team_invite: boolean
         }
@@ -320,6 +321,7 @@ export type Database = {
           organization_name?: string | null
           organization_number?: string | null
           show_activity_log?: boolean
+          show_cost_calculator?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
         }
@@ -331,6 +333,7 @@ export type Database = {
           organization_name?: string | null
           organization_number?: string | null
           show_activity_log?: boolean
+          show_cost_calculator?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
         }

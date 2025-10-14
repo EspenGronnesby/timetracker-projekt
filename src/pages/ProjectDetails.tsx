@@ -11,6 +11,7 @@ import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
 import { GenerateReportDialog } from "@/components/GenerateReportDialog";
 import { ManualTimeDialog } from "@/components/ManualTimeDialog";
+import { ProjectCostCalculator } from "@/components/ProjectCostCalculator";
 import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -690,6 +691,9 @@ const ProjectDetails = () => {
           <Card className="p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
             <div className="flex flex-wrap gap-3">
+              {(profile as any)?.show_cost_calculator && (
+                <ProjectCostCalculator projectId={project.id} userId={user.id} />
+              )}
               {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
               
               {(isProjectOwner || isProjectCreator) && (

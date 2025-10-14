@@ -60,6 +60,7 @@ const Settings = () => {
   const [showTeamInvite, setShowTeamInvite] = useState(false);
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showCostCalculator, setShowCostCalculator] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
@@ -75,6 +76,7 @@ const Settings = () => {
       setShowTeamInvite(profile.show_team_invite || false);
       setShowProjectActions(profile.show_project_actions || false);
       setShowActivityLog(profile.show_activity_log || false);
+      setShowCostCalculator((profile as any).show_cost_calculator || false);
     }
   }, [profile]);
 
@@ -89,6 +91,7 @@ const Settings = () => {
           show_team_invite: showTeamInvite,
           show_project_actions: showProjectActions,
           show_activity_log: showActivityLog,
+          show_cost_calculator: showCostCalculator,
         })
         .eq("id", user.id);
 
@@ -249,6 +252,22 @@ const Settings = () => {
                 id="activity-log"
                 checked={showActivityLog}
                 onCheckedChange={setShowActivityLog}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="cost-calculator" className="text-base">
+                  Kostnadskalkulator
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Vis kostnadskalkulator for å beregne prosjektkostnader
+                </p>
+              </div>
+              <Switch
+                id="cost-calculator"
+                checked={showCostCalculator}
+                onCheckedChange={setShowCostCalculator}
               />
             </div>
           </div>
