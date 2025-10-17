@@ -312,6 +312,9 @@ export type Database = {
           show_cost_calculator: boolean
           show_project_actions: boolean
           show_team_invite: boolean
+          show_weather_notifications: boolean
+          show_weather_widget: boolean
+          weather_location: string | null
         }
         Insert: {
           color_theme?: string | null
@@ -324,6 +327,9 @@ export type Database = {
           show_cost_calculator?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
+          show_weather_notifications?: boolean
+          show_weather_widget?: boolean
+          weather_location?: string | null
         }
         Update: {
           color_theme?: string | null
@@ -336,6 +342,9 @@ export type Database = {
           show_cost_calculator?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
+          show_weather_notifications?: boolean
+          show_weather_widget?: boolean
+          weather_location?: string | null
         }
         Relationships: []
       }
@@ -651,6 +660,42 @@ export type Database = {
           longest_streak?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      weather_notifications: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          notified: boolean | null
+          precipitation: number | null
+          temperature: number | null
+          user_id: string
+          weather_type: string
+          wind_speed: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          notified?: boolean | null
+          precipitation?: number | null
+          temperature?: number | null
+          user_id: string
+          weather_type: string
+          wind_speed?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          notified?: boolean | null
+          precipitation?: number | null
+          temperature?: number | null
+          user_id?: string
+          weather_type?: string
+          wind_speed?: number | null
         }
         Relationships: []
       }

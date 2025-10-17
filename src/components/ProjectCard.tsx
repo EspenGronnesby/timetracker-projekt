@@ -205,14 +205,14 @@ export const ProjectCard = ({
           <Button
             variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className={`h-16 sm:h-16 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 ${
+            className={`h-20 sm:h-20 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 ${
               isActive ? "bg-green-500 hover:bg-green-500 animate-pulse" : "hover:bg-blue-500/10 hover:border-blue-500/50"
             }`}
           >
             {isActive ? (
-              <Pause className="h-8 w-8 sm:h-8 sm:w-8 text-white" />
+              <Pause className="h-10 w-10 sm:h-10 sm:w-10 text-white" />
             ) : (
-              <Play className="h-8 w-8 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400" />
+              <Play className="h-10 w-10 sm:h-10 sm:w-10 text-blue-500 dark:text-blue-400" />
             )}
           </Button>
 
@@ -230,7 +230,7 @@ export const ProjectCard = ({
             <>
               <div className="flex items-center justify-between text-sm sm:text-sm">
                 <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+                  <Clock className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                   <span>Total tid:</span>
                 </div>
                 <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
@@ -238,7 +238,7 @@ export const ProjectCard = ({
               {totalKilometers > 0 && (
                 <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
                   <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Car className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-green-500 dark:text-green-400" />
+                    <Car className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
                     <span>Kjørt:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
@@ -247,7 +247,7 @@ export const ProjectCard = ({
               {totalMaterialCost > 0 && (
                 <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
                   <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Package className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0 text-orange-500 dark:text-orange-400" />
+                    <Package className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-orange-500 dark:text-orange-400" />
                     <span>Materialer:</span>
                   </div>
                   <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>

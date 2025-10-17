@@ -9,6 +9,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { NotificationBell } from "@/components/NotificationBell";
 import { StreakIndicator } from "@/components/StreakIndicator";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { LogOut, Settings as SettingsIcon, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -260,6 +261,8 @@ const Index = () => {
         <div>
           <OfflineIndicator />
         </div>
+        
+        <WeatherWidget />
         
         <div className="px-0">
           <ActivityFilter onFilterChange={handleFilterChange} />

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Palette } from "lucide-react";
+import { ArrowLeft, Palette, Cloud } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -61,6 +61,8 @@ const Settings = () => {
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showCostCalculator, setShowCostCalculator] = useState(false);
+  const [showWeatherWidget, setShowWeatherWidget] = useState(false);
+  const [showWeatherNotifications, setShowWeatherNotifications] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
@@ -77,6 +79,8 @@ const Settings = () => {
       setShowProjectActions(profile.show_project_actions || false);
       setShowActivityLog(profile.show_activity_log || false);
       setShowCostCalculator((profile as any).show_cost_calculator || false);
+      setShowWeatherWidget((profile as any).show_weather_widget || false);
+      setShowWeatherNotifications((profile as any).show_weather_notifications !== false);
     }
   }, [profile]);
 
@@ -92,6 +96,8 @@ const Settings = () => {
           show_project_actions: showProjectActions,
           show_activity_log: showActivityLog,
           show_cost_calculator: showCostCalculator,
+          show_weather_widget: showWeatherWidget,
+          show_weather_notifications: showWeatherNotifications,
         })
         .eq("id", user.id);
 
@@ -198,6 +204,50 @@ const Settings = () => {
               ))}
             </div>
           )}
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Cloud className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Værvarsel</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">
+            Få værvarsel og notifikasjoner om dårlig vær dagen før
+          </p>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="weather-widget" className="text-base">
+                  Vis værvarsel widget
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Vis værvarsel på hovedsiden med dagens og morgendagens vær
+                </p>
+              </div>
+              <Switch
+                id="weather-widget"
+                checked={showWeatherWidget}
+                onCheckedChange={setShowWeatherWidget}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="weather-notifications" className="text-base">
+                  Få notifikasjoner om dårlig vær
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Motta varsel dagen før om regn, snø eller storm
+                </p>
+              </div>
+              <Switch
+                id="weather-notifications"
+                checked={showWeatherNotifications}
+                onCheckedChange={setShowWeatherNotifications}
+              />
+            </div>
+          </div>
         </Card>
 
         <Card className="p-6">
