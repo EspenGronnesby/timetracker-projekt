@@ -16,6 +16,8 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const JoinProject = lazy(() => import("./pages/JoinProject"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
+const CustomerLogin = lazy(() => import("./pages/CustomerLogin"));
+const CustomerProjects = lazy(() => import("./pages/CustomerProjects"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +51,8 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/project/:id" element={<ProjectDetails />} />
               <Route path="/join/:inviteCode" element={<JoinProject />} />
+              <Route path="/kunde-innlogging" element={<CustomerLogin />} />
+              <Route path="/kunde-portal" element={<CustomerProjects />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

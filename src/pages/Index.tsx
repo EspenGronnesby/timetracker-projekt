@@ -30,6 +30,7 @@ const Index = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("week");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
   const [showShimmer, setShowShimmer] = useState(false);
+  const [projectStatus, setProjectStatus] = useState<"active" | "completed" | "all">("active");
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -120,8 +121,17 @@ const Index = () => {
   );
   const activeCount = activeTimeEntries.length + activeDriveEntries.length;
 
-  // Sort projects by name
-  const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+  // Filter and sort projects by status and name
+  const filteredProjects = useMemo(() => {
+    if (projectStatus === "active") return projects.filter(p => !p.completed);
+    if (projectStatus === "completed") return projects.filter(p => p.completed);
+    return projects;
+  }, [projects, projectStatus]);
+
+  const sortedProjects = [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
+  
+  const activeProjectCount = projects.filter(p => !p.completed).length;
+  const completedProjectCount = projects.filter(p => p.completed).length;
 
   // Early return AFTER all hooks
   if (loading || !user) {
@@ -264,7 +274,30 @@ const Index = () => {
         
         <WeatherWidget />
         
-        <div className="px-0">
+        <div className="px-0 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={projectStatus === "active" ? "default" : "outline"}
+              onClick={() => setProjectStatus("active")}
+              size="sm"
+            >
+              Aktive prosjekter ({activeProjectCount})
+            </Button>
+            <Button 
+              variant={projectStatus === "completed" ? "default" : "outline"}
+              onClick={() => setProjectStatus("completed")}
+              size="sm"
+            >
+              Fullførte prosjekter ({completedProjectCount})
+            </Button>
+            <Button 
+              variant={projectStatus === "all" ? "default" : "outline"}
+              onClick={() => setProjectStatus("all")}
+              size="sm"
+            >
+              Alle prosjekter ({projects.length})
+            </Button>
+          </div>
           <ActivityFilter onFilterChange={handleFilterChange} />
         </div>
 

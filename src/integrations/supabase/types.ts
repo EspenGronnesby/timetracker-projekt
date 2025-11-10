@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      customer_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          last_login: string | null
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          last_login?: string | null
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_login?: string | null
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
       drive_entries: {
         Row: {
           created_at: string
@@ -55,6 +82,13 @@ export type Database = {
           user_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "drive_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "customer_projects_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "drive_entries_project_id_fkey"
             columns: ["project_id"]
@@ -181,6 +215,13 @@ export type Database = {
           user_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "materials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "customer_projects_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "materials_project_id_fkey"
             columns: ["project_id"]
@@ -384,6 +425,13 @@ export type Database = {
             foreignKeyName: "project_invites_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "customer_projects_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_invites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -419,6 +467,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "customer_projects_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_members_project_id_fkey"
             columns: ["project_id"]
@@ -539,6 +594,13 @@ export type Database = {
           user_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "customer_projects_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
@@ -701,6 +763,24 @@ export type Database = {
       }
     }
     Views: {
+      customer_projects_view: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          description: string | null
+          drive_entry_count: number | null
+          id: string | null
+          material_count: number | null
+          name: string | null
+          time_entry_count: number | null
+          total_duration_seconds: number | null
+          total_kilometers: number | null
+          total_material_cost: number | null
+        }
+        Relationships: []
+      }
       projects_secure_member_view: {
         Row: {
           color: string | null
@@ -773,15 +853,15 @@ export type Database = {
         Args: { _project_id: string }
         Returns: boolean
       }
-      can_access_project_sensitive_data: {
-        Args:
-          | { project_created_by: string }
-          | { project_created_by: string; project_org_id: string }
-        Returns: boolean
-      }
-      create_project: {
-        Args:
-          | {
+      can_access_project_sensitive_data:
+        | { Args: { project_created_by: string }; Returns: boolean }
+        | {
+            Args: { project_created_by: string; project_org_id: string }
+            Returns: boolean
+          }
+      create_project:
+        | {
+            Args: {
               p_color: string
               p_contract_number: string
               p_customer_address: string
@@ -792,7 +872,31 @@ export type Database = {
               p_hide_customer_info?: boolean
               p_name: string
             }
-          | {
+            Returns: {
+              color: string
+              completed: boolean
+              contract_number: string | null
+              created_at: string
+              created_by: string
+              customer_address: string | null
+              customer_email: string | null
+              customer_name: string
+              customer_phone: string | null
+              description: string | null
+              hide_customer_info: boolean
+              id: string
+              name: string
+              organization_id: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "projects"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
               p_color: string
               p_contract_number: string
               p_customer_address: string
@@ -802,27 +906,30 @@ export type Database = {
               p_description: string
               p_name: string
             }
-        Returns: {
-          color: string
-          completed: boolean
-          contract_number: string | null
-          created_at: string
-          created_by: string
-          customer_address: string | null
-          customer_email: string | null
-          customer_name: string
-          customer_phone: string | null
-          description: string | null
-          hide_customer_info: boolean
-          id: string
-          name: string
-          organization_id: string | null
-        }
-      }
-      get_user_organization: {
-        Args: { user_id: string }
-        Returns: string
-      }
+            Returns: {
+              color: string
+              completed: boolean
+              contract_number: string | null
+              created_at: string
+              created_by: string
+              customer_address: string | null
+              customer_email: string | null
+              customer_name: string
+              customer_phone: string | null
+              description: string | null
+              hide_customer_info: boolean
+              id: string
+              name: string
+              organization_id: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "projects"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      get_user_organization: { Args: { user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -830,10 +937,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
