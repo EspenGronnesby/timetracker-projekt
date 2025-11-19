@@ -105,13 +105,15 @@ export const DriveDialog = ({
   const handleStop = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (startLocation && endLocation) {
+    // Prioritize manual input if provided
+    const manualKm = parseFloat(kilometers);
+    if (!isNaN(manualKm) && manualKm > 0) {
+      handleConfirmDistance(manualKm);
+    } else if (startLocation && endLocation) {
+      // Try automatic calculation if locations are provided
       calculateDistance();
     } else {
-      const km = parseFloat(kilometers);
-      if (!isNaN(km) && km > 0) {
-        handleConfirmDistance(km);
-      }
+      toast.error("Vennligst fyll inn kilometer eller begge lokasjoner");
     }
   };
   if (isDriving) {
@@ -164,9 +166,11 @@ export const DriveDialog = ({
               min="0" 
               placeholder="F.eks. 15.5" 
               value={kilometers} 
-              onChange={e => setKilometers(e.target.value)} 
-              disabled={!!startLocation || !!endLocation}
+              onChange={e => setKilometers(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Manuell input prioriteres hvis begge er fylt ut
+            </p>
           </div>
           <Button type="submit" className="w-full" disabled={isCalculating}>
             {isCalculating ? "Beregner..." : "Lagre kjøring"}
