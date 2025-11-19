@@ -70,7 +70,12 @@ export const DriveDialog = ({
       setShowConfirmation(true);
     } catch (error) {
       console.error('Error calculating distance:', error);
-      toast.error("Kunne ikke beregne distanse. Fyll inn manuelt.");
+      // Reset calculated km on error
+      setCalculatedKm(null);
+      toast.error("Kunne ikke beregne distanse. Fyll inn manuelt.", {
+        description: "Skriv inn kilometer i feltet nedenfor",
+        duration: 5000,
+      });
     } finally {
       setIsCalculating(false);
     }
@@ -158,15 +163,21 @@ export const DriveDialog = ({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="kilometers">Eller registrer kilometer manuelt</Label>
+            <Label htmlFor="kilometers" className="flex items-center gap-2">
+              Eller registrer kilometer manuelt
+              {calculatedKm === null && (startLocation || endLocation) && (
+                <span className="text-xs font-normal text-orange-500">• Påkrevd hvis automatisk beregning feiler</span>
+              )}
+            </Label>
             <Input 
               id="kilometers" 
               type="number" 
               step="0.1" 
-              min="0" 
+              min="0.1" 
               placeholder="F.eks. 15.5" 
               value={kilometers} 
               onChange={e => setKilometers(e.target.value)}
+              autoFocus={calculatedKm === null && !kilometers}
             />
             <p className="text-xs text-muted-foreground">
               Manuell input prioriteres hvis begge er fylt ut
