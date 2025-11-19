@@ -59,11 +59,22 @@ export const DriveDialog = ({
 
     setIsCalculating(true);
     try {
+      console.log('Calling calculate-driving-distance with:', { startLocation, endLocation });
+      
       const { data, error } = await supabase.functions.invoke('calculate-driving-distance', {
         body: { startLocation, endLocation }
       });
 
-      if (error) throw error;
+      console.log('Response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (!data || !data.distance_km) {
+        throw new Error('Invalid response from distance service');
+      }
 
       setCalculatedKm(data.distance_km);
       setKilometers(data.distance_km.toString());
@@ -72,8 +83,8 @@ export const DriveDialog = ({
       console.error('Error calculating distance:', error);
       // Reset calculated km on error
       setCalculatedKm(null);
-      toast.error("Kunne ikke beregne distanse. Fyll inn manuelt.", {
-        description: "Skriv inn kilometer i feltet nedenfor",
+      toast.error("Kunne ikke beregne distanse automatisk", {
+        description: "Fyll inn kilometer manuelt i feltet",
         duration: 5000,
       });
     } finally {
@@ -110,16 +121,21 @@ export const DriveDialog = ({
   const handleStop = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prioritize manual input if provided
+    // Always prioritize manual input
     const manualKm = parseFloat(kilometers);
     if (!isNaN(manualKm) && manualKm > 0) {
       handleConfirmDistance(manualKm);
-    } else if (startLocation && endLocation) {
-      // Try automatic calculation if locations are provided
-      calculateDistance();
-    } else {
-      toast.error("Vennligst fyll inn kilometer eller begge lokasjoner");
+      return;
     }
+    
+    // If no manual input, try automatic calculation if locations provided
+    if (startLocation && endLocation) {
+      calculateDistance();
+      return;
+    }
+    
+    // If neither manual input nor locations, show error
+    toast.error("Vennligst fyll inn kilometer eller begge lokasjoner");
   };
   if (isDriving) {
     return <Dialog open={open} onOpenChange={setOpen}>
@@ -163,11 +179,8 @@ export const DriveDialog = ({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="kilometers" className="flex items-center gap-2">
-              Eller registrer kilometer manuelt
-              {calculatedKm === null && (startLocation || endLocation) && (
-                <span className="text-xs font-normal text-orange-500">• Påkrevd hvis automatisk beregning feiler</span>
-              )}
+            <Label htmlFor="kilometers">
+              Registrer kilometer (påkrevd)
             </Label>
             <Input 
               id="kilometers" 
@@ -177,10 +190,10 @@ export const DriveDialog = ({
               placeholder="F.eks. 15.5" 
               value={kilometers} 
               onChange={e => setKilometers(e.target.value)}
-              autoFocus={calculatedKm === null && !kilometers}
+              autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              Manuell input prioriteres hvis begge er fylt ut
+              Eller fyll inn start/slutt over for automatisk beregning
             </p>
           </div>
           <Button type="submit" className="w-full" disabled={isCalculating}>
