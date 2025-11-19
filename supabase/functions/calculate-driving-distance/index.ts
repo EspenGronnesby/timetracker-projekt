@@ -65,12 +65,21 @@ serve(async (req) => {
     console.log('Calculating distance:', { startLocation, endLocation });
 
     // Format locations for Google Maps API
-    const origin = typeof startLocation === 'string' 
-      ? startLocation 
-      : `${startLocation.lat},${startLocation.lng}`;
-    const destination = typeof endLocation === 'string'
-      ? endLocation
-      : `${endLocation.lat},${endLocation.lng}`;
+    // Add Norway to improve geocoding accuracy for Norwegian addresses
+    const formatLocation = (loc: any) => {
+      if (typeof loc === 'string') {
+        const trimmed = loc.trim();
+        // If it doesn't already include Norway, add it
+        if (!trimmed.toLowerCase().includes('norway') && !trimmed.toLowerCase().includes('norge')) {
+          return `${trimmed}, Norway`;
+        }
+        return trimmed;
+      }
+      return `${loc.lat},${loc.lng}`;
+    };
+
+    const origin = formatLocation(startLocation);
+    const destination = formatLocation(endLocation);
 
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&key=${GOOGLE_MAPS_API_KEY}`;
 
@@ -80,7 +89,21 @@ serve(async (req) => {
     console.log('Google Maps API response:', data.status);
 
     if (data.status !== 'OK') {
-      throw new Error(`Google Maps API error: ${data.status}`);
+      console.error('[Google Maps Error]', {
+        status: data.status,
+        error_message: data.error_message,
+        origin,
+        destination
+      });
+      
+      let errorMessage = 'Kunne ikke finne rute';
+      if (data.status === 'NOT_FOUND') {
+        errorMessage = 'Fant ikke en eller begge adressene. Prøv med mer spesifikk adresse (f.eks. gate, postnummer)';
+      } else if (data.status === 'ZERO_RESULTS') {
+        errorMessage = 'Ingen rute funnet mellom disse stedene';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const route = data.routes[0];
