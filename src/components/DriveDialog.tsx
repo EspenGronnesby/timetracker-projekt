@@ -78,13 +78,12 @@ export const DriveDialog = ({
 
       setCalculatedKm(data.distance_km);
       setKilometers(data.distance_km.toString());
-      setShowConfirmation(true);
+      toast.success(`Beregnet distanse: ${data.distance_km} km`);
     } catch (error) {
       console.error('Error calculating distance:', error);
-      // Reset calculated km on error
       setCalculatedKm(null);
-      toast.error("Kunne ikke beregne distanse automatisk", {
-        description: "Fyll inn kilometer manuelt i feltet",
+      toast.error("Kunne ikke beregne automatisk", {
+        description: "Skriv inn km eller prøv igjen",
         duration: 5000,
       });
     } finally {
@@ -118,19 +117,41 @@ export const DriveDialog = ({
     setOpen(false);
   };
 
-  const handleStop = (e: React.FormEvent) => {
+  const handleStop = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Always prioritize manual input
+    // Prioritize manual input if provided
     const manualKm = parseFloat(kilometers);
     if (!isNaN(manualKm) && manualKm > 0) {
       handleConfirmDistance(manualKm);
       return;
     }
     
-    // If no manual input, try automatic calculation if locations provided
+    // Try automatic calculation if both locations are provided
     if (startLocation && endLocation) {
-      calculateDistance();
+      setIsCalculating(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('calculate-driving-distance', {
+          body: { startLocation, endLocation }
+        });
+
+        if (error || !data || !data.distance_km) {
+          throw new Error('Could not calculate distance');
+        }
+
+        // Show confirmation with calculated distance
+        setCalculatedKm(data.distance_km);
+        setKilometers(data.distance_km.toString());
+        setShowConfirmation(true);
+      } catch (error) {
+        console.error('Automatic calculation failed:', error);
+        toast.error("Kunne ikke beregne automatisk", {
+          description: "Skriv inn kilometer manuelt",
+          duration: 5000,
+        });
+      } finally {
+        setIsCalculating(false);
+      }
       return;
     }
     
@@ -180,7 +201,7 @@ export const DriveDialog = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="kilometers">
-              Registrer kilometer (påkrevd)
+              Kilometer {!kilometers && "(valgfritt)"}
             </Label>
             <Input 
               id="kilometers" 
@@ -190,12 +211,26 @@ export const DriveDialog = ({
               placeholder="F.eks. 15.5" 
               value={kilometers} 
               onChange={e => setKilometers(e.target.value)}
+              disabled={isCalculating}
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              Eller fyll inn start/slutt over for automatisk beregning
+              {kilometers 
+                ? "Trykk Lagre for å bekrefte" 
+                : "Skriv km manuelt eller la automatisk beregning gjøre det"}
             </p>
           </div>
+          {startLocation && endLocation && !kilometers && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
+              onClick={calculateDistance}
+              disabled={isCalculating}
+            >
+              {isCalculating ? "Beregner..." : "Beregn km automatisk"}
+            </Button>
+          )}
           <Button type="submit" className="w-full" disabled={isCalculating}>
             {isCalculating ? "Beregner..." : "Lagre kjøring"}
           </Button>
