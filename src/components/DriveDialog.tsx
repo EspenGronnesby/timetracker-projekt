@@ -7,6 +7,7 @@ import { Car, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DriveConfirmationDialog } from "./DriveConfirmationDialog";
+import { FavoriteQuickSelect } from "./FavoriteQuickSelect";
 interface DriveDialogProps {
   isDriving: boolean;
   onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any) => void;
@@ -173,6 +174,17 @@ export const DriveDialog = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleStop} className="space-y-4">
+          <FavoriteQuickSelect
+            onSelect={(address) => {
+              if (!startLocation) {
+                setStartLocation(address);
+              } else {
+                setEndLocation(address);
+              }
+            }}
+            selectedAddress={startLocation || endLocation}
+          />
+          
           <div className="space-y-2">
             <Label htmlFor="start-location">Startsted</Label>
             <div className="relative">
@@ -266,6 +278,11 @@ export const DriveDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          <FavoriteQuickSelect
+            onSelect={(address) => setStartLocation(address)}
+            selectedAddress={startLocation}
+          />
+          
           <div className="space-y-2">
             <Label htmlFor="start-location-begin">Startsted (valgfritt)</Label>
             <div className="relative">
