@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MapPin, Navigation, ExternalLink, Locate, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { MapPin, Navigation, ExternalLink, Locate, Loader2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +20,9 @@ export const NavigationButton = () => {
   const [startAddress, setStartAddress] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const linkRef = useRef<HTMLAnchorElement>(null);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -46,41 +49,58 @@ export const NavigationButton = () => {
     );
   };
 
-  const handleOpenGoogleMaps = () => {
+  const generateGoogleMapsUrl = () => {
     if (!destination.trim()) return;
 
     const encodedDestination = encodeURIComponent(destination);
     let googleMapsUrl: string;
 
     if (useCurrentLocation && currentCoords) {
-      // Use current GPS coordinates as origin
       googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${currentCoords.lat},${currentCoords.lng}&destination=${encodedDestination}`;
     } else if (!useCurrentLocation && startAddress.trim()) {
-      // Use manual start address
       const encodedStart = encodeURIComponent(startAddress);
       googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedStart}&destination=${encodedDestination}`;
     } else {
-      // No origin, just destination
       googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedDestination}`;
     }
 
-    window.open(googleMapsUrl, "_blank");
-    setIsOpen(false);
-    setDestination("");
-    setStartAddress("");
+    setGeneratedUrl(googleMapsUrl);
+  };
+
+  const handleCopyUrl = async () => {
+    if (!generatedUrl) return;
+    
+    try {
+      await navigator.clipboard.writeText(generatedUrl);
+      setCopied(true);
+      toast.success("Lenke kopiert!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Kunne ikke kopiere lenke");
+    }
   };
 
   const handleSelectFavorite = (address: string) => {
     setDestination(address);
+    setGeneratedUrl(null);
   };
 
   const handleSelectStartFavorite = (address: string) => {
     setStartAddress(address);
     setUseCurrentLocation(false);
+    setGeneratedUrl(null);
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setDestination("");
+    setStartAddress("");
+    setGeneratedUrl(null);
+    setCopied(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => open ? setIsOpen(true) : handleClose()}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -108,6 +128,7 @@ export const NavigationButton = () => {
                 size="sm"
                 onClick={() => {
                   setUseCurrentLocation(true);
+                  setGeneratedUrl(null);
                   if (!currentCoords) {
                     getCurrentLocation();
                   }
@@ -126,7 +147,10 @@ export const NavigationButton = () => {
                 type="button"
                 variant={!useCurrentLocation ? "default" : "outline"}
                 size="sm"
-                onClick={() => setUseCurrentLocation(false)}
+                onClick={() => {
+                  setUseCurrentLocation(false);
+                  setGeneratedUrl(null);
+                }}
               >
                 Annen adresse
               </Button>
@@ -143,7 +167,10 @@ export const NavigationButton = () => {
                 <Input
                   placeholder="Skriv inn startadresse..."
                   value={startAddress}
-                  onChange={(e) => setStartAddress(e.target.value)}
+                  onChange={(e) => {
+                    setStartAddress(e.target.value);
+                    setGeneratedUrl(null);
+                  }}
                 />
                 <FavoriteQuickSelect onSelect={handleSelectStartFavorite} />
               </div>
@@ -157,24 +184,61 @@ export const NavigationButton = () => {
               id="destination"
               placeholder="Skriv inn destinasjon..."
               value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleOpenGoogleMaps();
-                }
+              onChange={(e) => {
+                setDestination(e.target.value);
+                setGeneratedUrl(null);
               }}
             />
             <FavoriteQuickSelect onSelect={handleSelectFavorite} />
           </div>
 
-          <Button
-            onClick={handleOpenGoogleMaps}
-            disabled={!destination.trim()}
-            className="w-full gap-2"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Åpne i Google Maps
-          </Button>
+          {!generatedUrl ? (
+            <Button
+              onClick={generateGoogleMapsUrl}
+              disabled={!destination.trim()}
+              className="w-full gap-2"
+            >
+              <Navigation className="h-4 w-4" />
+              Generer navigasjonslenke
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">Google Maps-lenke:</p>
+                <div className="flex gap-2">
+                  <a
+                    ref={linkRef}
+                    href={generatedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-sm text-primary underline break-all hover:text-primary/80"
+                  >
+                    Åpne i Google Maps
+                  </a>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyUrl}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                onClick={() => setGeneratedUrl(null)}
+                className="w-full"
+              >
+                Ny søk
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
