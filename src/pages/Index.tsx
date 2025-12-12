@@ -11,6 +11,7 @@ import { StreakIndicator } from "@/components/StreakIndicator";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { LogOut, Settings as SettingsIcon, ListTodo } from "lucide-react";
+import { NavigationButton } from "@/components/NavigationButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePresenceTracking } from "@/components/OnlineUsersIndicator";
@@ -223,6 +224,7 @@ const Index = () => {
           <div className="flex items-center gap-2 sm:gap-2 flex-shrink-0">
             <StreakIndicator />
             <NotificationBell />
+            <NavigationButton />
             <ThemeToggle />
             <Button
               variant="outline"
