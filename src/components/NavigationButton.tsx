@@ -154,17 +154,7 @@ export const NavigationButton = () => {
           ) : (
             <div className="space-y-3">
               <div className="p-3 bg-muted rounded-lg space-y-3">
-                <p className="text-sm text-muted-foreground">Google Maps-lenke:</p>
-                
-                <a
-                  ref={linkRef}
-                  href={generatedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-sm text-primary underline break-all hover:text-primary/80"
-                >
-                  Åpne i Google Maps
-                </a>
+                <p className="text-sm text-muted-foreground">Google Maps-lenke klar:</p>
 
                 <div className="flex gap-2">
                   <Button
