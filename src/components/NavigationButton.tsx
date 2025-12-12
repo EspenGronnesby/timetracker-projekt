@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { MapPin, Navigation, Copy, Check } from "lucide-react";
+import { MapPin, Navigation, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,7 +31,6 @@ export const NavigationButton = () => {
       const encodedStart = encodeURIComponent(startAddress.trim());
       googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedStart}&destination=${encodedDestination}`;
     } else {
-      // If no start address, Google Maps will use user's current location automatically
       googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedDestination}`;
     }
 
@@ -48,6 +47,32 @@ export const NavigationButton = () => {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Kunne ikke kopiere lenke");
+    }
+  };
+
+  const handleShareUrl = async () => {
+    if (!generatedUrl) return;
+
+    const shareData = {
+      title: `Veibeskrivelse til ${destination}`,
+      text: startAddress 
+        ? `Navigasjon fra ${startAddress} til ${destination}`
+        : `Navigasjon til ${destination}`,
+      url: generatedUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Delt!");
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          toast.error("Kunne ikke dele");
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      handleCopyUrl();
     }
   };
 
@@ -128,29 +153,41 @@ export const NavigationButton = () => {
             </Button>
           ) : (
             <div className="space-y-3">
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground mb-2">Google Maps-lenke:</p>
+              <div className="p-3 bg-muted rounded-lg space-y-3">
+                <p className="text-sm text-muted-foreground">Google Maps-lenke:</p>
+                
+                <a
+                  ref={linkRef}
+                  href={generatedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-primary underline break-all hover:text-primary/80"
+                >
+                  Åpne i Google Maps
+                </a>
+
                 <div className="flex gap-2">
-                  <a
-                    ref={linkRef}
-                    href={generatedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-sm text-primary underline break-all hover:text-primary/80"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareUrl}
+                    className="flex-1 gap-2"
                   >
-                    Åpne i Google Maps
-                  </a>
+                    <Share2 className="h-4 w-4" />
+                    Del til mobil
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCopyUrl}
-                    className="shrink-0"
+                    className="gap-2"
                   >
                     {copied ? (
                       <Check className="h-4 w-4 text-green-500" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
+                    Kopier
                   </Button>
                 </div>
               </div>
