@@ -8,9 +8,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DriveConfirmationDialog } from "./DriveConfirmationDialog";
 import { FavoriteQuickSelect } from "./FavoriteQuickSelect";
+import { RouteMap } from "./RouteMap";
+
+interface RouteData {
+  polyline: string;
+  startAddress: string;
+  endAddress: string;
+  distanceKm: number;
+  durationMinutes: number;
+}
+
 interface DriveDialogProps {
   isDriving: boolean;
-  onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any) => void;
+  onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => void;
   projectId: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -30,6 +40,7 @@ export const DriveDialog = ({
   const [calculatedKm, setCalculatedKm] = useState<number | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [routeData, setRouteData] = useState<RouteData | null>(null);
   
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
@@ -59,6 +70,8 @@ export const DriveDialog = ({
     }
 
     setIsCalculating(true);
+    setRouteData(null);
+    
     try {
       console.log('Calling calculate-driving-distance with:', { startLocation, endLocation });
       
@@ -79,10 +92,23 @@ export const DriveDialog = ({
 
       setCalculatedKm(data.distance_km);
       setKilometers(data.distance_km.toString());
+      
+      // Store route data for map visualization
+      if (data.route_polyline) {
+        setRouteData({
+          polyline: data.route_polyline,
+          startAddress: data.start_address || startLocation,
+          endAddress: data.end_address || endLocation,
+          distanceKm: data.distance_km,
+          durationMinutes: data.duration_minutes || 0
+        });
+      }
+      
       toast.success(`Beregnet distanse: ${data.distance_km} km`);
     } catch (error) {
       console.error('Error calculating distance:', error);
       setCalculatedKm(null);
+      setRouteData(null);
       toast.error("Kunne ikke beregne automatisk", {
         description: "Skriv inn km eller prøv igjen",
         duration: 5000,
@@ -93,7 +119,13 @@ export const DriveDialog = ({
   };
 
   const handleConfirmDistance = (finalKm: number) => {
-    onToggleDriving(finalKm, startLocation, endLocation);
+    // Pass route data for storage
+    onToggleDriving(finalKm, startLocation, endLocation, routeData ? {
+      polyline: routeData.polyline,
+      start_address: routeData.startAddress,
+      end_address: routeData.endAddress,
+      duration_minutes: routeData.durationMinutes
+    } : undefined);
     
     // Show material prompt after drive
     setTimeout(() => {
@@ -102,7 +134,6 @@ export const DriveDialog = ({
         action: {
           label: "Legg til materialer",
           onClick: () => {
-            // This will be handled by parent component
             toast.info("Åpner materialdialog...");
           }
         },
@@ -114,6 +145,7 @@ export const DriveDialog = ({
     setEndLocation("");
     setKilometers("");
     setCalculatedKm(null);
+    setRouteData(null);
     setShowConfirmation(false);
     setOpen(false);
   };
@@ -131,6 +163,8 @@ export const DriveDialog = ({
     // Try automatic calculation if both locations are provided
     if (startLocation && endLocation) {
       setIsCalculating(true);
+      setRouteData(null);
+      
       try {
         const { data, error } = await supabase.functions.invoke('calculate-driving-distance', {
           body: { startLocation, endLocation }
@@ -143,6 +177,18 @@ export const DriveDialog = ({
         // Show confirmation with calculated distance
         setCalculatedKm(data.distance_km);
         setKilometers(data.distance_km.toString());
+        
+        // Store route data for map
+        if (data.route_polyline) {
+          setRouteData({
+            polyline: data.route_polyline,
+            startAddress: data.start_address || startLocation,
+            endAddress: data.end_address || endLocation,
+            distanceKm: data.distance_km,
+            durationMinutes: data.duration_minutes || 0
+          });
+        }
+        
         setShowConfirmation(true);
       } catch (error) {
         console.error('Automatic calculation failed:', error);
@@ -232,7 +278,19 @@ export const DriveDialog = ({
                 : "Skriv km manuelt eller la automatisk beregning gjøre det"}
             </p>
           </div>
-          {startLocation && endLocation && !kilometers && (
+          
+          {/* Route Map Preview */}
+          {routeData && (
+            <RouteMap
+              polyline={routeData.polyline}
+              startAddress={routeData.startAddress}
+              endAddress={routeData.endAddress}
+              distanceKm={routeData.distanceKm}
+              durationMinutes={routeData.durationMinutes}
+            />
+          )}
+          
+          {startLocation && endLocation && !kilometers && !routeData && (
             <Button 
               type="button" 
               variant="outline" 

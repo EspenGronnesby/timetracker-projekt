@@ -902,7 +902,6 @@ export type Database = {
               p_customer_name: string
               p_customer_phone: string
               p_description: string
-              p_hide_customer_info?: boolean
               p_name: string
             }
             Returns: {
@@ -937,6 +936,7 @@ export type Database = {
               p_customer_name: string
               p_customer_phone: string
               p_description: string
+              p_hide_customer_info?: boolean
               p_name: string
             }
             Returns: {
