@@ -123,7 +123,7 @@ export const RouteMap = ({
     });
 
     // Draw route polyline
-    new google.maps.Polyline({
+    new g.maps.Polyline({
       path: points,
       geodesic: true,
       strokeColor: "#3b82f6",
