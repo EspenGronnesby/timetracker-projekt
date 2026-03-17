@@ -218,11 +218,11 @@ export const RouteMap = ({
     startMarker.addListener("click", () => startInfo.open(mapInstance, startMarker));
 
     // End marker with info
-    const endMarker = new google.maps.Marker({
+    const endMarker = new g.maps.Marker({
       position: points[points.length - 1],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 10,
         fillColor: "#ef4444",
         fillOpacity: 1,
