@@ -1,4 +1,5 @@
-import { SlidersHorizontal, LayoutGrid, List } from "lucide-react";
+import { useState } from "react";
+import { SlidersHorizontal, LayoutGrid, List, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -48,10 +49,19 @@ export function FilterDrawer({
   viewMode,
   onViewModeChange,
 }: FilterDrawerProps) {
+  const [resetKey, setResetKey] = useState(0);
+
   const activeFilterCount =
     (projectStatus !== "active" ? 1 : 0) +
     (filterPeriod !== "week" ? 1 : 0) +
     (sortBy !== "name" ? 1 : 0);
+
+  const handleReset = () => {
+    onStatusChange("active");
+    onFilterChange("week");
+    onSortChange("name");
+    setResetKey((k) => k + 1);
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -89,7 +99,20 @@ export function FilterDrawer({
         </SheetTrigger>
         <SheetContent side="bottom" className="rounded-t-2xl pb-8">
           <SheetHeader className="mb-4">
-            <SheetTitle>Filter og sortering</SheetTitle>
+            <div className="flex items-center justify-between">
+              <SheetTitle>Filter og sortering</SheetTitle>
+              {activeFilterCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  className="gap-1.5 text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Tilbakestill
+                </Button>
+              )}
+            </div>
           </SheetHeader>
 
           <div className="space-y-6">
@@ -124,7 +147,7 @@ export function FilterDrawer({
             {/* Tidsperiode */}
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Tidsperiode</p>
-              <ActivityFilter onFilterChange={onFilterChange} />
+              <ActivityFilter key={resetKey} onFilterChange={onFilterChange} />
             </div>
 
             {/* Sortering */}
