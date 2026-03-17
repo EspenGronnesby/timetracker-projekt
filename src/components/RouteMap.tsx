@@ -163,7 +163,7 @@ export const RouteMap = ({
     });
 
     // Fit bounds to show entire route
-    const boundsObj = new google.maps.LatLngBounds();
+    const boundsObj = new g.maps.LatLngBounds();
     points.forEach(point => boundsObj.extend(point));
     mapInstance.fitBounds(boundsObj, 40);
 
