@@ -135,7 +135,7 @@ export default function AdminPanel() {
     }
   };
 
-  if (loading || loadingUsers) {
+  if (loading || isAdmin === null || loadingUsers) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-muted-foreground">Laster...</p>

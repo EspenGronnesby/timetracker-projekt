@@ -28,6 +28,7 @@ export const useUserRole = (userId: string | undefined) => {
 };
 
 export const useIsAdmin = (userId: string | undefined) => {
-  const { data: role } = useUserRole(userId);
-  return role === 'admin';
+  const { data: role, isLoading } = useUserRole(userId);
+  if (isLoading || !userId) return null; // null = laster fortsatt
+  return role === 'admin'; // true eller false
 };
