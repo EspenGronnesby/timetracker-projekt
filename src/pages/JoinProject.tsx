@@ -48,9 +48,9 @@ export default function JoinProject() {
         description: `You've joined ${data.projectName}`,
       });
 
-      // Redirect to home after 2 seconds
+      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate('/');
+        navigate('/app');
       }, 2000);
     } catch (err: any) {
       console.error('Error joining project:', err);
@@ -119,8 +119,8 @@ export default function JoinProject() {
             <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Error</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => navigate('/')} variant="outline">
-              Go Home
+            <Button onClick={() => navigate('/app')} variant="outline">
+              Gå til dashboard
             </Button>
           </div>
         )}

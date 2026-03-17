@@ -118,7 +118,7 @@ const Index = () => {
     if (!searchQuery.trim()) return statusFilteredProjects;
     const q = searchQuery.toLowerCase();
     return statusFilteredProjects.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.customer_name.toLowerCase().includes(q)
+      (p) => p.name.toLowerCase().includes(q) || (p.customer_name ?? "").toLowerCase().includes(q)
     );
   }, [statusFilteredProjects, searchQuery]);
 
