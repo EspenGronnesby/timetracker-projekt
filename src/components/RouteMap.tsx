@@ -72,8 +72,8 @@ export const RouteMap = ({
 }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const fullscreenMapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [fullscreenMap, setFullscreenMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<any>(null);
+  const [fullscreenMap, setFullscreenMap] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
