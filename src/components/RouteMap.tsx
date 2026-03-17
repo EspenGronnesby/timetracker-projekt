@@ -238,7 +238,7 @@ export const RouteMap = ({
     endMarker.addListener("click", () => endInfo.open(mapInstance, endMarker));
 
     // Fit bounds
-    const boundsObj = new google.maps.LatLngBounds();
+    const boundsObj = new g.maps.LatLngBounds();
     points.forEach(point => boundsObj.extend(point));
     mapInstance.fitBounds(boundsObj, 60);
 
