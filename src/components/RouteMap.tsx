@@ -148,11 +148,11 @@ export const RouteMap = ({
     });
 
     // End marker
-    new google.maps.Marker({
+    new g.maps.Marker({
       position: points[points.length - 1],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 8,
         fillColor: "#ef4444",
         fillOpacity: 1,
