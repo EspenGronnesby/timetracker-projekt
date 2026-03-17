@@ -105,7 +105,8 @@ export const RouteMap = ({
     const points = decodePolyline(polyline);
     if (points.length === 0) return;
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
+    const g = (window as any).google;
+    const mapInstance = new g.maps.Map(mapRef.current, {
       zoom: 12,
       center: points[0],
       mapTypeControl: false,
