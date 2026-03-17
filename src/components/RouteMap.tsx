@@ -133,11 +133,11 @@ export const RouteMap = ({
     });
 
     // Start marker
-    new google.maps.Marker({
+    new g.maps.Marker({
       position: points[0],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 8,
         fillColor: "#22c55e",
         fillOpacity: 1,
