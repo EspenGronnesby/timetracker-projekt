@@ -80,7 +80,7 @@ export const RouteMap = ({
       return;
     }
 
-    if (window.google?.maps) {
+    if ((window as any).google?.maps) {
       setIsLoaded(true);
       return;
     }
