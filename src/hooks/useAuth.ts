@@ -12,6 +12,9 @@ interface Profile {
   show_project_actions?: boolean;
   show_activity_log?: boolean;
   color_theme?: string;
+  show_cost_calculator?: boolean;
+  show_weather_widget?: boolean;
+  show_weather_notifications?: boolean;
 }
 
 export const useAuth = () => {

@@ -35,7 +35,7 @@ export const WeatherWidget = () => {
     }
   };
 
-  if (!(profile as any)?.show_weather_widget) {
+  if (!profile?.show_weather_widget) {
     return null;
   }
 

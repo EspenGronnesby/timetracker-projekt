@@ -151,6 +151,7 @@ export type Database = {
           id: string
           name: string
           order_index: number
+          type: string
           user_id: string | null
         }
         Insert: {
@@ -158,6 +159,7 @@ export type Database = {
           id?: string
           name: string
           order_index?: number
+          type?: string
           user_id?: string | null
         }
         Update: {
@@ -165,6 +167,7 @@ export type Database = {
           id?: string
           name?: string
           order_index?: number
+          type?: string
           user_id?: string | null
         }
         Relationships: []

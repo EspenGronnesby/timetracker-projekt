@@ -7,9 +7,9 @@ import { Package } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 const materialSchema = z.object({
-  name: z.string().trim().min(1, "Material name is required").max(100, "Material name must be less than 100 characters"),
-  quantity: z.number().positive("Quantity must be positive").max(999999, "Quantity is too large"),
-  unitPrice: z.number().positive("Unit price must be positive").max(999999, "Unit price is too large")
+  name: z.string().trim().min(1, "Materialenavn er påkrevd").max(100, "Materialenavn må være under 100 tegn"),
+  quantity: z.number().positive("Antall må være positivt").max(999999, "Antall er for stort"),
+  unitPrice: z.number().positive("Pris må være positiv").max(999999, "Pris er for stor")
 });
 interface AddMaterialDialogProps {
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
@@ -47,7 +47,7 @@ export const AddMaterialDialog = ({
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "Validation Error",
+          title: "Valideringsfeil",
           description: error.errors[0].message,
           variant: "destructive"
         });
@@ -59,9 +59,9 @@ export const AddMaterialDialog = ({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="h-16 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 hover:bg-orange-500/10 hover:border-orange-500/50"
+          className="h-14 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 hover:bg-orange-500/10 hover:border-orange-500/50"
         >
-          <Package className="h-8 w-8 text-orange-500 dark:text-orange-400" />
+          <Package className="h-7 w-7 text-orange-500 dark:text-orange-400" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

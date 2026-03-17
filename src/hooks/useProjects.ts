@@ -40,6 +40,9 @@ export type DriveEntry = {
   end_time: string | null;
   kilometers: number | null;
   created_at: string;
+  start_location: string | null;
+  end_location: string | null;
+  route_data: Record<string, unknown> | null;
 };
 
 export type Material = {
@@ -102,46 +105,51 @@ export const useProjects = (userId?: string) => {
     enabled: !!userId,
   });
 
+  const projectIds = projects.map((p) => p.id);
+
   const { data: timeEntries = [] } = useQuery({
-    queryKey: ["time_entries"],
+    queryKey: ["time_entries", projectIds],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("time_entries")
         .select("*")
+        .in("project_id", projectIds)
         .order("start_time", { ascending: false });
 
       if (error) throw error;
       return data as TimeEntry[];
     },
-    enabled: !!userId,
+    enabled: !!userId && projectIds.length > 0,
   });
 
   const { data: driveEntries = [] } = useQuery({
-    queryKey: ["drive_entries"],
+    queryKey: ["drive_entries", projectIds],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("drive_entries")
         .select("*")
+        .in("project_id", projectIds)
         .order("start_time", { ascending: false });
 
       if (error) throw error;
       return data as DriveEntry[];
     },
-    enabled: !!userId,
+    enabled: !!userId && projectIds.length > 0,
   });
 
   const { data: materials = [] } = useQuery({
-    queryKey: ["materials"],
+    queryKey: ["materials", projectIds],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("materials")
         .select("*")
+        .in("project_id", projectIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Material[];
     },
-    enabled: !!userId,
+    enabled: !!userId && projectIds.length > 0,
   });
 
   const addProject = useMutation({
@@ -261,10 +269,16 @@ export const useProjects = (userId?: string) => {
       projectId,
       userName,
       kilometers,
+      startLocation,
+      endLocation,
+      routeData,
     }: {
       projectId: string;
       userName: string;
       kilometers?: number;
+      startLocation?: string | { lat: number; lng: number } | null;
+      endLocation?: string | null;
+      routeData?: Record<string, unknown> | null;
     }) => {
       if (!userId) throw new Error("Must be logged in");
 
@@ -276,22 +290,37 @@ export const useProjects = (userId?: string) => {
       );
 
       if (activeDrive) {
+        const startLoc = typeof startLocation === "object" && startLocation !== null
+          ? JSON.stringify(startLocation)
+          : (startLocation as string | null | undefined) ?? null;
+        const endLoc = typeof endLocation === "object" && endLocation !== null
+          ? JSON.stringify(endLocation)
+          : (endLocation as string | null | undefined) ?? null;
+
         const { error } = await supabase
           .from("drive_entries")
           .update({
             end_time: new Date().toISOString(),
             kilometers: kilometers || null,
+            start_location: startLoc,
+            end_location: endLoc,
+            route_data: routeData ?? null,
           })
           .eq("id", activeDrive.id);
 
         if (error) throw error;
         return { action: "stop" };
       } else {
+        const startLoc = typeof startLocation === "object" && startLocation !== null
+          ? JSON.stringify(startLocation)
+          : (startLocation as string | null | undefined) ?? null;
+
         const { error } = await supabase.from("drive_entries").insert({
           project_id: projectId,
           user_id: userId,
           user_name: userName,
           start_time: new Date().toISOString(),
+          start_location: startLoc,
         });
 
         if (error) throw error;

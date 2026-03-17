@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Car, Package, Play, Pause } from "lucide-react";
+import { Car, Package, Play, Pause } from "lucide-react";
 import { DriveDialog } from "./DriveDialog";
 import { AddMaterialDialog } from "./AddMaterialDialog";
+import { useNavigate } from "react-router-dom";
+import { DriveEntry } from "@/hooks/useProjects";
 
 interface QuickStartProjectCardProps {
   projectId: string;
@@ -14,8 +16,10 @@ interface QuickStartProjectCardProps {
   isActive: boolean;
   isDriving: boolean;
   onToggle: () => void;
-  onToggleDriving: (kilometers?: number) => void;
+  onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => void;
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
+  driveEntries?: DriveEntry[];
+  userId?: string;
 }
 
 export const QuickStartProjectCard = ({
@@ -29,12 +33,22 @@ export const QuickStartProjectCard = ({
   onToggle,
   onToggleDriving,
   onAddMaterial,
+  driveEntries = [],
+  userId,
 }: QuickStartProjectCardProps) => {
-  const [driveOpen, setDriveOpen] = useState(false);
+  const navigate = useNavigate();
   const [materialOpen, setMaterialOpen] = useState(false);
 
+  const activeDriveEntry = useMemo(
+    () => driveEntries.find((e) => e.user_id === userId && !e.end_time),
+    [driveEntries, userId]
+  );
+
   return (
-    <Card className="p-4 hover:shadow-lg transition-shadow">
+    <Card
+      className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={() => navigate(`/project/${projectId}`)}
+    >
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div
@@ -50,7 +64,7 @@ export const QuickStartProjectCard = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button
             variant={isActive ? "default" : "outline"}
             size="icon"
@@ -62,41 +76,24 @@ export const QuickStartProjectCard = ({
             {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
           </Button>
 
-          <Button
-            variant={isDriving ? "destructive" : "outline"}
-            size="icon"
-            className={`h-12 w-12 transition-all ${
-              isDriving ? "animate-pulse" : ""
-            }`}
-            onClick={() => {
-              if (isDriving) {
-                setDriveOpen(true);
-              } else {
-                onToggleDriving();
-              }
-            }}
-          >
-            <Car className="h-6 w-6" />
-          </Button>
+          <DriveDialog
+            isDriving={isDriving}
+            onToggleDriving={onToggleDriving}
+            projectId={projectId}
+            activeDriveStartLocation={activeDriveEntry?.start_location ?? null}
+            onRequestMaterialDialog={() => setMaterialOpen(true)}
+          />
 
           <Button
             variant="outline"
             size="icon"
-            className="h-12 w-12 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all"
+            className="h-12 w-12 hover:bg-orange-500/10 hover:border-orange-500/50 transition-all"
             onClick={() => setMaterialOpen(true)}
           >
-            <Package className="h-6 w-6" />
+            <Package className="h-6 w-6 text-orange-500 dark:text-orange-400" />
           </Button>
         </div>
       </div>
-
-      <DriveDialog
-        isDriving={isDriving}
-        onToggleDriving={onToggleDriving}
-        projectId={projectId}
-        open={driveOpen}
-        onOpenChange={setDriveOpen}
-      />
 
       <AddMaterialDialog
         onAddMaterial={onAddMaterial}

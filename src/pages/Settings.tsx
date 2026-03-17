@@ -1,10 +1,9 @@
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Palette, Cloud } from "lucide-react";
+import { Palette, Cloud } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -52,7 +51,6 @@ const themes: { value: ColorTheme; label: string; description: string; preview: 
 ];
 
 const Settings = () => {
-  const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const { toast } = useToast();
   const { currentTheme, setColorTheme } = useColorTheme();
@@ -68,19 +66,13 @@ const Settings = () => {
   const [showAllThemes, setShowAllThemes] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
     if (profile) {
       setShowTeamInvite(profile.show_team_invite || false);
       setShowProjectActions(profile.show_project_actions || false);
       setShowActivityLog(profile.show_activity_log || false);
-      setShowCostCalculator((profile as any).show_cost_calculator || false);
-      setShowWeatherWidget((profile as any).show_weather_widget || false);
-      setShowWeatherNotifications((profile as any).show_weather_notifications !== false);
+      setShowCostCalculator(profile.show_cost_calculator || false);
+      setShowWeatherWidget(profile.show_weather_widget || false);
+      setShowWeatherNotifications(profile.show_weather_notifications !== false);
     }
   }, [profile]);
 
@@ -121,31 +113,14 @@ const Settings = () => {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Laster...</p>
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Laster...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-gradient-to-r from-card via-primary/5 to-card border-b border-border py-3 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex items-center gap-4 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="hover:bg-accent"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Innstillinger
-          </h1>
-        </div>
-      </header>
-
-      <main className="py-8 px-4 max-w-2xl mx-auto space-y-6">
+    <div className="py-6 px-4 sm:px-6 max-w-2xl mx-auto space-y-6">
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Palette className="h-5 w-5 text-primary" />
@@ -332,7 +307,6 @@ const Settings = () => {
             </Button>
           </div>
         </Card>
-      </main>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Shield, UserCog } from "lucide-react";
+import { Shield, UserCog } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
@@ -30,19 +30,13 @@ export default function AdminPanel() {
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
     if (isAdmin === false) {
       toast({
         variant: "destructive",
         title: "Ingen tilgang",
         description: "Kun administratorer kan se denne siden",
       });
-      navigate("/");
+      navigate("/app");
     }
   }, [isAdmin, navigate, toast]);
 
@@ -141,10 +135,10 @@ export default function AdminPanel() {
     }
   };
 
-  if (loading || loadingUsers) {
+  if (loading || isAdmin === null || loadingUsers) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Laster...</p>
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">Laster...</p>
       </div>
     );
   }
@@ -154,27 +148,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6" />
-              Admin Panel
-            </h1>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 sm:px-6 py-6">
         <Tabs defaultValue="users" className="w-full">
           <TabsList>
             <TabsTrigger value="users">
@@ -235,7 +209,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { Hammer } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Ugyldig e-postadresse"),
@@ -26,13 +27,13 @@ export default function Auth() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate("/app");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        navigate("/app");
       }
     });
 
@@ -100,15 +101,21 @@ export default function Auth() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isLogin ? "Logg inn" : "Registrer deg"}</CardTitle>
-          <CardDescription>
-            {isLogin
-              ? "Logg inn med din e-post og passord"
-              : "Opprett en ny konto for å komme i gang"}
-          </CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <Card className="w-full max-w-sm border-border/50 shadow-lg">
+        <CardHeader className="space-y-4 pb-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Hammer className="h-5 w-5 text-primary" />
+            <span className="text-sm font-semibold tracking-tight">TimeTracker</span>
+          </div>
+          <div>
+            <CardTitle className="text-xl tracking-tight">{isLogin ? "Velkommen tilbake" : "Opprett konto"}</CardTitle>
+            <CardDescription className="mt-1.5">
+              {isLogin
+                ? "Logg inn for å fortsette"
+                : "Kom i gang på under ett minutt"}
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -147,7 +154,7 @@ export default function Auth() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 rounded-xl font-medium" disabled={loading}>
               {loading ? "Laster..." : isLogin ? "Logg inn" : "Registrer deg"}
             </Button>
           </form>
@@ -156,7 +163,7 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
             >
               {isLogin
                 ? "Har du ikke konto? Registrer deg"
