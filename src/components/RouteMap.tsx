@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,8 +66,8 @@ export const RouteMap = ({
 }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const fullscreenMapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [fullscreenMap, setFullscreenMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<any>(null);
+  const [fullscreenMap, setFullscreenMap] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -79,7 +80,7 @@ export const RouteMap = ({
       return;
     }
 
-    if (window.google?.maps) {
+    if ((window as any).google?.maps) {
       setIsLoaded(true);
       return;
     }
@@ -104,7 +105,8 @@ export const RouteMap = ({
     const points = decodePolyline(polyline);
     if (points.length === 0) return;
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
+    const g = (window as any).google;
+    const mapInstance = new g.maps.Map(mapRef.current, {
       zoom: 12,
       center: points[0],
       mapTypeControl: false,
@@ -121,7 +123,7 @@ export const RouteMap = ({
     });
 
     // Draw route polyline
-    new google.maps.Polyline({
+    new g.maps.Polyline({
       path: points,
       geodesic: true,
       strokeColor: "#3b82f6",
@@ -131,11 +133,11 @@ export const RouteMap = ({
     });
 
     // Start marker
-    new google.maps.Marker({
+    new g.maps.Marker({
       position: points[0],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 8,
         fillColor: "#22c55e",
         fillOpacity: 1,
@@ -146,11 +148,11 @@ export const RouteMap = ({
     });
 
     // End marker
-    new google.maps.Marker({
+    new g.maps.Marker({
       position: points[points.length - 1],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 8,
         fillColor: "#ef4444",
         fillOpacity: 1,
@@ -161,7 +163,7 @@ export const RouteMap = ({
     });
 
     // Fit bounds to show entire route
-    const boundsObj = new google.maps.LatLngBounds();
+    const boundsObj = new g.maps.LatLngBounds();
     points.forEach(point => boundsObj.extend(point));
     mapInstance.fitBounds(boundsObj, 40);
 
@@ -175,7 +177,8 @@ export const RouteMap = ({
     const points = decodePolyline(polyline);
     if (points.length === 0) return;
 
-    const mapInstance = new google.maps.Map(fullscreenMapRef.current, {
+    const g = (window as any).google;
+    const mapInstance = new g.maps.Map(fullscreenMapRef.current, {
       zoom: 12,
       center: points[0],
       mapTypeControl: true,
@@ -185,7 +188,7 @@ export const RouteMap = ({
     });
 
     // Draw route polyline
-    new google.maps.Polyline({
+    new g.maps.Polyline({
       path: points,
       geodesic: true,
       strokeColor: "#3b82f6",
@@ -195,11 +198,11 @@ export const RouteMap = ({
     });
 
     // Start marker with info
-    const startMarker = new google.maps.Marker({
+    const startMarker = new g.maps.Marker({
       position: points[0],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 10,
         fillColor: "#22c55e",
         fillOpacity: 1,
@@ -209,17 +212,17 @@ export const RouteMap = ({
       title: startAddress
     });
 
-    const startInfo = new google.maps.InfoWindow({
+    const startInfo = new g.maps.InfoWindow({
       content: `<div class="p-2"><strong>Start:</strong><br/>${startAddress}</div>`
     });
     startMarker.addListener("click", () => startInfo.open(mapInstance, startMarker));
 
     // End marker with info
-    const endMarker = new google.maps.Marker({
+    const endMarker = new g.maps.Marker({
       position: points[points.length - 1],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 10,
         fillColor: "#ef4444",
         fillOpacity: 1,
@@ -229,13 +232,13 @@ export const RouteMap = ({
       title: endAddress
     });
 
-    const endInfo = new google.maps.InfoWindow({
+    const endInfo = new g.maps.InfoWindow({
       content: `<div class="p-2"><strong>Slutt:</strong><br/>${endAddress}</div>`
     });
     endMarker.addListener("click", () => endInfo.open(mapInstance, endMarker));
 
     // Fit bounds
-    const boundsObj = new google.maps.LatLngBounds();
+    const boundsObj = new g.maps.LatLngBounds();
     points.forEach(point => boundsObj.extend(point));
     mapInstance.fitBounds(boundsObj, 60);
 
