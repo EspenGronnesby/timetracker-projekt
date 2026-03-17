@@ -212,7 +212,7 @@ export const RouteMap = ({
       title: startAddress
     });
 
-    const startInfo = new google.maps.InfoWindow({
+    const startInfo = new g.maps.InfoWindow({
       content: `<div class="p-2"><strong>Start:</strong><br/>${startAddress}</div>`
     });
     startMarker.addListener("click", () => startInfo.open(mapInstance, startMarker));
