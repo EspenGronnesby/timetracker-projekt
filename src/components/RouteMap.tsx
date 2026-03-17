@@ -232,7 +232,7 @@ export const RouteMap = ({
       title: endAddress
     });
 
-    const endInfo = new google.maps.InfoWindow({
+    const endInfo = new g.maps.InfoWindow({
       content: `<div class="p-2"><strong>Slutt:</strong><br/>${endAddress}</div>`
     });
     endMarker.addListener("click", () => endInfo.open(mapInstance, endMarker));
