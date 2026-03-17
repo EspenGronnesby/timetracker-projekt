@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
