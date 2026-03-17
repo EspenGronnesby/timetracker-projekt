@@ -152,7 +152,7 @@ const ProjectDetails = () => {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Prosjekt ikke funnet</h2>
-          <Button onClick={() => navigate("/")}>Tilbake til oversikt</Button>
+          <Button onClick={() => navigate("/app")}>Tilbake til oversikt</Button>
         </div>
       </div>;
   }
@@ -170,12 +170,15 @@ const ProjectDetails = () => {
       }
     });
   };
-  const handleToggleDriving = (kilometers?: number) => {
+  const handleToggleDriving = (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => {
     const isDriving = !!activeDrive;
     toggleDriving({
       projectId: project.id,
       userName: profile.name,
-      kilometers
+      kilometers,
+      startLocation,
+      endLocation,
+      routeData,
     }, {
       onSuccess: () => {
         trackPresence(false, !isDriving);
@@ -226,14 +229,14 @@ const ProjectDetails = () => {
       if (data.error) throw new Error(data.error);
       setInviteUrl(data.inviteUrl);
       toast({
-        title: "Invite generated!",
-        description: "Share the link below with your team."
+        title: "Invitasjon generert!",
+        description: "Del lenken nedenfor med teamet ditt."
       });
     } catch (err: any) {
       console.error('Error generating invite:', err);
       toast({
         variant: "destructive",
-        title: "Failed to generate invite",
+        title: "Kunne ikke generere invitasjon",
         description: err.message
       });
     } finally {
@@ -244,8 +247,8 @@ const ProjectDetails = () => {
     navigator.clipboard.writeText(url);
     setCopied(true);
     toast({
-      title: "Copied!",
-      description: "Invite link copied to clipboard"
+      title: "Kopiert!",
+      description: "Invitasjonslenke kopiert til utklippstavlen"
     });
     setTimeout(() => setCopied(false), 2000);
   };
@@ -528,7 +531,7 @@ const ProjectDetails = () => {
   return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/app")} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
@@ -538,7 +541,7 @@ const ProjectDetails = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {(profile as any)?.show_cost_calculator && (
+            {profile?.show_cost_calculator && (
               <ProjectCostCalculator projectId={project.id} userId={user.id} />
             )}
             <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
@@ -751,13 +754,13 @@ const ProjectDetails = () => {
         {profile?.show_team_invite && (isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
             <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
-              Team & Invites
+              Team og invitasjoner
             </h2>
             
             <div className="space-y-2.5">
               {/* Team Members */}
               <div>
-                <h3 className="text-xs font-medium mb-1.5">Team Members ({teamMembers?.length || 0})</h3>
+                <h3 className="text-xs font-medium mb-1.5">Teammedlemmer ({teamMembers?.length || 0})</h3>
                 <div className="space-y-1.5">
                   {teamMembers && teamMembers.length > 0 ? teamMembers.map((member: any) => <div key={member.user_id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded">
                         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -766,7 +769,7 @@ const ProjectDetails = () => {
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{member.profiles?.name || 'Unknown'}</p>
                           <p className="text-[10px] text-muted-foreground truncate">
-                            {member.role === 'owner' ? '👑 Owner' : '👤 Member'} • {new Date(member.joined_at).toLocaleDateString('no-NO')}
+                            {member.role === 'owner' ? '👑 Eier' : '👤 Medlem'} • {new Date(member.joined_at).toLocaleDateString('no-NO')}
                           </p>
                         </div>
                       </div>) : <p className="text-xs text-muted-foreground text-center py-2">Ingen teammedlemmer ennå</p>}
@@ -776,15 +779,15 @@ const ProjectDetails = () => {
               {/* Invite Section */}
               <div className="pt-2 border-t">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1.5">
-                  <h3 className="text-xs font-medium">Project Invites</h3>
+                  <h3 className="text-xs font-medium">Prosjektinvitasjoner</h3>
                   <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs h-7">
                     <Share2 className="h-3 w-3 mr-1.5" />
-                    {generating ? "Generating..." : "Generate New Invite"}
+                    {generating ? "Genererer..." : "Generer ny invitasjon"}
                   </Button>
                 </div>
                 
                 {inviteUrl && <div className="mb-2 p-1.5 bg-green-500/10 border border-green-500/20 rounded">
-                    <p className="text-[10px] text-muted-foreground mb-1">New invite link:</p>
+                    <p className="text-[10px] text-muted-foreground mb-1">Ny invitasjonslenke:</p>
                     <div className="flex gap-1.5">
                       <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded bg-background min-w-0" />
                       <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-7 w-7">
@@ -794,16 +797,16 @@ const ProjectDetails = () => {
                   </div>}
                 
                 {activeInvites && activeInvites.length > 0 && <div className="space-y-1.5">
-                    <p className="text-[10px] text-muted-foreground mb-1">Active Invites:</p>
+                    <p className="text-[10px] text-muted-foreground mb-1">Aktive invitasjoner:</p>
                     {activeInvites.map((invite: any) => <div key={invite.id} className="flex items-center gap-1.5 p-1.5 bg-muted/30 rounded text-xs">
                         <div className="flex-1 min-w-0">
                           <code className="text-[10px] bg-background px-1.5 py-0.5 rounded block truncate">
                             {window.location.origin}/join/{invite.invite_code}
                           </code>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Used {invite.use_count} times
-                            {invite.max_uses && ` • ${invite.max_uses - invite.use_count} remaining`}
-                            {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
+                            Brukt {invite.use_count} ganger
+                            {invite.max_uses && ` • ${invite.max_uses - invite.use_count} gjenstår`}
+                            {invite.expires_at && ` • Utløper ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
                         <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-7 w-7">

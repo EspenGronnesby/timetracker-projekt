@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { MapPin, Navigation, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +19,6 @@ export const NavigationButton = () => {
   const [startAddress, setStartAddress] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const linkRef = useRef<HTMLAnchorElement>(null);
-
   const generateGoogleMapsUrl = () => {
     if (!destination.trim()) return;
 

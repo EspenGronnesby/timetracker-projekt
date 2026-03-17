@@ -25,7 +25,7 @@ interface ProjectCardProps {
   isActive: boolean;
   isDriving: boolean;
   onToggle: () => void;
-  onToggleDriving: (kilometers?: number) => void;
+  onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => void;
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
   onDelete: () => void;
   onToggleComplete: () => void;
@@ -57,15 +57,21 @@ export const ProjectCard = ({
   showShimmer = false,
 }: ProjectCardProps) => {
   const navigate = useNavigate();
+  const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
 
-  const handleDrivingSubmit = (kilometers: number) => {
-    onToggleDriving(kilometers);
+  // Find active drive entry to get stored start_location
+  const activeDriveEntry = useMemo(
+    () => driveEntries.find((e) => e.user_id === userId && !e.end_time),
+    [driveEntries, userId]
+  );
+
+  const handleDrivingSubmit = (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => {
+    onToggleDriving(kilometers, startLocation, endLocation, routeData);
   };
 
   // Get filter label for display
   const getFilterLabel = () => {
     if (!filterPeriod) return null;
-    
     if (filterPeriod === 'day') return 'I dag';
     if (filterPeriod === 'week') return 'Siste 7 dager';
     if (filterPeriod === 'month') return 'Siste 30 dager';
@@ -78,23 +84,17 @@ export const ProjectCard = ({
   // Filter entries based on period with useMemo for performance
   const { filteredTime, filteredDrive, filteredMaterials } = useMemo(() => {
     if (!filterPeriod) {
-      return { 
-        filteredTime: timeEntries, 
-        filteredDrive: driveEntries, 
-        filteredMaterials: materials 
-      };
+      return { filteredTime: timeEntries, filteredDrive: driveEntries, filteredMaterials: materials };
     }
-    
+
     const now = new Date();
     let filterFn: (date: Date) => boolean;
-    
+
     if (filterPeriod === 'custom' && customRange) {
-      // For custom range, use both from and to dates, and include entire end day
       const rangeStart = startOfDay(customRange.from);
       const rangeEnd = endOfDay(customRange.to);
       filterFn = (date: Date) => isWithinInterval(date, { start: rangeStart, end: rangeEnd });
     } else if (filterPeriod === 'day') {
-      // Include entire current day
       const dayStart = startOfDay(now);
       const dayEnd = endOfDay(now);
       filterFn = (date: Date) => isWithinInterval(date, { start: dayStart, end: dayEnd });
@@ -105,13 +105,9 @@ export const ProjectCard = ({
       const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       filterFn = (date: Date) => date >= monthStart;
     } else {
-      return { 
-        filteredTime: timeEntries, 
-        filteredDrive: driveEntries, 
-        filteredMaterials: materials 
-      };
+      return { filteredTime: timeEntries, filteredDrive: driveEntries, filteredMaterials: materials };
     }
-    
+
     return {
       filteredTime: timeEntries.filter(e => filterFn(new Date(e.start_time))),
       filteredDrive: driveEntries.filter(e => filterFn(new Date(e.start_time))),
@@ -124,8 +120,7 @@ export const ProjectCard = ({
   const totalKilometers = filteredDrive.reduce((acc, entry) => acc + (entry.kilometers || 0), 0);
   const totalMaterialCost = filteredMaterials.reduce((acc, material) => acc + material.total_price, 0);
 
-  // Check if there's any activity in the filtered period
-  const hasActivity = filteredTime.length > 0 || filteredDrive.length > 0 || filteredMaterials.length > 0;
+  const hasActivity = totalTime > 0 || totalKilometers > 0 || totalMaterialCost > 0;
   const filterLabel = getFilterLabel();
 
   const formatTime = (seconds: number) => {
@@ -136,65 +131,44 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-5 sm:p-6 relative overflow-hidden group cursor-pointer animate-fade-in
+      className="p-4 sm:p-5 relative overflow-hidden group cursor-pointer
         backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]
-        shadow-[var(--glass-shadow)] -translate-y-1 md:translate-y-0
-        transition-all duration-500 ease-out
-        md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] md:hover:-translate-y-2
-        dark:md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.6)]
-        before:absolute before:inset-0 before:rounded-lg before:p-[1px] 
-        before:bg-gradient-to-br before:from-[var(--glass-glow)] before:via-transparent before:to-transparent
-        before:opacity-0 before:transition-opacity before:duration-500
-        md:hover:before:opacity-100 before:-z-10"
+        shadow-sm hover:shadow-md
+        transition-all duration-300 ease-out
+        rounded-lg"
       onClick={() => navigate(`/project/${project.id}`)}
     >
       {/* Colored accent bar */}
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:w-2 transition-all duration-300 shadow-lg"
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full opacity-70 transition-opacity duration-300 group-hover:opacity-100"
         style={{ backgroundColor: project.color }}
       />
-      
-      {/* Subtle gradient overlay */}
-      <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none rounded-lg"
-        style={{ 
-          background: `radial-gradient(circle at top right, ${project.color}40, transparent 70%)` 
-        }}
+
+      {/* Subtle hover tint */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none rounded-lg"
+        style={{ backgroundColor: project.color }}
       />
-      
-      {/* Shimmer effect - plays once on load */}
-      <div 
-        className={`absolute inset-0 transition-opacity duration-700 pointer-events-none ${
-          showShimmer ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{
-          background: `linear-gradient(110deg, transparent 40%, ${project.color}15 50%, transparent 60%)`,
-          backgroundSize: '200% 100%',
-          animation: showShimmer ? 'shimmer 3s ease-in-out' : 'none'
-        }}
-      />
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-3 sm:gap-3 flex-1 min-w-0">
-          <div
-            className="w-5 h-5 flex-shrink-0 rounded-full"
-            style={{ backgroundColor: project.color }}
-          />
+
+<div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-4 h-4 flex-shrink-0 rounded-full" style={{ backgroundColor: project.color }} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-xl sm:text-2xl truncate">{project.name}</h3>
+              <h3 className="font-semibold text-lg sm:text-xl truncate">{project.name}</h3>
               {project.completed && (
-                <Badge className="bg-green-500 hover:bg-green-600 flex-shrink-0">
-                  ✓ Fullført
+                <Badge className="bg-green-500 hover:bg-green-600 flex-shrink-0 text-xs">
+                  Fullført
                 </Badge>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1 truncate">
-                <Building2 className="h-4 w-4 flex-shrink-0 text-purple-500 dark:text-purple-400" />
+                <Building2 className="h-3.5 w-3.5 flex-shrink-0 text-purple-500 dark:text-purple-400" />
                 <span className="truncate">{project.customer_name}</span>
               </span>
               <span className="flex items-center gap-1 flex-shrink-0">
-                👥 {teamMemberCount} {teamMemberCount === 1 ? 'medlem' : 'medlemmer'}
+                👥 {teamMemberCount}
               </span>
             </div>
           </div>
@@ -208,62 +182,73 @@ export const ProjectCard = ({
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <Button
             variant={isActive ? "default" : "outline"}
             onClick={onToggle}
-            className={`h-20 sm:h-20 w-full transition-all hover:scale-105 active:scale-95 active:brightness-150 ${
-              isActive ? "bg-green-500 hover:bg-green-500 animate-pulse" : "hover:bg-blue-500/10 hover:border-blue-500/50"
+            className={`h-14 w-full transition-all active:scale-[0.97] ${
+              isActive ? "bg-green-500 hover:bg-green-600" : "hover:bg-blue-500/10 hover:border-blue-500/50"
             }`}
           >
             {isActive ? (
-              <Pause className="h-10 w-10 sm:h-10 sm:w-10 text-white" />
+              <Pause className="h-7 w-7 text-white" />
             ) : (
-              <Play className="h-10 w-10 sm:h-10 sm:w-10 text-blue-500 dark:text-blue-400" />
+              <Play className="h-7 w-7 text-blue-500 dark:text-blue-400" />
             )}
           </Button>
 
-          <DriveDialog isDriving={isDriving} onToggleDriving={handleDrivingSubmit} projectId={project.id} />
+          <DriveDialog
+            isDriving={isDriving}
+            onToggleDriving={handleDrivingSubmit}
+            projectId={project.id}
+            activeDriveStartLocation={activeDriveEntry?.start_location ?? null}
+            onRequestMaterialDialog={() => setMaterialDialogOpen(true)}
+          />
 
-          <AddMaterialDialog onAddMaterial={onAddMaterial} />
+          <AddMaterialDialog
+            onAddMaterial={onAddMaterial}
+            open={materialDialogOpen}
+            onOpenChange={setMaterialDialogOpen}
+          />
         </div>
 
-        <div className="space-y-2 mb-4 p-3 sm:p-3 bg-muted/50 rounded-lg transition-colors hover:bg-muted/70">
-          {!hasActivity && filterPeriod ? (
-            <div className="text-center py-4 sm:py-4 text-muted-foreground text-sm sm:text-sm">
-              Ingen aktivitet i denne perioden
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between text-sm sm:text-sm">
-                <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                  <Clock className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
-                  <span>Total tid:</span>
-                </div>
-                <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
+        {/* Stats — only show if there's activity */}
+        {hasActivity && (
+          <div className="space-y-1.5 p-2.5 bg-muted/50 rounded-lg text-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+                <span>Tid:</span>
               </div>
-              {totalKilometers > 0 && (
-                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
-                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Car className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
-                    <span>Kjørt:</span>
-                  </div>
-                  <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
+              <span className="font-semibold text-foreground">{formatTime(totalTime)}</span>
+            </div>
+            {totalKilometers > 0 && (
+              <div className="flex items-center justify-between pt-1.5 border-t border-border">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Car className="h-4 w-4 flex-shrink-0 text-green-500 dark:text-green-400" />
+                  <span>Kjørt:</span>
                 </div>
-              )}
-              {totalMaterialCost > 0 && (
-                <div className="flex items-center justify-between text-sm sm:text-sm pt-2 border-t border-border">
-                  <div className="flex items-center gap-2 sm:gap-2 text-muted-foreground">
-                    <Package className="h-5 w-5 sm:h-5 sm:w-5 flex-shrink-0 text-orange-500 dark:text-orange-400" />
-                    <span>Materialer:</span>
-                  </div>
-                  <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
+                <span className="font-semibold text-foreground">{totalKilometers.toFixed(1)} km</span>
+              </div>
+            )}
+            {totalMaterialCost > 0 && (
+              <div className="flex items-center justify-between pt-1.5 border-t border-border">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Package className="h-4 w-4 flex-shrink-0 text-orange-500 dark:text-orange-400" />
+                  <span>Materialer:</span>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+                <span className="font-semibold text-foreground">{totalMaterialCost.toFixed(2)} kr</span>
+              </div>
+            )}
+          </div>
+        )}
 
+        {/* No activity message only when filter is active */}
+        {!hasActivity && filterPeriod && (
+          <div className="text-center py-3 text-muted-foreground text-xs">
+            Ingen aktivitet i denne perioden
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import { AppShell } from "./components/AppShell";
 import { ProjectCardSkeleton } from "./components/ProjectCardSkeleton";
 import "./App.css";
 
@@ -16,6 +18,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const JoinProject = lazy(() => import("./pages/JoinProject"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
+const More = lazy(() => import("./pages/More"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,11 +45,18 @@ const App = () => (
             }
           >
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/goals" element={<Goals />} />
-              <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/settings" element={<Settings />} />
+
+              {/* Authenticated routes wrapped in AppShell */}
+              <Route element={<AppShell />}>
+                <Route path="/app" element={<Index />} />
+                <Route path="/goals" element={<Goals />} />
+                <Route path="/more" element={<More />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/admin" element={<AdminPanel />} />
+              </Route>
+
               <Route path="/project/:id" element={<ProjectDetails />} />
               <Route path="/join/:inviteCode" element={<JoinProject />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
