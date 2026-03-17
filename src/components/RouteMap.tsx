@@ -198,11 +198,11 @@ export const RouteMap = ({
     });
 
     // Start marker with info
-    const startMarker = new google.maps.Marker({
+    const startMarker = new g.maps.Marker({
       position: points[0],
       map: mapInstance,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: g.maps.SymbolPath.CIRCLE,
         scale: 10,
         fillColor: "#22c55e",
         fillOpacity: 1,
