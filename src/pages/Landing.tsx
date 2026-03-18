@@ -17,12 +17,14 @@ import {
   Smartphone,
 } from "lucide-react";
 
+const ease = [0.25, 0.4, 0.25, 1] as const;
+
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, delay: i * 0.1, ease: [0.25, 0.4, 0.25, 1] },
+    transition: { duration: 0.7, delay: i * 0.1, ease: ease as unknown as [number, number, number, number] },
   }),
 };
 
@@ -31,7 +33,7 @@ const scaleIn = {
   visible: (i: number) => ({
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.8, delay: i * 0.12, ease: [0.25, 0.4, 0.25, 1] },
+    transition: { duration: 0.8, delay: i * 0.12, ease: ease as unknown as [number, number, number, number] },
   }),
 };
 
