@@ -304,7 +304,7 @@ export const useProjects = (userId?: string) => {
             kilometers: kilometers || null,
             start_location: startLoc,
             end_location: endLoc,
-            route_data: routeData ?? null,
+            route_data: routeData ? JSON.parse(JSON.stringify(routeData)) : null,
           })
           .eq("id", activeDrive.id);
 
