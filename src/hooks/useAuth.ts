@@ -15,6 +15,7 @@ interface Profile {
   show_cost_calculator?: boolean;
   show_weather_widget?: boolean;
   show_weather_notifications?: boolean;
+  app_mode?: string;
 }
 
 export const useAuth = () => {

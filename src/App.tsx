@@ -19,6 +19,9 @@ const JoinProject = lazy(() => import("./pages/JoinProject"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
 const More = lazy(() => import("./pages/More"));
+const SimpleTimer = lazy(() => import("./pages/SimpleTimer"));
+const SimpleHistory = lazy(() => import("./pages/SimpleHistory"));
+const WageSettings = lazy(() => import("./pages/WageSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +59,9 @@ const App = () => (
                 <Route path="/more" element={<More />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/simple" element={<SimpleTimer />} />
+                <Route path="/simple/history" element={<SimpleHistory />} />
+                <Route path="/simple/wage" element={<WageSettings />} />
               </Route>
 
               <Route path="/project/:id" element={<ProjectDetails />} />
