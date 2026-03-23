@@ -1,45 +1,133 @@
 
 
-## Plan: Optimize Landing Page
+## Plan: Enkel-modus for TimeTracker
 
-### What to do
+Dette er en stor feature med 5+ uavhengige deler. Jeg anbefaler å implementere det i faser. Her er den komplette planen:
 
-**File:** `src/pages/Landing.tsx` — full rewrite with the following changes:
+### Fase 1: Database-endringer (3 migrasjoner)
 
-### 1. Add the app logo
-- Use `/icon-512x512.png` in the navbar and hero section alongside the "TimeTracker" text
-- Replace the Hammer icon in the navbar with the actual logo image
+**Migration 1 — `breaks` tabell:**
+```sql
+CREATE TABLE public.breaks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  time_entry_id uuid NOT NULL REFERENCES public.time_entries(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
+  break_type text NOT NULL CHECK (break_type IN ('lunch_paid', 'lunch_unpaid', 'short_break')),
+  start_time timestamptz NOT NULL,
+  end_time timestamptz,
+  is_paid boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 
-### 2. Remove scroll indicator
-- Delete the entire "Scroll indicator" block (lines 217-230) with the ChevronDown animation
-- Remove `ChevronDown` from lucide imports
+ALTER TABLE public.breaks ENABLE ROW LEVEL SECURITY;
 
-### 3. Add more scroll-triggered animations
-Inspired by Toggl Track and My Hours patterns:
-- **Parallax text reveal:** Each section heading slides in from different directions (left/right alternating)
-- **Staggered feature cards:** Cards animate in with staggered delays as they enter viewport, with a slight horizontal slide (not just fade-up)
-- **Counter/number animation:** Add a stats section (e.g. "1000+ brukere", "50 000+ timer logget") with number count-up animation on scroll
-- **Sticky hero fade-out:** Hero content fades and scales down as user scrolls (already exists, keep it)
-- **Section divider animations:** Subtle horizontal line that grows from center on scroll
+CREATE POLICY "Users can manage own breaks" ON public.breaks FOR ALL
+  TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+```
 
-### 4. Mobile-first optimization
-- Hero: reduce `min-h-[100dvh]` to `min-h-[85dvh]` on mobile so content is visible without scrolling
-- Feature cards: single column with full-width cards, larger touch targets (min 48px tap areas)
-- CTA buttons: full-width on mobile with `w-full` below `sm:`
-- Typography: use `text-3xl` on mobile instead of `clamp(2.5rem,7vw,5rem)` — ensure readable without zoom
-- Section padding: reduce `py-32` to `py-16` on mobile (`py-16 md:py-32`)
-- Navbar: sticky, compact (h-12 on mobile), logo + login button only
+**Migration 2 — `wage_settings` tabell:**
+```sql
+CREATE TABLE public.wage_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  hourly_rate numeric NOT NULL DEFAULT 0,
+  overtime_threshold numeric NOT NULL DEFAULT 7.5,
+  overtime_multiplier numeric NOT NULL DEFAULT 1.5,
+  default_lunch_minutes integer NOT NULL DEFAULT 30,
+  lunch_is_paid boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
 
-### 5. Layout improvements inspired by competitors
-- **Hero split layout on desktop:** Text left, app mockup/phone frame right (using a CSS phone frame showing the app icon)
-- **Social proof strip:** Add a subtle "Brukt av 500+ norske håndverkere" trust badge below hero
-- **Alternating feature sections:** Instead of a 3-column grid, show features as alternating left-right rows on desktop with icon + text, similar to Toggl
-- **Sticky CTA bar on mobile:** A fixed bottom bar appears after scrolling past hero with "Kom i gang gratis" button
+ALTER TABLE public.wage_settings ENABLE ROW LEVEL SECURITY;
 
-### Technical details
-- All animations use `framer-motion` `whileInView` with `viewport={{ once: true, margin: "-80px" }}`
-- New animation variants: `slideInLeft`, `slideInRight` for alternating sections
-- Phone mockup: pure CSS with rounded corners, border, and the app icon inside
-- Sticky mobile CTA: uses `motion.div` with scroll-linked opacity (appears after 30% scroll)
-- No new dependencies needed
+CREATE POLICY "Users can manage own wage settings" ON public.wage_settings FOR ALL
+  TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+```
+
+**Migration 3 — `app_mode` kolonne i profiles:**
+```sql
+ALTER TABLE public.profiles ADD COLUMN app_mode text NOT NULL DEFAULT 'simple';
+```
+
+### Fase 2: Nye hooks og hjelpefunksjoner
+
+**`src/hooks/useAppMode.ts`** — Hook som leser `profile.app_mode` og gir `isSimpleMode` boolean + `setAppMode` funksjon. Oppdaterer profiles-tabellen.
+
+**`src/hooks/useWageSettings.ts`** — CRUD for wage_settings med React Query. Henter/oppdaterer timesats, overtid-terskel, overtid-multiplikator, lunsjminutter, lunsj betalt/ubetalt.
+
+**`src/hooks/useBreaks.ts`** — CRUD for breaks-tabellen. Henter pauser for en gitt time_entry_id. Start/stopp pause. Beregner total pausetid (betalt/ubetalt).
+
+**`src/hooks/useSimpleTimer.ts`** — Kjerne-hook for enkel-modus. Bruker eksisterende `time_entries` tabell (ingen ny tabell). Logikk:
+- Finner aktiv time_entry for bruker (uavhengig av prosjekt — bruker et "standard-prosjekt" som opprettes automatisk)
+- Start/stopp/pause-funksjonalitet
+- Beregner dagstotaler, overtid, og lønn i sanntid
+- Returnerer `{ isRunning, isPaused, todaySeconds, overtimeSeconds, estimatedWage, startTimer, stopTimer, startBreak, endBreak }`
+
+### Fase 3: Nye sider og komponenter
+
+**`src/pages/SimpleTimer.tsx`** — Hovedskjerm for enkel-modus:
+- Stor PLAY-knapp (120px+), stoppeklokke-estetikk med monospace font
+- Sanntids-timer med `useEffect` + `setInterval` som teller opp HH:MM:SS
+- Statusindikator: "Klar", "Jobber", "Pause", "Ferdig for dagen"
+- Når aktiv: PAUSE og STOPP knapper erstatter PLAY
+- Pause-dialog med valg: "Lunsj (ubetalt)", "Lunsj (betalt)", "Kort pause"
+- Pause-timer når aktiv
+- Lønnsberegning i sanntid nederst: Normal-tid x sats + Overtid x overtidssats = Total
+- Automatisk overtid-markering etter terskel (gul farge)
+
+**`src/pages/SimpleHistory.tsx`** — Historikk med kalendervisning:
+- Månedlig kalender med fargekoding (grønn/gul/grå)
+- Trykk på dag → vis detaljer (start, stopp, pauser, total, lønn)
+- Uke- og månedsoppsummering
+- Eksport-knapp for PDF/Excel (gjenbruk eksisterende `generate-project-report` edge function)
+
+**`src/pages/WageSettings.tsx`** — Lønnsinnstillinger:
+- Input-felt for timesats, overtidstillegg, terskel, standard lunsjtid
+- Switch for om lunsj er betalt/ubetalt som default
+- Lagre-knapp
+
+### Fase 4: Modus-toggle og routing
+
+**`src/pages/Settings.tsx`** — Legg til nytt Card øverst:
+- "App-modus" med to knapper: "Enkel" og "Pro"
+- Beskrivelse av hva som skjules/vises
+- Lagrer i `profiles.app_mode`
+
+**`src/App.tsx`** — Nye routes:
+- `/simple` → SimpleTimer (inne i AppShell)
+- `/simple/history` → SimpleHistory (inne i AppShell)
+- `/simple/wage` → WageSettings (inne i AppShell)
+
+**`src/components/AppShell.tsx`** — Betinget redirect:
+- Hvis `profile.app_mode === 'simple'` og bruker navigerer til `/app`, redirect til `/simple`
+- Oppdater header-tittel for nye sider
+
+**`src/components/BottomTabBar.tsx`** — Betinget tabs:
+- Enkel-modus: "Timer" (klokke-ikon), "Historikk" (kalender-ikon), "Mer" (same)
+- Pro-modus: eksisterende tabs (Hjem, Notater, Mer)
+
+### Fase 5: Oppdater useAuth
+
+**`src/hooks/useAuth.ts`** — Legg til `app_mode` i Profile-interface slik at den hentes fra profiles.
+
+### Datadeling mellom moduser
+
+Enkel-modus oppretter automatisk et "Standard arbeidsdag"-prosjekt per bruker ved første bruk. All tid logges mot dette prosjektet via eksisterende `time_entries`-tabellen. Når bruker bytter til Pro-modus, ser de dette prosjektet som et vanlig prosjekt med alle tidsregistreringene. Ingen data går tapt.
+
+### Tekniske detaljer
+
+- Lønnsberegning er client-side (enkel aritmetikk, trenger ikke edge function)
+- Timer bruker `setInterval(1000)` for å oppdatere visningen, men `start_time` fra DB er kilden til sannhet
+- Kalendervisningen bruker eksisterende `react-day-picker` (allerede i prosjektet via Calendar-komponenten)
+- Alle nye komponenter bruker eksisterende designsystem (Card, Button, Switch, etc.)
+- Alle tekster på norsk
+
+### Estimert omfang
+
+- 3 database-migrasjoner
+- 4 nye hooks
+- 3 nye sider
+- Endringer i 4 eksisterende filer (Settings, AppShell, BottomTabBar, App.tsx, useAuth)
+- Ingen nye dependencies
 
