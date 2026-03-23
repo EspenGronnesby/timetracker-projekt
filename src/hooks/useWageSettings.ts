@@ -26,7 +26,7 @@ export const useWageSettings = () => {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return data as WageSettings | null;
+      return data as unknown as WageSettings | null;
     },
   });
 

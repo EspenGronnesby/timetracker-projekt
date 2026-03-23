@@ -29,7 +29,7 @@ export const useBreaks = (timeEntryId?: string) => {
         .eq("time_entry_id", timeEntryId!)
         .order("start_time", { ascending: true });
       if (error) throw error;
-      return (data || []) as Break[];
+      return (data || []) as unknown as Break[];
     },
   });
 
