@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Palette, Cloud } from "lucide-react";
+import { Palette, Cloud, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useColorTheme, ColorTheme } from "@/hooks/useColorTheme";
 import { ColorWheel } from "@/components/ColorWheel";
 import { Sparkles } from "lucide-react";
+import { useAppMode } from "@/hooks/useAppMode";
+import { cn } from "@/lib/utils";
 
 const themes: { value: ColorTheme; label: string; description: string; preview: string }[] = [
   { 
@@ -119,8 +121,50 @@ const Settings = () => {
     );
   }
 
+  const { appMode, setAppMode } = useAppMode();
+
   return (
     <div className="py-6 px-4 sm:px-6 max-w-2xl mx-auto space-y-6">
+        {/* App Mode Toggle */}
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Smartphone className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">App-modus</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Velg mellom enkel tidsregistrering eller full prosjektstyring
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setAppMode("simple")}
+              className={cn(
+                "p-4 rounded-lg border-2 text-left transition-all",
+                appMode === "simple"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              <div className="font-medium mb-1">Enkel</div>
+              <p className="text-xs text-muted-foreground">
+                Start/stopp timer, pauser, lønnsberegning
+              </p>
+            </button>
+            <button
+              onClick={() => setAppMode("pro")}
+              className={cn(
+                "p-4 rounded-lg border-2 text-left transition-all",
+                appMode === "pro"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              <div className="font-medium mb-1">Pro</div>
+              <p className="text-xs text-muted-foreground">
+                Prosjekter, kjøring, materialer, team
+              </p>
+            </button>
+          </div>
+        </Card>
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Palette className="h-5 w-5 text-primary" />
