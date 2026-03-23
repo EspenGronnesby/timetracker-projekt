@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      breaks: {
+        Row: {
+          break_type: string
+          created_at: string
+          end_time: string | null
+          id: string
+          is_paid: boolean
+          start_time: string
+          time_entry_id: string
+          user_id: string
+        }
+        Insert: {
+          break_type: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_paid?: boolean
+          start_time: string
+          time_entry_id: string
+          user_id: string
+        }
+        Update: {
+          break_type?: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_paid?: boolean
+          start_time?: string
+          time_entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breaks_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_users: {
         Row: {
           created_at: string | null
@@ -379,6 +420,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_mode: string
           color_theme: string | null
           created_at: string
           id: string
@@ -394,6 +436,7 @@ export type Database = {
           weather_location: string | null
         }
         Insert: {
+          app_mode?: string
           color_theme?: string | null
           created_at?: string
           id: string
@@ -409,6 +452,7 @@ export type Database = {
           weather_location?: string | null
         }
         Update: {
+          app_mode?: string
           color_theme?: string | null
           created_at?: string
           id?: string
@@ -757,6 +801,42 @@ export type Database = {
           last_activity_date?: string | null
           longest_streak?: number | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wage_settings: {
+        Row: {
+          created_at: string
+          default_lunch_minutes: number
+          hourly_rate: number
+          id: string
+          lunch_is_paid: boolean
+          overtime_multiplier: number
+          overtime_threshold: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_lunch_minutes?: number
+          hourly_rate?: number
+          id?: string
+          lunch_is_paid?: boolean
+          overtime_multiplier?: number
+          overtime_threshold?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_lunch_minutes?: number
+          hourly_rate?: number
+          id?: string
+          lunch_is_paid?: boolean
+          overtime_multiplier?: number
+          overtime_threshold?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
