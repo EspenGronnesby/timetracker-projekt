@@ -1,17 +1,11 @@
-import { useState } from "react";
 import { useSimpleTimer } from "@/hooks/useSimpleTimer";
+import { useWageSettings } from "@/hooks/useWageSettings";
 import { formatDuration } from "@/lib/timeUtils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause, Square, Coffee, UtensilsCrossed, Clock } from "lucide-react";
+import { Play, Square, Coffee, UtensilsCrossed } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 
 const statusLabels: Record<string, string> = {
@@ -53,7 +47,7 @@ const SimpleTimer = () => {
     isStopping,
   } = useSimpleTimer();
 
-  const [showBreakDialog, setShowBreakDialog] = useState(false);
+  const { settings } = useWageSettings();
   const navigate = useNavigate();
 
   const formatMoney = (amount: number) =>
@@ -63,6 +57,15 @@ const SimpleTimer = () => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     return `${h}t ${m.toString().padStart(2, "0")}min`;
+  };
+
+  const handleStartShortBreak = () => {
+    startBreak({ breakType: "short_break", isPaid: false });
+  };
+
+  const handleStartLunch = () => {
+    const isPaid = settings?.lunch_is_paid ?? false;
+    startBreak({ breakType: isPaid ? "lunch_paid" : "lunch_unpaid", isPaid });
   };
 
   return (
@@ -150,16 +153,20 @@ const SimpleTimer = () => {
           </motion.div>
         ) : (
           <>
+            {/* ☕ Short break */}
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
-                onClick={() => setShowBreakDialog(true)}
+                onClick={handleStartShortBreak}
                 variant="outline"
-                className="w-16 h-16 rounded-full"
+                className="w-16 h-16 rounded-full flex flex-col gap-0.5"
               >
-                <Pause className="h-7 w-7" />
+                <Coffee className="h-6 w-6" />
+                <span className="text-[10px] leading-none">Pause</span>
               </Button>
             </motion.div>
+
+            {/* ⏹ Stop */}
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
@@ -168,6 +175,19 @@ const SimpleTimer = () => {
                 className="w-[120px] h-[120px] rounded-full text-lg bg-red-600 hover:bg-red-700 text-white shadow-lg"
               >
                 <Square className="h-10 w-10 fill-current" />
+              </Button>
+            </motion.div>
+
+            {/* 🍽️ Lunch */}
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <Button
+                size="lg"
+                onClick={handleStartLunch}
+                variant="outline"
+                className="w-16 h-16 rounded-full flex flex-col gap-0.5"
+              >
+                <UtensilsCrossed className="h-6 w-6" />
+                <span className="text-[10px] leading-none">Lunsj</span>
               </Button>
             </motion.div>
           </>
@@ -217,62 +237,6 @@ const SimpleTimer = () => {
           </button>
         )}
       </Card>
-
-      {/* Break type selection dialog */}
-      <AlertDialog open={showBreakDialog} onOpenChange={setShowBreakDialog}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Velg pausetype</AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="grid gap-3 mt-2">
-            <Button
-              variant="outline"
-              className="h-14 justify-start gap-3 text-left"
-              onClick={() => {
-                startBreak({ breakType: "lunch_unpaid", isPaid: false });
-                setShowBreakDialog(false);
-              }}
-            >
-              <UtensilsCrossed className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <div className="font-medium">Lunsj (ubetalt)</div>
-                <div className="text-xs text-muted-foreground">Trekkes fra arbeidstid</div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-14 justify-start gap-3 text-left"
-              onClick={() => {
-                startBreak({ breakType: "lunch_paid", isPaid: true });
-                setShowBreakDialog(false);
-              }}
-            >
-              <UtensilsCrossed className="h-5 w-5 text-green-500" />
-              <div>
-                <div className="font-medium">Lunsj (betalt)</div>
-                <div className="text-xs text-muted-foreground">Teller som arbeidstid</div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-14 justify-start gap-3 text-left"
-              onClick={() => {
-                startBreak({ breakType: "short_break", isPaid: false });
-                setShowBreakDialog(false);
-              }}
-            >
-              <Coffee className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <div className="font-medium">Kort pause</div>
-                <div className="text-xs text-muted-foreground">Ubetalt kort pause</div>
-              </div>
-            </Button>
-          </div>
-          <Button variant="ghost" onClick={() => setShowBreakDialog(false)} className="mt-2">
-            Avbryt
-          </Button>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
