@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Play,
   Pause,
+  Square,
   Car,
   Building2,
   Clock,
@@ -23,8 +24,11 @@ interface ProjectCardProps {
   driveEntries: DriveEntry[];
   materials: Material[];
   isActive: boolean;
+  isPaused: boolean;
   isDriving: boolean;
   onToggle: () => void;
+  onPause: () => void;
+  onResume: () => void;
   onToggleDriving: (kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => void;
   onAddMaterial: (name: string, quantity: number, unitPrice: number) => void;
   onDelete: () => void;
@@ -43,8 +47,11 @@ export const ProjectCard = ({
   driveEntries,
   materials,
   isActive,
+  isPaused,
   isDriving,
   onToggle,
+  onPause,
+  onResume,
   onToggleDriving,
   onAddMaterial,
   onDelete,
@@ -131,11 +138,11 @@ export const ProjectCard = ({
 
   return (
     <Card
-      className="p-4 sm:p-5 relative overflow-hidden group cursor-pointer
-        backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]
-        shadow-sm hover:shadow-md
+      className={`p-5 sm:p-6 relative overflow-hidden group cursor-pointer
+        glass-card
         transition-all duration-300 ease-out
-        rounded-lg"
+        rounded-2xl pressable
+        ${isActive ? "glow-ring-green" : isPaused ? "glow-ring-yellow" : "hover:shadow-md"}`}
       onClick={() => navigate(`/project/${project.id}`)}
     >
       {/* Colored accent bar */}
@@ -183,34 +190,79 @@ export const ProjectCard = ({
 
       <div onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-3 gap-2 mb-3">
-          <Button
-            variant={isActive ? "default" : "outline"}
-            onClick={onToggle}
-            className={`h-14 w-full transition-all active:scale-[0.97] ${
-              isActive ? "bg-green-500 hover:bg-green-600" : "hover:bg-blue-500/10 hover:border-blue-500/50"
-            }`}
-          >
-            {isActive ? (
-              <Pause className="h-7 w-7 text-white" />
-            ) : (
-              <Play className="h-7 w-7 text-blue-500 dark:text-blue-400" />
-            )}
-          </Button>
+          {/* Hovedknapp: Play / Pause / Resume */}
+          {isActive && !isPaused ? (
+            <Button
+              variant="default"
+              onClick={onPause}
+              className="h-12 w-full rounded-xl pressable bg-yellow-500 hover:bg-yellow-600"
+            >
+              <Pause className="h-6 w-6 text-white" />
+            </Button>
+          ) : isPaused ? (
+            <Button
+              variant="default"
+              onClick={onResume}
+              className="h-12 w-full rounded-xl pressable bg-blue-500 hover:bg-blue-600 animate-timer-pulse"
+            >
+              <Play className="h-6 w-6 text-white" />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={onToggle}
+              className="h-12 w-full rounded-xl pressable hover:bg-primary/5 hover:border-primary/30"
+            >
+              <Play className="h-6 w-6 text-primary" />
+            </Button>
+          )}
 
-          <DriveDialog
-            isDriving={isDriving}
-            onToggleDriving={handleDrivingSubmit}
-            projectId={project.id}
-            activeDriveStartLocation={activeDriveEntry?.start_location ?? null}
-            onRequestMaterialDialog={() => setMaterialDialogOpen(true)}
-          />
+          {/* Stopp-knapp eller kjøring */}
+          {isActive || isPaused ? (
+            <Button
+              variant="default"
+              onClick={onToggle}
+              className="h-12 w-full rounded-xl pressable bg-red-500 hover:bg-red-600"
+            >
+              <Square className="h-5 w-5 text-white" />
+            </Button>
+          ) : (
+            // Inaktiv → vis kjøring-knapp
+            <DriveDialog
+              isDriving={isDriving}
+              onToggleDriving={handleDrivingSubmit}
+              projectId={project.id}
+              activeDriveStartLocation={activeDriveEntry?.start_location ?? null}
+              onRequestMaterialDialog={() => setMaterialDialogOpen(true)}
+            />
+          )}
 
+          {/* Tredje knapp: Material eller Kjøring (hvis aktiv) */}
+          {isActive || isPaused ? (
+            <DriveDialog
+              isDriving={isDriving}
+              onToggleDriving={handleDrivingSubmit}
+              projectId={project.id}
+              activeDriveStartLocation={activeDriveEntry?.start_location ?? null}
+              onRequestMaterialDialog={() => setMaterialDialogOpen(true)}
+            />
+          ) : (
+            <AddMaterialDialog
+              onAddMaterial={onAddMaterial}
+              open={materialDialogOpen}
+              onOpenChange={setMaterialDialogOpen}
+            />
+          )}
+        </div>
+
+        {/* Material dialog - alltid tilgjengelig */}
+        {(isActive || isPaused) && (
           <AddMaterialDialog
             onAddMaterial={onAddMaterial}
             open={materialDialogOpen}
             onOpenChange={setMaterialDialogOpen}
           />
-        </div>
+        )}
 
         {/* Stats — only show if there's activity */}
         {hasActivity && (

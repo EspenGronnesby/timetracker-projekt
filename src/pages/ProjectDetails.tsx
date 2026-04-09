@@ -11,8 +11,10 @@ import { AddMaterialDialog } from "@/components/AddMaterialDialog";
 import { DriveDialog } from "@/components/DriveDialog";
 import { GenerateReportDialog } from "@/components/GenerateReportDialog";
 import { ManualTimeDialog } from "@/components/ManualTimeDialog";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 import { ProjectCostCalculator } from "@/components/ProjectCostCalculator";
-import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download, Pencil } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -44,7 +46,10 @@ const ProjectDetails = () => {
     materials,
     toggleProject,
     toggleDriving,
-    addMaterial
+    addMaterial,
+    updateTimeEntry,
+    updateDriveEntry,
+    updateMaterial,
   } = useProjects(user?.id);
   const [statsView, setStatsView] = useState<"my" | "total">("my");
   const [liveTime, setLiveTime] = useState(0);
@@ -53,6 +58,8 @@ const ProjectDetails = () => {
   const [generating, setGenerating] = useState(false);
   const [activityFilter, setActivityFilter] = useState<"all" | "time" | "drive" | "material">("all");
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editEntry, setEditEntry] = useState<{ type: "time" | "drive" | "material"; data: any } | null>(null);
   const {
     toast
   } = useToast();
@@ -528,15 +535,15 @@ const ProjectDetails = () => {
       });
     }
   };
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background animate-fade-in">
       <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/app")} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/app")} className="shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold truncate">{project.name}</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            <h1 className="text-lg sm:text-2xl font-bold truncate tracking-tight">{project.name}</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate leading-snug">
               {project.customer_name}
             </p>
           </div>
@@ -549,9 +556,116 @@ const ProjectDetails = () => {
         </div>
       </header>
 
+      {/* Action Icons Bar */}
+      {profile?.show_project_actions && (
+        <div className="border-b border-border bg-card/50 px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-1.5">
+            <TooltipProvider>
+              {/* Generate Report Button */}
+              {canViewSensitiveData && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} iconOnly={true} />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Generer rapport</TooltipContent>
+                </Tooltip>
+              )}
+
+              {/* Generate Invite Button */}
+              {(isProjectOwner || isProjectCreator) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleGenerateInvite}
+                      disabled={generating}
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
+                    >
+                      <Share2 className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Generer invitasjon</TooltipContent>
+                </Tooltip>
+              )}
+
+              {/* Delete Project Button */}
+              {(isProjectOwner || isProjectCreator) && (
+                <AlertDialog>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">Slett prosjekt</TooltipContent>
+                  </Tooltip>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Slett prosjekt</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Dette vil permanent slette prosjektet og alle tilhørende data (timer, kjøring, materialer).
+                        Denne handlingen kan ikke angres.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="py-4">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Vil du laste ned all prosjektdata som Excel-fil før sletting?
+                      </p>
+                    </div>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                      <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                      <AlertDialogAction onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteProject(false);
+                      }} className="bg-destructive hover:bg-destructive/90">
+                        Slett uten nedlasting
+                      </AlertDialogAction>
+                      <AlertDialogAction onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteProject(true);
+                      }} className="bg-primary hover:bg-primary/90">
+                        Last ned Excel og slett
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+
+              {/* Leave Project Button */}
+              {!isProjectOwner && !isProjectCreator && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => handleLeaveProject(true)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
+                    >
+                      <Download className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Forlat og last ned data</TooltipContent>
+                </Tooltip>
+              )}
+            </TooltipProvider>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        <Card className="p-4 sm:p-6">
-          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Kundeinformasjon</h2>
+        <Card className="p-4 sm:p-6 rounded-2xl">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 tracking-tight">Kundeinformasjon</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-start gap-3">
               <User className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -600,10 +714,10 @@ const ProjectDetails = () => {
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-6">
+        <Card className="p-4 sm:p-6 rounded-2xl">
           <Tabs value={statsView} onValueChange={v => setStatsView(v as "my" | "total")}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-              <h2 className="text-base sm:text-lg font-semibold">Statistikk</h2>
+              <h2 className="text-base sm:text-lg font-semibold tracking-tight">Statistikk</h2>
               <TabsList className="w-full sm:w-auto grid grid-cols-2">
                 <TabsTrigger value="my" className="text-xs sm:text-sm">Min statistikk</TabsTrigger>
                 <TabsTrigger value="total" className="text-xs sm:text-sm">Total statistikk</TabsTrigger>
@@ -612,39 +726,45 @@ const ProjectDetails = () => {
 
             <TabsContent value="my" className="mt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                <div className="p-3 sm:p-4 bg-primary/10 rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-primary/20 flex-shrink-0">
+                      <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">Min tid</p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">Min tid</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">
                         {formatTime(activeEntry ? liveTime : myTotalTime)}
                       </p>
-                      {activeEntry && <p className="text-xs text-primary">● Kjører nå</p>}
+                      {activeEntry && <p className="text-xs text-primary leading-snug">● Kjører nå</p>}
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 bg-accent/10 rounded-lg">
+                <div className="p-3 sm:p-4 bg-accent/10 rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-accent/20 flex-shrink-0">
+                      <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                         Min kjøring
                       </p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">{myTotalKm.toFixed(1)} km</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">{myTotalKm.toFixed(1)} km</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                <div className="p-3 sm:p-4 bg-secondary rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Package className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-secondary/80 flex-shrink-0">
+                      <Package className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                         Mine materialer
                       </p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">
                         {myTotalMaterialCost.toFixed(0)} kr
                       </p>
                     </div>
@@ -655,36 +775,42 @@ const ProjectDetails = () => {
 
             <TabsContent value="total" className="mt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                <div className="p-3 sm:p-4 bg-primary/10 rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-primary/20 flex-shrink-0">
+                      <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">Total tid</p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">{formatTime(totalTime)}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">Total tid</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">{formatTime(totalTime)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 bg-accent/10 rounded-lg">
+                <div className="p-3 sm:p-4 bg-accent/10 rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-accent/20 flex-shrink-0">
+                      <Car className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                         Total kjøring
                       </p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">{totalKm.toFixed(1)} km</p>
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">{totalKm.toFixed(1)} km</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                <div className="p-3 sm:p-4 bg-secondary rounded-xl">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Package className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-secondary/80 flex-shrink-0">
+                      <Package className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                         Materialkostnad
                       </p>
-                      <p className="text-xl sm:text-2xl font-bold truncate">
+                      <p className="text-xl sm:text-2xl font-bold truncate tabular-nums">
                         {totalMaterialCost.toFixed(0)} kr
                       </p>
                     </div>
@@ -695,65 +821,12 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        {profile?.show_project_actions && (
-          <Card className="p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold mb-4">Prosjekthandlinger</h2>
-            <div className="flex flex-wrap gap-3">
-              {canViewSensitiveData && <GenerateReportDialog projectId={project.id} projectName={project.name} canAccess={canViewSensitiveData} />}
-              
-              {(isProjectOwner || isProjectCreator) && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="flex items-center gap-2">
-                      <Trash2 className="h-4 w-4" />
-                      Slett prosjekt
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Slett prosjekt</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Dette vil permanent slette prosjektet og alle tilhørende data (timer, kjøring, materialer).
-                        Denne handlingen kan ikke angres.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="py-4">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Vil du laste ned all prosjektdata som Excel-fil før sletting?
-                      </p>
-                    </div>
-                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                      <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                      <AlertDialogAction onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteProject(false);
-                      }} className="bg-destructive hover:bg-destructive/90">
-                        Slett uten nedlasting
-                      </AlertDialogAction>
-                      <AlertDialogAction onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteProject(true);
-                      }} className="bg-primary hover:bg-primary/90">
-                        Last ned Excel og slett
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-              
-              {!isProjectOwner && !isProjectCreator && (
-                <Button variant="default" onClick={() => handleLeaveProject(true)} className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  Forlat og last ned data
-                </Button>
-              )}
-            </div>
-          </Card>
-        )}
 
-        {profile?.show_team_invite && (isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4">
-            <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
+        {profile?.show_team_invite && (isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4 rounded-2xl">
+            <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5 tracking-tight">
+              <div className="h-11 w-11 flex items-center justify-center rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
               Team og invitasjoner
             </h2>
             
@@ -780,17 +853,17 @@ const ProjectDetails = () => {
               <div className="pt-2 border-t">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1.5">
                   <h3 className="text-xs font-medium">Prosjektinvitasjoner</h3>
-                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs h-7">
+                  <Button onClick={handleGenerateInvite} disabled={generating} size="sm" className="w-full sm:w-auto text-xs h-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl">
                     <Share2 className="h-3 w-3 mr-1.5" />
                     {generating ? "Genererer..." : "Generer ny invitasjon"}
                   </Button>
                 </div>
                 
-                {inviteUrl && <div className="mb-2 p-1.5 bg-green-500/10 border border-green-500/20 rounded">
-                    <p className="text-[10px] text-muted-foreground mb-1">Ny invitasjonslenke:</p>
+                {inviteUrl && <div className="mb-2 p-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
+                    <p className="text-[10px] text-muted-foreground mb-1 leading-snug">Ny invitasjonslenke:</p>
                     <div className="flex gap-1.5">
-                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded bg-background min-w-0" />
-                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-7 w-7">
+                      <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded-lg bg-background min-w-0" />
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                       </Button>
                     </div>
@@ -809,7 +882,7 @@ const ProjectDetails = () => {
                             {invite.expires_at && ` • Utløper ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-7 w-7">
+                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>)}
@@ -819,31 +892,31 @@ const ProjectDetails = () => {
           </Card>}
 
         {profile?.show_activity_log && (
-          <Card id="activity-log" className="p-4 sm:p-6">
+          <Card id="activity-log" className="p-4 sm:p-6 rounded-2xl">
           <div className="flex flex-col gap-4 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="text-base sm:text-lg font-semibold">Aktivitetslogg</h2>
+              <h2 className="text-base sm:text-lg font-semibold tracking-tight">Aktivitetslogg</h2>
               <div className="flex gap-2 flex-wrap">
                 <ManualTimeDialog type="start" onSubmit={handleManualStartTime} disabled={!activeEntry} />
                 <ManualTimeDialog type="end" onSubmit={handleManualEndTime} disabled={!activeEntry} />
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button 
-                variant={activityFilter === "all" ? "default" : "outline"} 
-                size="sm" 
+              <Button
+                variant={activityFilter === "all" ? "default" : "outline"}
+                size="sm"
                 onClick={() => setActivityFilter("all")}
-                className="hover:scale-105 transition-transform"
+                className="h-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
               >
                 Alle aktiviteter
               </Button>
-              <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "drive" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("drive")} className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant={activityFilter === "drive" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("drive")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Car className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "material" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("material")} className="hover:scale-105 transition-transform h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant={activityFilter === "material" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("material")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Package className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
@@ -853,13 +926,18 @@ const ProjectDetails = () => {
               Ingen aktiviteter funnet
             </p> : <div className="space-y-2 sm:space-y-3">
               {myActivities.map((activity, index) => {
+            const handleEdit = (type: "time" | "drive" | "material", data: any) => {
+              setEditEntry({ type, data });
+              setEditDialogOpen(true);
+            };
+
             if (activity.type === "time") {
               const entry = activity.data;
-              return <div key={`time-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-primary/10">
+              return <div key={`time-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-primary/10 group/entry">
                       <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">Tidsregistrering</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                        <p className="text-sm font-medium leading-snug">Tidsregistrering</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words leading-snug tabular-nums">
                           {new Date(entry.start_time).toLocaleString("no-NO", {
                       day: "2-digit",
                       month: "2-digit",
@@ -872,18 +950,28 @@ const ProjectDetails = () => {
                       minute: "2-digit"
                     })}`}
                         </p>
-                        {entry.end_time && <p className="text-xs sm:text-sm font-semibold text-primary">
+                        {entry.end_time && <p className="text-xs sm:text-sm font-semibold text-primary leading-snug tabular-nums">
                             {formatTime(entry.duration_seconds)}
                           </p>}
                       </div>
+                      {entry.end_time && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                          onClick={() => handleEdit("time", entry)}
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      )}
                     </div>;
             } else if (activity.type === "drive") {
               const entry = activity.data;
-              return <div key={`drive-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-accent/10">
+              return <div key={`drive-${entry.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-accent/10 group/entry">
                       <Car className="h-4 w-4 sm:h-5 sm:w-5 text-accent mt-0.5 flex-shrink-0" />
                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">Kjøring</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                        <p className="text-sm font-medium leading-snug">Kjøring</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words leading-snug tabular-nums">
                           {new Date(entry.start_time).toLocaleString("no-NO", {
                       day: "2-digit",
                       month: "2-digit",
@@ -896,18 +984,28 @@ const ProjectDetails = () => {
                       minute: "2-digit"
                     })}`}
                         </p>
-                        {entry.kilometers !== null && <p className="text-xs sm:text-sm font-semibold text-accent">
+                        {entry.kilometers !== null && <p className="text-xs sm:text-sm font-semibold text-accent leading-snug tabular-nums">
                             {entry.kilometers} km
                           </p>}
                       </div>
+                      {entry.end_time && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                          onClick={() => handleEdit("drive", entry)}
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      )}
                     </div>;
             } else {
               const material = activity.data;
-              return <div key={`material-${material.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary">
+              return <div key={`material-${material.id}`} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-secondary group/entry">
                       <Package className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{material.name}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-sm font-medium truncate leading-snug">{material.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-snug tabular-nums">
                           {new Date(material.created_at).toLocaleString("no-NO", {
                       day: "2-digit",
                       month: "2-digit",
@@ -916,15 +1014,39 @@ const ProjectDetails = () => {
                       minute: "2-digit"
                     })}
                         </p>
-                        <p className="text-sm font-semibold break-words">
+                        <p className="text-sm font-semibold break-words leading-snug tabular-nums">
                           {material.quantity} stk × {material.unit_price} kr ={" "}
                           {material.total_price} kr
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+                        onClick={() => handleEdit("material", material)}
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                      </Button>
                     </div>;
             }
           })}
             </div>}
+
+        {editEntry && (
+          <EditEntryDialog
+            open={editDialogOpen}
+            onOpenChange={(open) => {
+              setEditDialogOpen(open);
+              if (!open) setEditEntry(null);
+            }}
+            type={editEntry.type}
+            entry={editEntry.data}
+            requireComment={false}
+            onUpdateTimeEntry={updateTimeEntry}
+            onUpdateDriveEntry={updateDriveEntry}
+            onUpdateMaterial={updateMaterial}
+          />
+        )}
         </Card>
         )}
       </div>

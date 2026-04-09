@@ -1,22 +1,31 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, StickyNote, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { haptic } from "@/lib/haptics";
+import { useAuth } from "@/hooks/useAuth";
 
-const tabs = [
+const baseTabs = [
   { path: "/app", label: "Hjem", icon: Home },
-  { path: "/goals", label: "Notater", icon: StickyNote },
+  { path: "/goals", label: "Notater", icon: StickyNote, requiresFlag: "show_notes" as const },
   { path: "/more", label: "Mer", icon: MoreHorizontal },
 ];
 
 export function BottomTabBar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  // Fase 2: "Notater"-fanen vises kun hvis show_notes-toggle er på i profilen.
+  const tabs = baseTabs.filter((tab) => {
+    if (!tab.requiresFlag) return true;
+    return profile?.[tab.requiresFlag] === true;
+  });
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+    <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border/30 bg-background/80 backdrop-blur-xl backdrop-saturate-150 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
         {tabs.map((tab) => {
-          const moreRoutes = ["/more", "/settings", "/admin"];
+          const moreRoutes = ["/more", "/settings", "/admin", "/overview"];
           const isActive =
             tab.path === "/app"
               ? location.pathname === "/app"
@@ -28,16 +37,28 @@ export function BottomTabBar() {
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => { navigate(tab.path); haptic("light"); }}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
+                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full select-none pressable transition-all duration-200",
                 isActive
                   ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground/60 hover:text-muted-foreground"
               )}
             >
-              <Icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-              <span className="text-[11px] font-medium">{tab.label}</span>
+              <Icon
+                className={cn(
+                  "h-[22px] w-[22px] transition-all duration-200",
+                  isActive && "stroke-[2.5] scale-105"
+                )}
+              />
+              <span className={cn(
+                "text-[11px] transition-all duration-200 font-medium opacity-100",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground/60"
+              )}>
+                {tab.label}
+              </span>
             </button>
           );
         })}

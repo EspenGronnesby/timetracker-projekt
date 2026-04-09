@@ -301,18 +301,26 @@ export default function Goals() {
   }
 
   return (
-    <div className="px-4 sm:px-6 py-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 max-w-7xl mx-auto animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-muted-foreground">Lister, notater og huskelapper</p>
-        <Button onClick={() => setIsAddListDialogOpen(true)} size="icon" variant="outline" className="hover:bg-primary/10">
+        <p className="text-sm text-muted-foreground leading-snug">Lister, notater og huskelapper</p>
+        <Button
+          onClick={() => setIsAddListDialogOpen(true)}
+          size="icon"
+          variant="outline"
+          className="h-11 w-11 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:bg-primary/10"
+        >
           <Plus className="h-5 w-5" />
         </Button>
       </div>
 
       {lists.length === 0 ? (
-        <Card className="p-12 text-center max-w-md mx-auto">
-          <p className="text-muted-foreground mb-4">Ingen lister ennå</p>
-          <Button onClick={() => setIsAddListDialogOpen(true)}>
+        <Card className="p-12 text-center max-w-md mx-auto rounded-2xl">
+          <p className="text-muted-foreground mb-4 leading-snug">Ingen lister ennå</p>
+          <Button
+            onClick={() => setIsAddListDialogOpen(true)}
+            className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Opprett din første liste
           </Button>
@@ -325,7 +333,7 @@ export default function Goals() {
             const isNote = list.type === "note";
 
             return (
-              <Card key={list.id} className="rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <Card key={list.id} className="rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-150">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -345,7 +353,7 @@ export default function Goals() {
                     ) : (
                       <h3
                         onClick={() => setEditingList({ id: list.id, name: list.name })}
-                        className="text-lg font-semibold cursor-pointer hover:text-primary transition-colors truncate"
+                        className="text-lg font-semibold cursor-pointer hover:text-primary transition-colors duration-150 truncate tracking-tight"
                       >
                         {list.name}
                       </h3>
@@ -353,7 +361,11 @@ export default function Goals() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -378,7 +390,7 @@ export default function Goals() {
                 {/* Notat-type: textarea */}
                 {isNote ? (
                   <textarea
-                    className="w-full min-h-[120px] bg-muted/50 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary border-0"
+                    className="w-full min-h-[120px] bg-muted/50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 transition-colors duration-150 leading-snug"
                     placeholder="Skriv notatet her..."
                     value={noteContents[list.id] ?? ""}
                     onChange={(e) => setNoteContents({ ...noteContents, [list.id]: e.target.value })}
@@ -412,7 +424,7 @@ export default function Goals() {
                                 <span
                                   onClick={() => setEditingTask({ id: task.id, name: task.name })}
                                   className={cn(
-                                    "cursor-pointer hover:text-primary transition-colors text-sm block",
+                                    "cursor-pointer hover:text-primary transition-colors duration-150 text-sm block leading-snug",
                                     task.is_completed && "line-through text-muted-foreground"
                                   )}
                                 >
@@ -438,9 +450,9 @@ export default function Goals() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteTask(task.id)}
-                            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
+                            className="h-9 w-9 flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
@@ -463,9 +475,9 @@ export default function Goals() {
 
       {/* Dialog: Ny liste */}
       <Dialog open={isAddListDialogOpen} onOpenChange={setIsAddListDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Ny liste</DialogTitle>
+            <DialogTitle className="tracking-tight">Ny liste</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Velg type */}
@@ -475,14 +487,14 @@ export default function Goals() {
                   key={type.value}
                   onClick={() => setNewListType(type.value)}
                   className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-colors text-sm",
+                    "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-colors duration-150 text-sm active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     newListType === type.value
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border hover:border-primary/50"
                   )}
                 >
                   {type.icon}
-                  <span className="font-medium">{type.label}</span>
+                  <span className="font-medium leading-snug">{type.label}</span>
                 </button>
               ))}
             </div>
@@ -495,7 +507,11 @@ export default function Goals() {
             />
           </div>
           <DialogFooter>
-            <Button onClick={handleCreateList} disabled={!newListName.trim() || isSubmitting}>
+            <Button
+              onClick={handleCreateList}
+              disabled={!newListName.trim() || isSubmitting}
+              className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Opprett
             </Button>
@@ -505,16 +521,23 @@ export default function Goals() {
 
       {/* Slett-bekreftelse */}
       <AlertDialog open={!!deleteListId} onOpenChange={() => setDeleteListId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="tracking-tight">Er du sikker?</AlertDialogTitle>
+            <AlertDialogDescription className="leading-snug">
               Dette vil slette listen og alt innholdet. Kan ikke angres.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteListId && handleDeleteList(deleteListId)}>Slett</AlertDialogAction>
+            <AlertDialogCancel className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              Avbryt
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteListId && handleDeleteList(deleteListId)}
+              className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              Slett
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -551,20 +574,23 @@ function TaskInput({ inputRef, onFocus, onAdd }: TaskInputProps) {
         onChange={(e) => setValue(e.target.value)}
         onFocus={onFocus}
         onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
-        className="flex-1 text-sm"
+        className="flex-1 text-sm leading-snug"
       />
       <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-9 w-9 flex-shrink-0", deadline && "text-primary")}
+            className={cn(
+              "h-9 w-9 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              deadline && "text-primary"
+            )}
             title="Sett frist"
           >
             <CalendarIcon className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-0 rounded-xl" align="end">
           <Calendar
             mode="single"
             selected={deadline}
@@ -574,7 +600,12 @@ function TaskInput({ inputRef, onFocus, onAdd }: TaskInputProps) {
           />
           {deadline && (
             <div className="p-2 border-t">
-              <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => setDeadline(undefined)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs h-9 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                onClick={() => setDeadline(undefined)}
+              >
                 Fjern frist
               </Button>
             </div>
@@ -582,7 +613,11 @@ function TaskInput({ inputRef, onFocus, onAdd }: TaskInputProps) {
         </PopoverContent>
       </Popover>
       {value.trim() && (
-        <Button size="icon" className="h-9 w-9 flex-shrink-0" onClick={handleAdd}>
+        <Button
+          size="icon"
+          className="h-9 w-9 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          onClick={handleAdd}
+        >
           <Plus className="h-4 w-4" />
         </Button>
       )}

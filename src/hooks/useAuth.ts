@@ -3,6 +3,8 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+export type AppMode = "light" | "pro";
+
 interface Profile {
   id: string;
   name: string;
@@ -15,6 +17,22 @@ interface Profile {
   show_cost_calculator?: boolean;
   show_weather_widget?: boolean;
   show_weather_notifications?: boolean;
+  app_mode?: AppMode;
+  // Fase 2: Lønn + notater-toggle (krever SQL-migrering i Lovable først)
+  show_notes?: boolean;
+  hourly_rate_nok?: number | null;
+  tax_percentage?: number | null;
+  tax_method?: "manual" | "auto";
+  // Fase 5a: Normal arbeidstid for overtidsberegning
+  normal_hours_per_day?: number | null;
+  normal_hours_per_week?: number | null;
+  // Fase 5a.2: Standard arbeidsdag (for hurtigregistrering + dagsplan)
+  default_start_time?: string | null;     // "07:00"
+  default_end_time?: string | null;       // "15:00"
+  default_breakfast_time?: string | null; // "09:00" eller null hvis ingen
+  default_lunch_time?: string | null;     // "11:30" eller null hvis ingen
+  default_breakfast_min?: number | null;  // 20
+  default_lunch_min?: number | null;      // 30
 }
 
 export const useAuth = () => {

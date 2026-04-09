@@ -78,48 +78,52 @@ export default function JoinProject() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-fade-in">
+      <Card className="w-full max-w-md p-8 rounded-2xl">
         {!joined && !error && (
           <>
-            <h1 className="text-2xl font-bold mb-4 text-center">Join Project</h1>
-            <p className="text-muted-foreground text-center mb-6">
-              You've been invited to join a project. Click below to accept the invitation.
+            <h1 className="text-2xl font-bold mb-4 text-center tracking-tight">Slå seg sammen med prosjekt</h1>
+            <p className="text-muted-foreground text-center mb-6 leading-snug">
+              Du har blitt invitert til å bli med i et prosjekt. Klikk nedenfor for å godta invitasjonen.
             </p>
             <Button
               onClick={handleJoinProject}
               disabled={joining}
-              className="w-full"
+              className="w-full h-11 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               size="lg"
             >
               {joining ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Joining...
+                  Blir medlem...
                 </>
               ) : (
-                'Join Project'
+                'Bli medlem av prosjekt'
               )}
             </Button>
           </>
         )}
 
         {joined && (
-          <div className="text-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Welcome!</h2>
-            <p className="text-muted-foreground">
-              You've successfully joined {projectName}. Redirecting...
+          <div className="text-center animate-fade-in">
+            <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">Velkommen!</h2>
+            <p className="text-muted-foreground leading-snug">
+              Du har blitt medlem av {projectName}. Omdirigerer...
             </p>
           </div>
         )}
 
         {error && (
-          <div className="text-center">
+          <div className="text-center animate-fade-in">
             <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Error</h2>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => navigate('/app')} variant="outline">
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">Feil</h2>
+            <p className="text-muted-foreground mb-4 leading-snug">{error}</p>
+            <Button
+              onClick={() => navigate('/app')}
+              variant="outline"
+              className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               Gå til dashboard
             </Button>
           </div>

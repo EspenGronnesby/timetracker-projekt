@@ -12,9 +12,10 @@ interface GenerateReportDialogProps {
   projectId: string;
   projectName: string;
   canAccess: boolean;
+  iconOnly?: boolean;
 }
 
-export const GenerateReportDialog = ({ projectId, projectName, canAccess }: GenerateReportDialogProps) => {
+export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOnly = false }: GenerateReportDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<string>("");
@@ -121,10 +122,20 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          Generer rapport
-        </Button>
+        {iconOnly ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
+          >
+            <FileText className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button variant="destructive" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Generer rapport
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>

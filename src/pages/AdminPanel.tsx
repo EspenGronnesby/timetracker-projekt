@@ -148,67 +148,69 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6">
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList>
-            <TabsTrigger value="users">
-              <UserCog className="h-4 w-4 mr-2" />
-              Brukerhåndtering
-            </TabsTrigger>
-          </TabsList>
+    <div className="container mx-auto px-4 sm:px-6 py-6 animate-fade-in">
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList>
+          <TabsTrigger value="users">
+            <UserCog className="h-4 w-4 mr-2" />
+            Brukerhåndtering
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Brukere i organisasjonen</CardTitle>
-                <CardDescription>
-                  Administrer brukerroller og tilganger
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {users.map(({ profile, role }) => (
-                    <div
-                      key={profile.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{profile.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {role === 'admin' ? (
-                            <span className="text-orange-600 font-semibold">Admin</span>
-                          ) : (
-                            <span>Bruker</span>
-                          )}
-                        </p>
-                      </div>
-                      <div>
+        <TabsContent value="users" className="space-y-4">
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <CardTitle className="tracking-tight">Brukere i organisasjonen</CardTitle>
+              <CardDescription className="leading-snug">
+                Administrer brukerroller og tilganger
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {users.map(({ profile, role }) => (
+                  <div
+                    key={profile.id}
+                    className="flex items-center justify-between p-4 border rounded-xl transition-colors duration-150 hover:bg-muted/50"
+                  >
+                    <div>
+                      <p className="font-medium leading-snug">{profile.name}</p>
+                      <p className="text-sm text-muted-foreground leading-snug">
                         {role === 'admin' ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => revokeAdminRole(profile.id)}
-                            disabled={profile.id === user.id}
-                          >
-                            Fjern admin
-                          </Button>
+                          <span className="text-primary font-semibold">Admin</span>
                         ) : (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => grantAdminRole(profile.id)}
-                          >
-                            Gjør til admin
-                          </Button>
+                          <span>Bruker</span>
                         )}
-                      </div>
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    <div>
+                      {role === 'admin' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => revokeAdminRole(profile.id)}
+                          disabled={profile.id === user.id}
+                          className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Fjern admin
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => grantAdminRole(profile.id)}
+                          className="h-10 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Gjør til admin
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
