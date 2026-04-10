@@ -302,13 +302,18 @@ export function calculateRangeOvertime(
   while (currentWeekStart < rangeEnd) {
     const currentWeekEnd = addDays(currentWeekStart, 7);
 
-    // Filtrer innlegg for denne uken
+    // Clamp uke-vinduet til [rangeStart, rangeEnd) for å unngå å telle
+    // dager utenfor det forespurte tidsrommet (f.eks. mars-dager i april-visning)
+    const clampedStart = currentWeekStart < rangeStart ? rangeStart : currentWeekStart;
+    const clampedEnd = currentWeekEnd > rangeEnd ? rangeEnd : currentWeekEnd;
+
+    // Filtrer innlegg for denne uken (clamped til range)
     const weekEntries = entries.filter((e) => {
       if (!e.end_time) return false;
       const entryDate = parseISO(e.start_time);
       return isWithinInterval(entryDate, {
-        start: startOfDay(currentWeekStart),
-        end: endOfDay(addDays(currentWeekEnd, -1)),
+        start: startOfDay(clampedStart),
+        end: endOfDay(addDays(clampedEnd, -1)),
       });
     });
 
