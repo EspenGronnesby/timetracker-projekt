@@ -169,24 +169,27 @@ export const useProjects = (userId?: string) => {
   });
 
   // Hent alle aktive time entry IDs for å hente pauser
-  const activeTimeEntryIds = timeEntries
+  // Hent pause-rader for ALLE viste tidsregistreringer (ikke bare aktive).
+  // Ferdige timer trenger også pausehistorikk for korrekt visning av
+  // pausetotaler i DayOverviewCard og LightDashboard.
+  const allTimeEntryIds = timeEntries.map((e) => e.id)
     .filter((e) => !e.end_time)
     .map((e) => e.id);
 
   const { data: timeEntryPauses = [] } = useQuery({
-    queryKey: ["time_entry_pauses", activeTimeEntryIds],
+    queryKey: ["time_entry_pauses", allTimeEntryIds],
     queryFn: async () => {
-      if (activeTimeEntryIds.length === 0) return [];
+      if (allTimeEntryIds.length === 0) return [];
       const { data, error } = await supabase
         .from("time_entry_pauses")
         .select("*")
-        .in("time_entry_id", activeTimeEntryIds)
+        .in("time_entry_id", allTimeEntryIds)
         .order("paused_at", { ascending: false });
 
       if (error) throw error;
       return data as TimeEntryPause[];
     },
-    enabled: !!userId && activeTimeEntryIds.length > 0,
+    enabled: !!userId && allTimeEntryIds.length > 0,
   });
 
   const addProject = useMutation({
