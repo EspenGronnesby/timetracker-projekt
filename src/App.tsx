@@ -20,6 +20,9 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
 const More = lazy(() => import("./pages/More"));
 const Overview = lazy(() => import("./pages/Overview"));
+const SimpleTimer = lazy(() => import("./pages/SimpleTimer"));
+const SimpleHistory = lazy(() => import("./pages/SimpleHistory"));
+const WageSettings = lazy(() => import("./pages/WageSettings"));
 
 // Lazy load /more/* subsections
 const MoreProfile = lazy(() => import("./pages/more/Profile"));
@@ -68,6 +71,9 @@ const App = () => (
                 <Route path="/more/notifications" element={<MoreNotifications />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/simple" element={<SimpleTimer />} />
+                <Route path="/simple/history" element={<SimpleHistory />} />
+                <Route path="/simple/wage" element={<WageSettings />} />
               </Route>
 
               <Route path="/project/:id" element={<ProjectDetails />} />

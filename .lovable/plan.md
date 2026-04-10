@@ -1,45 +1,55 @@
 
 
-## Plan: Optimize Landing Page
+## Plan: Null-klikk pause + Visuell modus-toggle
 
-### What to do
+### Endring 1: Fjern pause-popup, legg til to direkte knapper
 
-**File:** `src/pages/Landing.tsx` — full rewrite with the following changes:
+**Fil:** `src/pages/SimpleTimer.tsx`
 
-### 1. Add the app logo
-- Use `/icon-512x512.png` in the navbar and hero section alongside the "TimeTracker" text
-- Replace the Hammer icon in the navbar with the actual logo image
+**Nå:** Én Pause-knapp → åpner AlertDialog med 3 valg (lunsj ubetalt, lunsj betalt, kort pause).
 
-### 2. Remove scroll indicator
-- Delete the entire "Scroll indicator" block (lines 217-230) with the ChevronDown animation
-- Remove `ChevronDown` from lucide imports
+**Nytt:** Fjern AlertDialog helt. Når timeren kjører, vis to knapper ved siden av STOPP:
+- ☕ **Pause** — starter `short_break`, betalt/ubetalt styres av innstillinger
+- 🍽️ **Lunsj** — starter lunsj, betalt/ubetalt basert på `wageSettings.lunch_is_paid`
 
-### 3. Add more scroll-triggered animations
-Inspired by Toggl Track and My Hours patterns:
-- **Parallax text reveal:** Each section heading slides in from different directions (left/right alternating)
-- **Staggered feature cards:** Cards animate in with staggered delays as they enter viewport, with a slight horizontal slide (not just fade-up)
-- **Counter/number animation:** Add a stats section (e.g. "1000+ brukere", "50 000+ timer logget") with number count-up animation on scroll
-- **Sticky hero fade-out:** Hero content fades and scales down as user scrolls (already exists, keep it)
-- **Section divider animations:** Subtle horizontal line that grows from center on scroll
+Ett trykk starter pausen. Når pause er aktiv, ett trykk på den grønne PLAY-knappen avslutter den. Ingen popup, ingen valg i øyeblikket.
 
-### 4. Mobile-first optimization
-- Hero: reduce `min-h-[100dvh]` to `min-h-[85dvh]` on mobile so content is visible without scrolling
-- Feature cards: single column with full-width cards, larger touch targets (min 48px tap areas)
-- CTA buttons: full-width on mobile with `w-full` below `sm:`
-- Typography: use `text-3xl` on mobile instead of `clamp(2.5rem,7vw,5rem)` — ensure readable without zoom
-- Section padding: reduce `py-32` to `py-16` on mobile (`py-16 md:py-32`)
-- Navbar: sticky, compact (h-12 on mobile), logo + login button only
+Knappelayout når timer kjører:
+```text
+  [☕ Pause]   [⏹ STOPP (120px)]   [🍽️ Lunsj]
+```
 
-### 5. Layout improvements inspired by competitors
-- **Hero split layout on desktop:** Text left, app mockup/phone frame right (using a CSS phone frame showing the app icon)
-- **Social proof strip:** Add a subtle "Brukt av 500+ norske håndverkere" trust badge below hero
-- **Alternating feature sections:** Instead of a 3-column grid, show features as alternating left-right rows on desktop with icon + text, similar to Toggl
-- **Sticky CTA bar on mobile:** A fixed bottom bar appears after scrolling past hero with "Kom i gang gratis" button
+**Teknisk:** Hent `wageSettings` via `useWageSettings()` i SimpleTimer for å bestemme `isPaid` automatisk. Fjern `showBreakDialog` state, fjern AlertDialog import.
 
-### Technical details
-- All animations use `framer-motion` `whileInView` with `viewport={{ once: true, margin: "-80px" }}`
-- New animation variants: `slideInLeft`, `slideInRight` for alternating sections
-- Phone mockup: pure CSS with rounded corners, border, and the app icon inside
-- Sticky mobile CTA: uses `motion.div` with scroll-linked opacity (appears after 30% scroll)
-- No new dependencies needed
+---
+
+### Endring 2: Visuell slide-switch + bekreftelsesdialog + onboarding
+
+**Fil:** `src/pages/Settings.tsx`
+
+Erstatt de to grid-knappene med en visuell slide-switch:
+
+```text
+┌─────────────────────────────────┐
+│  [ Enkel advancement Pro ]  │  ← slide-switch
+│   ●━━━━━━━━○                │  ← visuelt indikerer aktiv side
+└─────────────────────────────────┘
+```
+
+Implementeres som en styled toggle med to labels ("Enkel" / "Pro") og en glidende indikator-pille bak aktiv valg. Bruk CSS transitions for smooth slide.
+
+**Bekreftelsesdialog:** Når bruker klikker for å bytte modus, vis en `AlertDialog`:
+- Tittel: "Bytte til [Pro/Enkel]-modus?"
+- Beskrivelse av hva som endres
+- "Ingen data går tapt"
+- Bekreft / Avbryt knapper
+
+**Onboarding-modal for nye brukere:** Sjekk om `profile.app_mode` er null/undefined (første gang). Hvis ja, vis en velkomst-dialog med kort forklaring av begge moduser og la brukeren velge. Lagre valget til profilen.
+
+**Fil:** `src/hooks/useAppMode.ts` — Fjern `window.location.href` reload og bruk `useNavigate` + query invalidation for smidigere bytte.
+
+### Filer som endres
+1. `src/pages/SimpleTimer.tsx` — fjern popup, legg til ☕/🍽️ knapper
+2. `src/pages/Settings.tsx` — slide-switch, bekreftelsesdialog, onboarding
+3. `src/hooks/useAppMode.ts` — fjern hard reload, bruk navigate
 

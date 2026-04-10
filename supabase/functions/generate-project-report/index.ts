@@ -13,6 +13,32 @@ serve(async (req) => {
   }
 
   try {
+    // Step 1: Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Create anon client with user's JWT for auth check
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (!user || authError) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { 
       projectId, 
@@ -26,29 +52,40 @@ serve(async (req) => {
     // Validate projectId is a valid UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!projectId || typeof projectId !== 'string' || !uuidRegex.test(projectId)) {
-      console.error('[Validation Error] Invalid project ID format');
-      throw new Error('Invalid project identifier');
+      return new Response(
+        JSON.stringify({ error: 'Invalid project identifier' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
     }
 
     // Validate boolean flags
-    const validateBoolean = (val: any, name: string) => {
+    const booleanFlags = { includeCustomerInfo, includeTimeStats, includeDriveStats, includeMaterialCosts, includeAiAnalysis };
+    for (const [key, val] of Object.entries(booleanFlags)) {
       if (typeof val !== 'boolean') {
-        console.error(`[Validation Error] ${name} must be a boolean`);
-        throw new Error('Invalid request parameters');
+        return new Response(
+          JSON.stringify({ error: 'Invalid request parameters' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
       }
-    };
-    
-    validateBoolean(includeCustomerInfo, 'includeCustomerInfo');
-    validateBoolean(includeTimeStats, 'includeTimeStats');
-    validateBoolean(includeDriveStats, 'includeDriveStats');
-    validateBoolean(includeMaterialCosts, 'includeMaterialCosts');
-    validateBoolean(includeAiAnalysis, 'includeAiAnalysis');
-    
-    console.log('[Report Generation] Starting for project:', projectId);
+    }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Step 2: Verify project membership
+    const { data: member } = await supabaseAuth
+      .from('project_members')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!member) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
+    // Use service role client for data fetching
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch project data
     const { data: project, error: projectError } = await supabase
@@ -58,7 +95,7 @@ serve(async (req) => {
       .single();
 
     if (projectError) {
-      console.error('[Database Error] Project fetch:', projectError);
+      console.error('[Database Error] Project fetch failed');
       throw new Error('Project not found');
     }
 
@@ -69,10 +106,7 @@ serve(async (req) => {
       .eq('project_id', projectId)
       .order('start_time', { ascending: false });
 
-    if (timeError) {
-      console.error('Time entries fetch error:', timeError);
-      throw new Error('Could not fetch time entries');
-    }
+    if (timeError) throw new Error('Could not fetch time entries');
 
     // Fetch drive entries
     const { data: driveEntries, error: driveError } = await supabase
@@ -81,10 +115,7 @@ serve(async (req) => {
       .eq('project_id', projectId)
       .order('start_time', { ascending: false });
 
-    if (driveError) {
-      console.error('Drive entries fetch error:', driveError);
-      throw new Error('Could not fetch drive entries');
-    }
+    if (driveError) throw new Error('Could not fetch drive entries');
 
     // Fetch materials
     const { data: materials, error: materialsError } = await supabase
@@ -93,10 +124,7 @@ serve(async (req) => {
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
-    if (materialsError) {
-      console.error('Materials fetch error:', materialsError);
-      throw new Error('Could not fetch materials');
-    }
+    if (materialsError) throw new Error('Could not fetch materials');
 
     // Calculate statistics
     const totalSeconds = timeEntries.reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0);
@@ -177,8 +205,6 @@ serve(async (req) => {
       prompt += `Oppsummer dataene ovenfor i et klart og profesjonelt format med markdown-formatering.`;
     }
 
-    console.log('Calling Lovable AI with prompt length:', prompt.length);
-
     // Call Lovable AI
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -201,15 +227,12 @@ serve(async (req) => {
     });
 
     if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('[AI Service Error]', aiResponse.status, errorText);
+      console.error('[AI Service Error]', aiResponse.status);
       throw new Error('Report generation service temporarily unavailable');
     }
 
     const aiData = await aiResponse.json();
     const generatedReport = aiData.choices[0].message.content;
-
-    console.log('Report generated successfully, length:', generatedReport.length);
 
     return new Response(
       JSON.stringify({ 
@@ -223,16 +246,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[Error] generate-project-report:', error);
+    console.error('[Error] generate-project-report');
     
-    // Map errors to generic client messages
     let clientMessage = 'Failed to generate report';
     if (error instanceof Error) {
-      if (error.message.includes('Invalid project identifier') ||
-          error.message.includes('Invalid request parameters') ||
-          error.message.includes('Project not found') ||
-          error.message.includes('Report generation service temporarily unavailable') ||
-          error.message.includes('LOVABLE_API_KEY is not configured')) {
+      const safeMessages = [
+        'Invalid project identifier',
+        'Invalid request parameters',
+        'Project not found',
+        'Report generation service temporarily unavailable',
+        'LOVABLE_API_KEY is not configured'
+      ];
+      if (safeMessages.includes(error.message)) {
         clientMessage = error.message;
       }
     }

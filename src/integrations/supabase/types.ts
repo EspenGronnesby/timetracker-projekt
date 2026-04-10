@@ -14,32 +14,46 @@ export type Database = {
   }
   public: {
     Tables: {
-      customer_users: {
+      breaks: {
         Row: {
-          created_at: string | null
-          email: string
+          break_type: string
+          created_at: string
+          end_time: string | null
           id: string
-          last_login: string | null
-          name: string
-          phone: string | null
+          is_paid: boolean
+          start_time: string
+          time_entry_id: string
+          user_id: string
         }
         Insert: {
-          created_at?: string | null
-          email: string
+          break_type: string
+          created_at?: string
+          end_time?: string | null
           id?: string
-          last_login?: string | null
-          name: string
-          phone?: string | null
+          is_paid?: boolean
+          start_time: string
+          time_entry_id: string
+          user_id: string
         }
         Update: {
-          created_at?: string | null
-          email?: string
+          break_type?: string
+          created_at?: string
+          end_time?: string | null
           id?: string
-          last_login?: string | null
-          name?: string
-          phone?: string | null
+          is_paid?: boolean
+          start_time?: string
+          time_entry_id?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "breaks_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       drive_entries: {
         Row: {
@@ -82,13 +96,6 @@ export type Database = {
           user_name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "drive_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "customer_projects_view"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "drive_entries_project_id_fkey"
             columns: ["project_id"]
@@ -255,13 +262,6 @@ export type Database = {
             foreignKeyName: "materials_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "customer_projects_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "materials_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -379,48 +379,87 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_mode: string
           color_theme: string | null
           created_at: string
+          default_breakfast_min: number | null
+          default_breakfast_time: string | null
+          default_end_time: string | null
+          default_lunch_min: number | null
+          default_lunch_time: string | null
+          default_start_time: string | null
+          hourly_rate_nok: number | null
           id: string
           name: string
+          normal_hours_per_day: number | null
+          normal_hours_per_week: number | null
           organization_name: string | null
           organization_number: string | null
           show_activity_log: boolean
           show_cost_calculator: boolean
+          show_notes: boolean
           show_project_actions: boolean
           show_team_invite: boolean
           show_weather_notifications: boolean
           show_weather_widget: boolean
+          tax_method: string | null
+          tax_percentage: number | null
           weather_location: string | null
         }
         Insert: {
+          app_mode?: string
           color_theme?: string | null
           created_at?: string
+          default_breakfast_min?: number | null
+          default_breakfast_time?: string | null
+          default_end_time?: string | null
+          default_lunch_min?: number | null
+          default_lunch_time?: string | null
+          default_start_time?: string | null
+          hourly_rate_nok?: number | null
           id: string
           name: string
+          normal_hours_per_day?: number | null
+          normal_hours_per_week?: number | null
           organization_name?: string | null
           organization_number?: string | null
           show_activity_log?: boolean
           show_cost_calculator?: boolean
+          show_notes?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
           show_weather_notifications?: boolean
           show_weather_widget?: boolean
+          tax_method?: string | null
+          tax_percentage?: number | null
           weather_location?: string | null
         }
         Update: {
+          app_mode?: string
           color_theme?: string | null
           created_at?: string
+          default_breakfast_min?: number | null
+          default_breakfast_time?: string | null
+          default_end_time?: string | null
+          default_lunch_min?: number | null
+          default_lunch_time?: string | null
+          default_start_time?: string | null
+          hourly_rate_nok?: number | null
           id?: string
           name?: string
+          normal_hours_per_day?: number | null
+          normal_hours_per_week?: number | null
           organization_name?: string | null
           organization_number?: string | null
           show_activity_log?: boolean
           show_cost_calculator?: boolean
+          show_notes?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
           show_weather_notifications?: boolean
           show_weather_widget?: boolean
+          tax_method?: string | null
+          tax_percentage?: number | null
           weather_location?: string | null
         }
         Relationships: []
@@ -461,13 +500,6 @@ export type Database = {
             foreignKeyName: "project_invites_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "customer_projects_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_invites_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -503,13 +535,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "project_members_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "customer_projects_view"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "project_members_project_id_fkey"
             columns: ["project_id"]
@@ -595,11 +620,15 @@ export type Database = {
       time_entries: {
         Row: {
           comment: string | null
+          comp_method: string | null
           created_at: string
           duration_seconds: number
           end_time: string | null
           id: string
           is_manual: boolean
+          is_overtime: boolean | null
+          overtime_rate: number | null
+          paused_at: string | null
           project_id: string
           start_time: string
           user_id: string
@@ -607,11 +636,15 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          comp_method?: string | null
           created_at?: string
           duration_seconds?: number
           end_time?: string | null
           id?: string
           is_manual?: boolean
+          is_overtime?: boolean | null
+          overtime_rate?: number | null
+          paused_at?: string | null
           project_id: string
           start_time: string
           user_id: string
@@ -619,24 +652,21 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          comp_method?: string | null
           created_at?: string
           duration_seconds?: number
           end_time?: string | null
           id?: string
           is_manual?: boolean
+          is_overtime?: boolean | null
+          overtime_rate?: number | null
+          paused_at?: string | null
           project_id?: string
           start_time?: string
           user_id?: string
           user_name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "time_entries_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "customer_projects_view"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
@@ -656,6 +686,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_pauses: {
+        Row: {
+          created_at: string | null
+          id: string
+          pause_type: string | null
+          paused_at: string
+          resumed_at: string | null
+          time_entry_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pause_type?: string | null
+          paused_at: string
+          resumed_at?: string | null
+          time_entry_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pause_type?: string | null
+          paused_at?: string
+          resumed_at?: string | null
+          time_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_pauses_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -761,6 +826,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wage_settings: {
+        Row: {
+          created_at: string
+          default_lunch_minutes: number
+          hourly_rate: number
+          id: string
+          lunch_is_paid: boolean
+          overtime_multiplier: number
+          overtime_threshold: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_lunch_minutes?: number
+          hourly_rate?: number
+          id?: string
+          lunch_is_paid?: boolean
+          overtime_multiplier?: number
+          overtime_threshold?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_lunch_minutes?: number
+          hourly_rate?: number
+          id?: string
+          lunch_is_paid?: boolean
+          overtime_multiplier?: number
+          overtime_threshold?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weather_notifications: {
         Row: {
           created_at: string | null
@@ -799,24 +900,6 @@ export type Database = {
       }
     }
     Views: {
-      customer_projects_view: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          customer_email: string | null
-          customer_name: string | null
-          description: string | null
-          drive_entry_count: number | null
-          id: string | null
-          material_count: number | null
-          name: string | null
-          time_entry_count: number | null
-          total_duration_seconds: number | null
-          total_kilometers: number | null
-          total_material_cost: number | null
-        }
-        Relationships: []
-      }
       projects_secure_member_view: {
         Row: {
           color: string | null

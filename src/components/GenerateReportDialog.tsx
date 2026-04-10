@@ -12,10 +12,9 @@ interface GenerateReportDialogProps {
   projectId: string;
   projectName: string;
   canAccess: boolean;
-  iconOnly?: boolean;
 }
 
-export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOnly = false }: GenerateReportDialogProps) => {
+export const GenerateReportDialog = ({ projectId, projectName, canAccess }: GenerateReportDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<string>("");
@@ -74,13 +73,21 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOn
     toast.success("Rapport kopiert til utklippstavlen!");
   };
 
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
   const printReport = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (printWindow) {
+      const escapedName = escapeHtml(projectName);
+      const escapedReport = escapeHtml(report)
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       printWindow.document.write(`
         <html>
           <head>
-            <title>${projectName} - Rapport</title>
+            <title>${escapedName} - Rapport</title>
             <style>
               body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
               h1, h2, h3 { color: #333; }
@@ -88,7 +95,7 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOn
             </style>
           </head>
           <body>
-            ${report.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+            ${escapedReport}
           </body>
         </html>
       `);
@@ -122,20 +129,10 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOn
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {iconOnly ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
-          >
-            <FileText className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button variant="destructive" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Generer rapport
-          </Button>
-        )}
+        <Button variant="destructive" className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Generer rapport
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>

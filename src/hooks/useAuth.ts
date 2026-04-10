@@ -17,8 +17,8 @@ interface Profile {
   show_cost_calculator?: boolean;
   show_weather_widget?: boolean;
   show_weather_notifications?: boolean;
-  app_mode?: AppMode;
-  // Fase 2: Lønn + notater-toggle (krever SQL-migrering i Lovable først)
+  app_mode?: string;
+  // Fase 2: Notater-toggle
   show_notes?: boolean;
   hourly_rate_nok?: number | null;
   tax_percentage?: number | null;
@@ -26,13 +26,13 @@ interface Profile {
   // Fase 5a: Normal arbeidstid for overtidsberegning
   normal_hours_per_day?: number | null;
   normal_hours_per_week?: number | null;
-  // Fase 5a.2: Standard arbeidsdag (for hurtigregistrering + dagsplan)
-  default_start_time?: string | null;     // "07:00"
-  default_end_time?: string | null;       // "15:00"
-  default_breakfast_time?: string | null; // "09:00" eller null hvis ingen
-  default_lunch_time?: string | null;     // "11:30" eller null hvis ingen
-  default_breakfast_min?: number | null;  // 20
-  default_lunch_min?: number | null;      // 30
+  // Fase 5a.2: Standard arbeidsdag
+  default_start_time?: string | null;
+  default_end_time?: string | null;
+  default_breakfast_time?: string | null;
+  default_lunch_time?: string | null;
+  default_breakfast_min?: number | null;
+  default_lunch_min?: number | null;
 }
 
 export const useAuth = () => {
@@ -47,7 +47,7 @@ export const useAuth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -61,7 +61,7 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {

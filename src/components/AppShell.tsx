@@ -18,6 +18,9 @@ const pageTitles: Record<string, string> = {
   "/more/notifications": "Varsler",
   "/settings": "Innstillinger",
   "/admin": "Admin",
+  "/simple": "",
+  "/simple/history": "Historikk",
+  "/simple/wage": "Lønnsinnstillinger",
 };
 
 export function AppShell() {
@@ -31,9 +34,21 @@ export function AppShell() {
     }
   }, [user, loading, navigate]);
 
+  // Redirect based on app mode
+  useEffect(() => {
+    if (!loading && user && profile) {
+      const isSimple = profile.app_mode === "simple";
+      if (isSimple && location.pathname === "/app") {
+        navigate("/simple", { replace: true });
+      } else if (!isSimple && location.pathname === "/simple") {
+        navigate("/app", { replace: true });
+      }
+    }
+  }, [user, loading, profile, location.pathname, navigate]);
+
   if (loading || !user) return null;
 
-  const isHome = location.pathname === "/app";
+  const isHome = location.pathname === "/app" || location.pathname === "/simple";
   const title = isHome ? profile?.name : pageTitles[location.pathname] || "";
   // Fase 2: StreakIndicator fjernet (markert som støy i audit-fase-0.md).
   // NotificationBell vises kun i pro-modus (team-brukere), ikke i light-modus.
