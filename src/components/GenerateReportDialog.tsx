@@ -73,13 +73,21 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
     toast.success("Rapport kopiert til utklippstavlen!");
   };
 
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
   const printReport = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (printWindow) {
+      const escapedName = escapeHtml(projectName);
+      const escapedReport = escapeHtml(report)
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       printWindow.document.write(`
         <html>
           <head>
-            <title>${projectName} - Rapport</title>
+            <title>${escapedName} - Rapport</title>
             <style>
               body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
               h1, h2, h3 { color: #333; }
@@ -87,7 +95,7 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess }: Gene
             </style>
           </head>
           <body>
-            ${report.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+            ${escapedReport}
           </body>
         </html>
       `);
