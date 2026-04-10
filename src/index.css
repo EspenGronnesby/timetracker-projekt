@@ -460,3 +460,48 @@ All colors MUST be HSL.
   .stagger-children > *:nth-child(10) { animation-delay: 540ms; }
   .stagger-children > *:nth-child(n+11) { animation-delay: 600ms; }
 }
+
+/* ═══════════════════════════════════════════
+   Apple-inspired UI utilities
+   ═══════════════════════════════════════════ */
+
+/* Tabular nums — prevents digits from jumping */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Press feedback — scale down on tap */
+.pressable {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.pressable:active {
+  transform: scale(0.96);
+}
+
+/* Glass card — enhanced liquid glass */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Elevated surface */
+.elevated {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08);
+}
+.dark .elevated {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.3);
+}
+
+/* Active glow ring — for active timer cards */
+.glow-ring-green {
+  box-shadow: 0 0 0 2px hsl(142 76% 45% / 0.3), 0 0 16px hsl(142 76% 45% / 0.15);
+}
+.glow-ring-yellow {
+  box-shadow: 0 0 0 2px hsl(45 93% 58% / 0.3), 0 0 16px hsl(45 93% 58% / 0.15);
+}
+.glow-ring-blue {
+  box-shadow: 0 0 0 2px hsl(220 90% 56% / 0.3), 0 0 16px hsl(220 90% 56% / 0.15);
+}

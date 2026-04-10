@@ -19,9 +19,16 @@ const JoinProject = lazy(() => import("./pages/JoinProject"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
 const More = lazy(() => import("./pages/More"));
+const Overview = lazy(() => import("./pages/Overview"));
 const SimpleTimer = lazy(() => import("./pages/SimpleTimer"));
 const SimpleHistory = lazy(() => import("./pages/SimpleHistory"));
 const WageSettings = lazy(() => import("./pages/WageSettings"));
+
+// Lazy load /more/* subsections
+const MoreProfile = lazy(() => import("./pages/more/Profile"));
+const MoreWork = lazy(() => import("./pages/more/Work"));
+const MoreAppearance = lazy(() => import("./pages/more/Appearance"));
+const MoreNotifications = lazy(() => import("./pages/more/Notifications"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,8 +62,13 @@ const App = () => (
               {/* Authenticated routes wrapped in AppShell */}
               <Route element={<AppShell />}>
                 <Route path="/app" element={<Index />} />
+                <Route path="/overview" element={<Overview />} />
                 <Route path="/goals" element={<Goals />} />
                 <Route path="/more" element={<More />} />
+                <Route path="/more/profile" element={<MoreProfile />} />
+                <Route path="/more/work" element={<MoreWork />} />
+                <Route path="/more/appearance" element={<MoreAppearance />} />
+                <Route path="/more/notifications" element={<MoreNotifications />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/simple" element={<SimpleTimer />} />

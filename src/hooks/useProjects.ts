@@ -29,6 +29,22 @@ export type TimeEntry = {
   created_at: string;
   comment: string | null;
   is_manual: boolean;
+  paused_at: string | null;
+  // Fase 5a: Overtid (krever SQL-migrering)
+  is_overtime?: boolean | null;
+  overtime_rate?: number | null; // 50 eller 100
+  comp_method?: "money" | "avspasering" | null;
+};
+
+export type PauseType = "general" | "breakfast" | "lunch";
+
+export type TimeEntryPause = {
+  id: string;
+  time_entry_id: string;
+  paused_at: string;
+  resumed_at: string | null;
+  pause_type: PauseType;
+  created_at: string;
 };
 
 export type DriveEntry = {
@@ -152,6 +168,30 @@ export const useProjects = (userId?: string) => {
     enabled: !!userId && projectIds.length > 0,
   });
 
+  // Hent alle aktive time entry IDs for å hente pauser
+  // Hent pause-rader for ALLE viste tidsregistreringer (ikke bare aktive).
+  // Ferdige timer trenger også pausehistorikk for korrekt visning av
+  // pausetotaler i DayOverviewCard og LightDashboard.
+  const allTimeEntryIds = timeEntries.map((e) => e.id)
+    .filter((e) => !e.end_time)
+    .map((e) => e.id);
+
+  const { data: timeEntryPauses = [] } = useQuery({
+    queryKey: ["time_entry_pauses", allTimeEntryIds],
+    queryFn: async () => {
+      if (allTimeEntryIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("time_entry_pauses")
+        .select("*")
+        .in("time_entry_id", allTimeEntryIds)
+        .order("paused_at", { ascending: false });
+
+      if (error) throw error;
+      return data as TimeEntryPause[];
+    },
+    enabled: !!userId && allTimeEntryIds.length > 0,
+  });
+
   const addProject = useMutation({
     mutationFn: async ({
       name,
@@ -206,6 +246,24 @@ export const useProjects = (userId?: string) => {
     },
   });
 
+  // Hjelpefunksjon: beregn total pausetid for en tidsoppføring
+  const calculatePausedSeconds = async (timeEntryId: string): Promise<number> => {
+    const { data: pauses, error } = await supabase
+      .from("time_entry_pauses")
+      .select("*")
+      .eq("time_entry_id", timeEntryId);
+
+    if (error || !pauses) return 0;
+
+    return pauses.reduce((total, pause) => {
+      const pauseStart = new Date(pause.paused_at).getTime();
+      const pauseEnd = pause.resumed_at
+        ? new Date(pause.resumed_at).getTime()
+        : Date.now(); // Hvis fortsatt pauset, regn til nå
+      return total + Math.floor((pauseEnd - pauseStart) / 1000);
+    }, 0);
+  };
+
   const toggleProject = useMutation({
     mutationFn: async ({
       projectId,
@@ -224,17 +282,32 @@ export const useProjects = (userId?: string) => {
       );
 
       if (activeEntry) {
+        // STOPP: Hvis timeren er pauset, avslutt pausen først
+        if (activeEntry.paused_at) {
+          const now = new Date().toISOString();
+          await supabase
+            .from("time_entry_pauses")
+            .update({ resumed_at: now })
+            .eq("time_entry_id", activeEntry.id)
+            .is("resumed_at", null);
+        }
+
         const endTime = new Date().toISOString();
         const startTime = new Date(activeEntry.start_time);
-        const duration = Math.floor(
+        const totalElapsed = Math.floor(
           (new Date(endTime).getTime() - startTime.getTime()) / 1000
         );
+
+        // Trekk fra total pausetid
+        const pausedSeconds = await calculatePausedSeconds(activeEntry.id);
+        const duration = Math.max(0, totalElapsed - pausedSeconds);
 
         const { error } = await supabase
           .from("time_entries")
           .update({
             end_time: endTime,
             duration_seconds: duration,
+            paused_at: null,
           })
           .eq("id", activeEntry.id);
 
@@ -254,11 +327,110 @@ export const useProjects = (userId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["time_entry_pauses"] });
     },
     onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "Feil ved tidssporing",
+        description: error.message,
+      });
+    },
+  });
+
+  const pauseTimer = useMutation({
+    mutationFn: async ({ projectId, pauseType = "general" }: { projectId: string; pauseType?: "general" | "breakfast" | "lunch" }) => {
+      if (!userId) throw new Error("Must be logged in");
+
+      const activeEntry = timeEntries.find(
+        (entry) =>
+          entry.project_id === projectId &&
+          entry.user_id === userId &&
+          !entry.end_time &&
+          !entry.paused_at
+      );
+
+      if (!activeEntry) throw new Error("Ingen aktiv timer å pause");
+
+      const now = new Date().toISOString();
+
+      // Opprett pause-oppføring med type
+      const { error: pauseError } = await supabase
+        .from("time_entry_pauses")
+        .insert({
+          time_entry_id: activeEntry.id,
+          paused_at: now,
+          pause_type: pauseType,
+        });
+
+      if (pauseError) throw pauseError;
+
+      // Marker tidsoppføringen som pauset
+      const { error: updateError } = await supabase
+        .from("time_entries")
+        .update({ paused_at: now })
+        .eq("id", activeEntry.id);
+
+      if (updateError) throw updateError;
+
+      return { action: "pause", entryId: activeEntry.id };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["time_entry_pauses"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Feil ved pause",
+        description: error.message,
+      });
+    },
+  });
+
+  const resumeTimer = useMutation({
+    mutationFn: async ({ projectId }: { projectId: string }) => {
+      if (!userId) throw new Error("Must be logged in");
+
+      const pausedEntry = timeEntries.find(
+        (entry) =>
+          entry.project_id === projectId &&
+          entry.user_id === userId &&
+          !entry.end_time &&
+          entry.paused_at
+      );
+
+      if (!pausedEntry) throw new Error("Ingen pauset timer å gjenoppta");
+
+      const now = new Date().toISOString();
+
+      // Avslutt den aktive pausen
+      const { error: pauseError } = await supabase
+        .from("time_entry_pauses")
+        .update({ resumed_at: now })
+        .eq("time_entry_id", pausedEntry.id)
+        .is("resumed_at", null);
+
+      if (pauseError) throw pauseError;
+
+      // Fjern paused_at fra tidsoppføringen
+      const { error: updateError } = await supabase
+        .from("time_entries")
+        .update({ paused_at: null })
+        .eq("id", pausedEntry.id);
+
+      if (updateError) throw updateError;
+
+      return { action: "resume", entryId: pausedEntry.id };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["time_entry_pauses"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Feil ved gjenopptakelse",
         description: error.message,
       });
     },
@@ -380,6 +552,140 @@ export const useProjects = (userId?: string) => {
     },
   });
 
+  const updateTimeEntry = useMutation({
+    mutationFn: async ({
+      entryId,
+      startTime,
+      endTime,
+      comment,
+    }: {
+      entryId: string;
+      startTime: string;
+      endTime: string;
+      comment?: string;
+    }) => {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      const duration = Math.floor((end.getTime() - start.getTime()) / 1000);
+
+      // Trekk fra pauser
+      const pausedSeconds = await calculatePausedSeconds(entryId);
+      const adjustedDuration = Math.max(0, duration - pausedSeconds);
+
+      const updateData: Record<string, unknown> = {
+        start_time: startTime,
+        end_time: endTime,
+        duration_seconds: adjustedDuration,
+      };
+      if (comment !== undefined) {
+        updateData.comment = comment;
+      }
+
+      const { error } = await supabase
+        .from("time_entries")
+        .update(updateData)
+        .eq("id", entryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      toast({ title: "Tidsregistrering oppdatert!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke oppdatere tidsregistrering",
+        description: error.message,
+      });
+    },
+  });
+
+  const updateDriveEntry = useMutation({
+    mutationFn: async ({
+      entryId,
+      kilometers,
+      comment,
+    }: {
+      entryId: string;
+      kilometers: number;
+      comment?: string;
+    }) => {
+      const updateData: Record<string, unknown> = {
+        kilometers,
+      };
+      // Lagre kommentar i route_data (enkleste uten ny kolonne)
+      if (comment !== undefined) {
+        const { data: existing } = await supabase
+          .from("drive_entries")
+          .select("route_data")
+          .eq("id", entryId)
+          .single();
+
+        updateData.route_data = {
+          ...(existing?.route_data as Record<string, unknown> || {}),
+          edit_comment: comment,
+          edited_at: new Date().toISOString(),
+        };
+      }
+
+      const { error } = await supabase
+        .from("drive_entries")
+        .update(updateData)
+        .eq("id", entryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drive_entries"] });
+      toast({ title: "Kjøreregistrering oppdatert!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke oppdatere kjøreregistrering",
+        description: error.message,
+      });
+    },
+  });
+
+  const updateMaterial = useMutation({
+    mutationFn: async ({
+      materialId,
+      name,
+      quantity,
+      unitPrice,
+    }: {
+      materialId: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+    }) => {
+      const { error } = await supabase
+        .from("materials")
+        .update({
+          name,
+          quantity,
+          unit_price: unitPrice,
+          total_price: quantity * unitPrice,
+        })
+        .eq("id", materialId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["materials"] });
+      toast({ title: "Materiale oppdatert!" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke oppdatere materiale",
+        description: error.message,
+      });
+    },
+  });
+
   const deleteProject = useMutation({
     mutationFn: async (projectId: string) => {
       const { error } = await supabase
@@ -400,6 +706,132 @@ export const useProjects = (userId?: string) => {
       toast({
         variant: "destructive",
         title: "Kunne ikke slette prosjekt",
+        description: error.message,
+      });
+    },
+  });
+
+  // ───────────────────────────────────────────────────────────
+  // Fase 4: Papirark-modus
+  // ───────────────────────────────────────────────────────────
+
+  /**
+   * Finn eller opprett brukerens personlige "Eget arbeid"-prosjekt.
+   * Brukes av papirark-modus når bruker registrerer timer uten å velge prosjekt.
+   * Konstant navn: "Eget arbeid". Skjult kundeinfo.
+   */
+  const SELF_PROJECT_NAME = "Eget arbeid";
+
+  const getOrCreateSelfProject = async (): Promise<string> => {
+    if (!userId) throw new Error("Må være innlogget");
+
+    const existing = projects.find((p) => p.name === SELF_PROJECT_NAME);
+    if (existing) return existing.id;
+
+    // Refresh session for å sikre gyldig JWT mot RLS
+    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !session) {
+      throw new Error("Sesjonen er utløpt. Logg inn på nytt.");
+    }
+
+    const { data, error } = await supabase.rpc("create_project", {
+      p_name: SELF_PROJECT_NAME,
+      p_color: "#6b7280",
+      p_customer_name: "—",
+      p_customer_address: "",
+      p_customer_phone: "",
+      p_customer_email: "",
+      p_contract_number: "",
+      p_description: "Auto-opprettet av appen for manuelle timer uten prosjekt.",
+      p_hide_customer_info: true,
+    });
+
+    if (error) throw error;
+    await queryClient.invalidateQueries({ queryKey: ["projects"] });
+    return (data as { id: string }).id;
+  };
+
+  /**
+   * Lagre én manuell tidsoppføring (papirark-modus).
+   * Hvis projectId mangler, opprettes/brukes "Eget arbeid"-prosjektet automatisk.
+   */
+  const addManualTimeEntry = useMutation({
+    mutationFn: async ({
+      projectId,
+      userName,
+      startTime,
+      endTime,
+      comment,
+      isOvertime,
+      overtimeRate,
+      compMethod,
+    }: {
+      projectId: string | null;
+      userName: string;
+      startTime: Date;
+      endTime: Date;
+      comment?: string;
+      isOvertime?: boolean;
+      overtimeRate?: number | null;
+      compMethod?: "money" | "avspasering" | null;
+    }) => {
+      if (!userId) throw new Error("Må være innlogget");
+
+      const targetProjectId = projectId || (await getOrCreateSelfProject());
+
+      const durationSec = Math.max(
+        0,
+        Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+      );
+
+      const { error } = await supabase.from("time_entries").insert({
+        project_id: targetProjectId,
+        user_id: userId,
+        user_name: userName,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        duration_seconds: durationSec,
+        is_manual: true,
+        comment: comment || null,
+        is_overtime: isOvertime ?? false,
+        overtime_rate: overtimeRate ?? null,
+        comp_method: compMethod ?? null,
+      });
+
+      if (error) throw error;
+      return { projectId: targetProjectId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({ title: "Timer lagt til" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke lagre timer",
+        description: error.message,
+      });
+    },
+  });
+
+  // Fase 5a: Slett en tidsregistrering (for \u00e5 fikse feiltastinger)
+  const deleteTimeEntry = useMutation({
+    mutationFn: async (entryId: string) => {
+      const { error } = await supabase
+        .from("time_entries")
+        .delete()
+        .eq("id", entryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time_entries"] });
+      toast({ title: "Tidsregistrering slettet" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke slette",
         description: error.message,
       });
     },
@@ -438,12 +870,24 @@ export const useProjects = (userId?: string) => {
     timeEntries,
     driveEntries,
     materials,
+    timeEntryPauses,
     isLoading,
     addProject: addProject.mutate,
     toggleProject: toggleProject.mutate,
+    pauseTimer: pauseTimer.mutate,
+    resumeTimer: resumeTimer.mutate,
     toggleDriving: toggleDriving.mutate,
     addMaterial: addMaterial.mutate,
+    updateTimeEntry: updateTimeEntry.mutate,
+    updateDriveEntry: updateDriveEntry.mutate,
+    updateMaterial: updateMaterial.mutate,
     deleteProject: deleteProject.mutate,
     toggleComplete: toggleComplete.mutate,
+    // Fase 4: Papirark-modus
+    addManualTimeEntry: addManualTimeEntry.mutate,
+    addManualTimeEntryAsync: addManualTimeEntry.mutateAsync,
+    // Fase 5a: Slett tidsregistrering
+    deleteTimeEntry: deleteTimeEntry.mutate,
+    deleteTimeEntryAsync: deleteTimeEntry.mutateAsync,
   };
 };

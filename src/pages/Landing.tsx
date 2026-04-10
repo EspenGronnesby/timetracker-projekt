@@ -13,6 +13,7 @@ import {
   Zap,
   Shield,
   Smartphone,
+  Quote,
 } from "lucide-react";
 
 /* ─── animation variants ─── */
@@ -113,6 +114,24 @@ const highlights = [
   },
 ];
 
+const testimonials = [
+  {
+    quote: "Endelig en app som er laget for oss som jobber på flere småjobber samtidig. Jeg slipper å skrive ned timer på papirlapper.",
+    author: "Ola",
+    role: "Tømrer",
+  },
+  {
+    quote: "Kjørelogg og materialer på samme sted som timer. Sparer meg en time om dagen.",
+    author: "Kari",
+    role: "Elektriker",
+  },
+  {
+    quote: "Lett å bruke i felten når hendene er skitne.",
+    author: "Per",
+    role: "Rørlegger",
+  },
+];
+
 /* ─── counter component ─── */
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -204,7 +223,7 @@ export default function Landing() {
   const springOpacity = useSpring(mobileCTAOpacity, { stiffness: 300, damping: 30 });
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="animate-fade-in min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* ─── Navbar ─── */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -225,7 +244,7 @@ export default function Landing() {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/auth")}
-            className="text-[13px] font-medium h-8 px-4 rounded-full"
+            className="text-[13px] font-medium h-11 px-4 rounded-xl transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Logg inn
           </Button>
@@ -257,7 +276,7 @@ export default function Landing() {
             <motion.h1
               variants={fadeUp}
               custom={1}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-[-0.03em]"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight"
             >
               Spar tid.
               <br />
@@ -279,7 +298,7 @@ export default function Landing() {
             >
               <Button
                 size="lg"
-                className="w-full sm:w-auto gap-2 text-[14px] font-medium px-8 h-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30"
+                className="w-full sm:w-auto gap-2 text-[14px] font-medium px-8 h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-150 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 onClick={() => navigate("/auth")}
               >
                 Kom i gang gratis
@@ -288,7 +307,7 @@ export default function Landing() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto text-[14px] font-medium px-8 h-12 rounded-full border-border/60 hover:bg-secondary/50 transition-all duration-300"
+                className="w-full sm:w-auto text-[14px] font-medium px-8 h-12 rounded-xl border-border/60 hover:bg-secondary/50 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 onClick={() => navigate("/auth")}
               >
                 Logg inn
@@ -350,7 +369,7 @@ export default function Landing() {
             <motion.p variants={fadeUp} custom={0} className="text-[12px] font-semibold text-primary tracking-widest uppercase">
               Funksjoner
             </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.02em]">
+            <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
               Alt du trenger.
               <br />
               <span className="text-muted-foreground">Ingenting du ikke trenger.</span>
@@ -373,7 +392,7 @@ export default function Landing() {
                   }`}
                 >
                   {/* Icon block */}
-                  <div className="flex-shrink-0 h-16 w-16 md:h-20 md:w-20 rounded-2xl bg-secondary/80 border border-border/50 flex items-center justify-center">
+                  <div className="flex-shrink-0 h-16 w-16 md:h-20 md:w-20 rounded-xl bg-secondary/80 border border-border/50 flex items-center justify-center">
                     <Icon className="h-7 w-7 md:h-9 md:w-9 text-primary" />
                   </div>
                   {/* Text */}
@@ -404,7 +423,7 @@ export default function Landing() {
             <motion.p variants={fadeUp} custom={0} className="text-[12px] font-semibold text-primary tracking-widest uppercase">
               Hvorfor TimeTracker
             </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.02em]">
+            <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
               Bygget for hverdagen din.
             </motion.h2>
           </motion.div>
@@ -420,9 +439,9 @@ export default function Landing() {
                   viewport={{ once: true, margin: "-60px" }}
                   variants={scaleIn}
                   custom={i}
-                  className="text-center space-y-4 p-6 rounded-2xl border border-border/40 bg-secondary/20 hover:bg-secondary/40 transition-colors duration-300"
+                  className="text-center space-y-4 p-6 rounded-xl border border-border/40 bg-secondary/20 hover:bg-secondary/40 transition-colors duration-150"
                 >
-                  <div className="mx-auto h-12 w-12 rounded-2xl bg-background border border-border/50 flex items-center justify-center">
+                  <div className="mx-auto h-12 w-12 rounded-xl bg-background border border-border/50 flex items-center justify-center">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="text-[16px] font-semibold tracking-tight">{item.title}</h3>
@@ -436,6 +455,46 @@ export default function Landing() {
         </div>
       </section>
 
+      <GrowingDivider />
+
+      {/* ─── Testimonials ─── */}
+      <section className="py-16 md:py-32 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            className="text-center mb-12 md:mb-16 space-y-3 md:space-y-4"
+          >
+            <motion.h2 variants={fadeUp} custom={0} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+              Hva håndverkere sier
+            </motion.h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6">
+            {testimonials.map((testimonial, i) => (
+              <motion.div
+                key={testimonial.author}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={scaleIn}
+                custom={i}
+                className="rounded-2xl border border-border/60 bg-card p-6 space-y-4"
+              >
+                <Quote className="h-6 w-6 text-primary/40" />
+                <p className="text-base leading-relaxed text-foreground">
+                  "{testimonial.quote}"
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {testimonial.author}, {testimonial.role}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── CTA ─── */}
       <section className="py-16 md:py-32 px-4 sm:px-6">
         <motion.div
@@ -444,7 +503,7 @@ export default function Landing() {
           viewport={{ once: true, margin: "-80px" }}
           className="max-w-2xl mx-auto text-center space-y-6 md:space-y-8"
         >
-          <motion.h2 variants={fadeUp} custom={0} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.02em]">
+          <motion.h2 variants={fadeUp} custom={0} className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
             Klar til å spare tid?
           </motion.h2>
           <motion.p variants={fadeUp} custom={1} className="text-muted-foreground text-sm md:text-[15px] font-light">
@@ -453,7 +512,7 @@ export default function Landing() {
           <motion.div variants={fadeUp} custom={2}>
             <Button
               size="lg"
-              className="w-full sm:w-auto gap-2 px-10 h-12 sm:h-13 rounded-full text-[14px] font-medium bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30"
+              className="w-full sm:w-auto gap-2 px-10 h-12 rounded-xl text-[14px] font-medium bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-150 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => navigate("/auth")}
             >
               Opprett konto
@@ -480,7 +539,7 @@ export default function Landing() {
         className="fixed bottom-0 left-0 right-0 z-50 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-background/90 backdrop-blur-lg border-t border-border/40 md:hidden"
       >
         <Button
-          className="w-full h-12 rounded-full text-[14px] font-medium bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2"
+          className="w-full h-12 rounded-xl text-[14px] font-medium bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           onClick={() => navigate("/auth")}
         >
           Kom i gang gratis

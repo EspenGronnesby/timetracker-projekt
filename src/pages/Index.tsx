@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { QuickStartProjectCard } from "@/components/QuickStartProjectCard";
+import { LightDashboard } from "@/components/LightDashboard";
+import { ActiveTimerBar } from "@/components/ActiveTimerBar";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
@@ -61,12 +63,18 @@ const Index = () => {
     timeEntries,
     driveEntries,
     materials,
+    timeEntryPauses,
     addProject,
     toggleProject,
+    pauseTimer,
+    resumeTimer,
     toggleDriving,
     addMaterial,
     deleteProject,
     toggleComplete,
+    addManualTimeEntryAsync,
+    deleteTimeEntryAsync,
+    updateTimeEntry,
   } = useProjects(user?.id);
 
   // Calculate filtered time entries
@@ -99,12 +107,20 @@ const Index = () => {
   const totalTime = myTimeEntries.reduce((acc, entry) => acc + entry.duration_seconds, 0);
 
   const activeTimeEntries = timeEntries.filter(
-    (entry) => entry.user_id === user?.id && !entry.end_time
+    (entry) => entry.user_id === user?.id && !entry.end_time && !entry.paused_at
+  );
+  const pausedTimeEntries = timeEntries.filter(
+    (entry) => entry.user_id === user?.id && !entry.end_time && entry.paused_at
   );
   const activeDriveEntries = driveEntries.filter(
     (entry) => entry.user_id === user?.id && !entry.end_time
   );
-  const activeCount = activeTimeEntries.length + activeDriveEntries.length;
+  const activeCount = activeTimeEntries.length + pausedTimeEntries.length + activeDriveEntries.length;
+
+  // Alle aktive/pausede entries for sorting
+  const allRunningTimeEntries = timeEntries.filter(
+    (entry) => entry.user_id === user?.id && !entry.end_time
+  );
 
   // Filter projects by status
   const statusFilteredProjects = useMemo(() => {
@@ -136,8 +152,8 @@ const Index = () => {
         });
       case "active":
         return list.sort((a, b) => {
-          const aActive = activeTimeEntries.some(e => e.project_id === a.id) || activeDriveEntries.some(e => e.project_id === a.id);
-          const bActive = activeTimeEntries.some(e => e.project_id === b.id) || activeDriveEntries.some(e => e.project_id === b.id);
+          const aActive = allRunningTimeEntries.some(e => e.project_id === a.id) || activeDriveEntries.some(e => e.project_id === a.id);
+          const bActive = allRunningTimeEntries.some(e => e.project_id === b.id) || activeDriveEntries.some(e => e.project_id === b.id);
           return (bActive ? 1 : 0) - (aActive ? 1 : 0);
         });
       case "recent":
@@ -145,37 +161,30 @@ const Index = () => {
       default:
         return list;
     }
-  }, [searchFilteredProjects, sortBy, timeEntries, activeTimeEntries, activeDriveEntries]);
+  }, [searchFilteredProjects, sortBy, timeEntries, allRunningTimeEntries, activeDriveEntries]);
 
   const activeProjectCount = projects.filter(p => !p.completed).length;
   const completedProjectCount = projects.filter(p => p.completed).length;
 
-  // Early return AFTER all hooks
-  if (loading || !user) {
-    return (
-      <div className="py-4 sm:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
-        <ProjectCardSkeleton />
-        <ProjectCardSkeleton />
-        <ProjectCardSkeleton />
-      </div>
-    );
-  }
-
+  // Handlers — definert før early returns slik at de er tilgjengelige for alle moduser
   const handleFilterChange = (period: FilterPeriod, range?: { from: Date; to: Date }) => {
     setFilterPeriod(period);
     if (range) setCustomRange(range);
   };
 
   const handleToggleProject = (projectId: string) => {
+    if (!profile) return;
     const isActive = activeTimeEntries.some((entry) => entry.project_id === projectId);
+    const isPaused = pausedTimeEntries.some((entry) => entry.project_id === projectId);
+    const isRunning = isActive || isPaused;
     toggleProject(
-      { projectId, userName: profile!.name },
+      { projectId, userName: profile.name },
       {
         onSuccess: () => {
-          trackPresence(!isActive, false);
+          trackPresence(!isRunning, false);
           handleSuccess(
-            isActive ? "Timer stoppet" : "Timer startet",
-            isActive ? "Tiden din er registrert" : "Tidtakingen har startet"
+            isRunning ? "Timer stoppet" : "Timer startet",
+            isRunning ? "Tiden din er registrert" : "Tidtakingen har startet"
           );
         },
         onError: (error: Error) => {
@@ -188,10 +197,41 @@ const Index = () => {
     );
   };
 
+  const handlePauseTimer = (projectId: string, pauseType?: "general" | "breakfast" | "lunch") => {
+    const labels: Record<string, string> = { general: "Pause", breakfast: "Frokostpause", lunch: "Lunsjpause" };
+    pauseTimer(
+      { projectId, pauseType },
+      {
+        onSuccess: () => {
+          handleSuccess(labels[pauseType || "general"] + " startet", "Trykk for å gjenoppta");
+        },
+        onError: (error: Error) => {
+          handleError(error, { title: "Kunne ikke pause timer" });
+        },
+      }
+    );
+  };
+
+  const handleResumeTimer = (projectId: string) => {
+    resumeTimer(
+      { projectId },
+      {
+        onSuccess: () => {
+          trackPresence(true, false);
+          handleSuccess("Timer gjenopptatt", "Tidtakingen fortsetter");
+        },
+        onError: (error: Error) => {
+          handleError(error, { title: "Kunne ikke gjenoppta timer" });
+        },
+      }
+    );
+  };
+
   const handleToggleDriving = (projectId: string, kilometers?: number, startLocation?: any, endLocation?: any, routeData?: any) => {
+    if (!profile) return;
     const isDriving = activeDriveEntries.some((entry) => entry.project_id === projectId);
     toggleDriving(
-      { projectId, userName: profile!.name, kilometers, startLocation, endLocation, routeData },
+      { projectId, userName: profile.name, kilometers, startLocation, endLocation, routeData },
       {
         onSuccess: () => {
           trackPresence(false, !isDriving);
@@ -214,11 +254,47 @@ const Index = () => {
     if (profile?.name) toggleProject({ projectId, userName: profile.name });
   };
 
+  // Early return AFTER all hooks and handlers
+  if (loading || !user) {
+    return (
+      <div className="py-4 sm:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
+        <ProjectCardSkeleton />
+        <ProjectCardSkeleton />
+        <ProjectCardSkeleton />
+      </div>
+    );
+  }
+
+  // Light-modus: Forenklet tidtaker-visning
+  if (profile?.app_mode === "light") {
+    return (
+      <LightDashboard
+        projects={projects}
+        timeEntries={timeEntries}
+        timeEntryPauses={timeEntryPauses}
+        userId={user.id}
+        userName={profile.name}
+        onToggleProject={handleToggleProject}
+        onPauseTimer={handlePauseTimer}
+        onResumeTimer={handleResumeTimer}
+        onAddManualEntry={addManualTimeEntryAsync}
+        normalHoursPerDay={profile?.normal_hours_per_day ?? 7.5}
+        defaultStartTime={profile?.default_start_time}
+        defaultEndTime={profile?.default_end_time}
+        defaultBreakfastTime={profile?.default_breakfast_time}
+        defaultLunchTime={profile?.default_lunch_time}
+        defaultBreakfastMin={profile?.default_breakfast_min}
+        defaultLunchMin={profile?.default_lunch_min}
+      />
+    );
+  }
+
   const renderProjectItem = (project: typeof projects[0]) => {
     const projectTimeEntries = filteredTimeEntries.filter((entry) => entry.project_id === project.id);
     const projectDriveEntries = driveEntries.filter((entry) => entry.project_id === project.id);
     const projectMaterials = materials.filter((material) => material.project_id === project.id);
     const isActive = activeTimeEntries.some((entry) => entry.project_id === project.id);
+    const isPaused = pausedTimeEntries.some((entry) => entry.project_id === project.id);
     const isDriving = activeDriveEntries.some((entry) => entry.project_id === project.id);
 
     if (viewMode === "list") {
@@ -231,8 +307,11 @@ const Index = () => {
           customerInfo={project.customer_name}
           teamMemberCount={projectMembers?.filter(m => m.project_id === project.id).length || 1}
           isActive={isActive}
+          isPaused={isPaused}
           isDriving={isDriving}
           onToggle={() => handleToggleProject(project.id)}
+          onPause={() => handlePauseTimer(project.id)}
+          onResume={() => handleResumeTimer(project.id)}
           onToggleDriving={(km, startLoc, endLoc, routeData) => handleToggleDriving(project.id, km, startLoc, endLoc, routeData)}
           onAddMaterial={(name, quantity, unitPrice) =>
             addMaterial({ projectId: project.id, userName: profile!.name, name, quantity, unitPrice })
@@ -251,8 +330,11 @@ const Index = () => {
         driveEntries={projectDriveEntries}
         materials={projectMaterials}
         isActive={isActive}
+        isPaused={isPaused}
         isDriving={isDriving}
         onToggle={() => handleToggleProject(project.id)}
+        onPause={() => handlePauseTimer(project.id)}
+        onResume={() => handleResumeTimer(project.id)}
         onToggleDriving={(km, startLoc, endLoc, routeData) => handleToggleDriving(project.id, km, startLoc, endLoc, routeData)}
         onAddMaterial={(name, quantity, unitPrice) =>
           addMaterial({ projectId: project.id, userName: profile!.name, name, quantity, unitPrice })
@@ -273,22 +355,52 @@ const Index = () => {
     <div className="py-4 sm:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
         <WeatherWidget />
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="p-4 sm:p-5">
-            <p className="text-xs text-muted-foreground font-medium mb-1">Prosjekter</p>
-            <p className="text-2xl sm:text-3xl font-bold tracking-tight">{projects?.length || 0}</p>
-          </Card>
-          <Card className="p-4 sm:p-5">
-            <p className="text-xs text-muted-foreground font-medium mb-1">Aktive nå</p>
-            <p className="text-2xl sm:text-3xl font-bold tracking-tight">{activeCount}</p>
-          </Card>
-          <Card className="p-4 sm:p-5">
-            <p className="text-xs text-muted-foreground font-medium mb-1">Total tid</p>
-            <p className="text-2xl sm:text-3xl font-bold tracking-tight">
-              {Math.floor(totalTime / 3600)}h {Math.floor((totalTime % 3600) / 60)}m
-            </p>
-          </Card>
+        {/* Sticky aktiv timer bar */}
+        {(() => {
+          const runningEntry = timeEntries.find(
+            (e) => e.user_id === user?.id && !e.end_time
+          );
+          if (!runningEntry) return null;
+          const project = projects.find((p) => p.id === runningEntry.project_id);
+          if (!project) return null;
+          return (
+            <ActiveTimerBar
+              projectName={project.name}
+              projectColor={project.color}
+              startTime={runningEntry.start_time}
+              isPaused={!!runningEntry.paused_at}
+              onPause={() => handlePauseTimer(runningEntry.project_id)}
+              onResume={() => handleResumeTimer(runningEntry.project_id)}
+              onStop={() => handleToggleProject(runningEntry.project_id)}
+            />
+          );
+        })()}
+
+        {/* Stats — KPI Strip */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
+            <div className="h-8 w-8 rounded bg-blue-500/20 flex items-center justify-center text-blue-600 text-sm font-semibold">📊</div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prosjekter</p>
+              <p className="text-lg font-bold tabular-nums">{projects?.length || 0}</p>
+            </div>
+          </div>
+          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
+            <div className={`h-8 w-8 rounded flex items-center justify-center text-sm font-semibold ${activeCount > 0 ? "bg-green-500/20 text-green-600" : "bg-slate-200/40 text-slate-500"}`}>⚡</div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Aktive nå</p>
+              <p className={`text-lg font-bold tabular-nums ${activeCount > 0 ? "text-green-600" : ""}`}>{activeCount}</p>
+            </div>
+          </div>
+          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
+            <div className="h-8 w-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-600 text-sm font-semibold">🕐</div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total tid</p>
+              <p className="text-lg font-bold tabular-nums">
+                {Math.floor(totalTime / 3600)}:{Math.floor((totalTime % 3600) / 60).toString().padStart(2, "0")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Søk + Filter */}
