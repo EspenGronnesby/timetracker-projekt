@@ -2,14 +2,35 @@ import { useState, useEffect } from "react";
 import { Pause, Square, Play } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 
+interface PauseInterval {
+  paused_at: string;
+  resumed_at: string | null;
+}
+
 interface ActiveTimerBarProps {
   projectName: string;
   projectColor: string;
   startTime: string;
   isPaused: boolean;
+  /** Fullførte og pågående pauseintervaller for denne tidsregistreringen */
+  pauses?: PauseInterval[];
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+}
+
+/**
+ * Beregn totalt antall sekunder brukt i pauser.
+ * Fullførte pauser: resumed_at - paused_at
+ * Pågående pause: now - paused_at
+ */
+function totalPausedSeconds(pauses: PauseInterval[]): number {
+  const now = Date.now();
+  return pauses.reduce((sum, p) => {
+    const start = new Date(p.paused_at).getTime();
+    const end = p.resumed_at ? new Date(p.resumed_at).getTime() : now;
+    return sum + Math.max(0, end - start);
+  }, 0) / 1000;
 }
 
 export const ActiveTimerBar = ({
@@ -17,6 +38,7 @@ export const ActiveTimerBar = ({
   projectColor,
   startTime,
   isPaused,
+  pauses = [],
   onPause,
   onResume,
   onStop,
@@ -24,15 +46,17 @@ export const ActiveTimerBar = ({
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    if (isPaused) return;
-
     const update = () => {
-      setElapsed(Math.floor((Date.now() - new Date(startTime).getTime()) / 1000));
+      const totalSec = Math.floor((Date.now() - new Date(startTime).getTime()) / 1000);
+      const pausedSec = Math.floor(totalPausedSeconds(pauses));
+      setElapsed(Math.max(0, totalSec - pausedSec));
     };
     update();
+
+    // Oppdater hvert sekund selv under pause (pågående pause øker pausedSec)
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [startTime, isPaused]);
+  }, [startTime, isPaused, pauses]);
 
   const h = Math.floor(elapsed / 3600);
   const m = Math.floor((elapsed % 3600) / 60);
