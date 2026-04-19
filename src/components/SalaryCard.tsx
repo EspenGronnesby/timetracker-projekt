@@ -103,25 +103,29 @@ export function SalaryCard({ timeEntries, userId }: SalaryCardProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Denne uka */}
-        <div>
-          <p className="text-caption text-muted-foreground mb-1">Denne uka</p>
+      <div className="flex flex-col gap-3">
+        {/* Denne uken */}
+        <div className="rounded-xl border border-border/40 bg-background/40 p-4">
+          <p className="text-xs uppercase tracking-[0.14em] font-semibold text-muted-foreground mb-2">
+            Denne uken
+          </p>
           <p className="text-title font-semibold tabular-nums">
             {formatNok(weekSalary.netNok)}
           </p>
-          <p className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
+          <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
             {formatHours(weekSalary.hours)} · brutto {formatNok(weekSalary.grossNok)}
           </p>
         </div>
 
         {/* Denne måneden */}
-        <div>
-          <p className="text-caption text-muted-foreground mb-1">Denne måneden</p>
+        <div className="rounded-xl border border-border/40 bg-background/40 p-4">
+          <p className="text-xs uppercase tracking-[0.14em] font-semibold text-muted-foreground mb-2">
+            Denne måneden
+          </p>
           <p className="text-title font-semibold tabular-nums">
             {formatNok(monthSalary.netNok)}
           </p>
-          <p className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
+          <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
             {formatHours(monthSalary.hours)} · brutto {formatNok(monthSalary.grossNok)}
           </p>
         </div>

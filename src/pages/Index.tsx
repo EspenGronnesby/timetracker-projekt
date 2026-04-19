@@ -9,6 +9,7 @@ import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { SalaryCard } from "@/components/SalaryCard";
 import { FilterDrawer } from "@/components/FilterDrawer";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -354,6 +355,9 @@ const Index = () => {
   return (
     <div className="py-4 sm:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
         <WeatherWidget />
+
+        {/* Min lønn — tydelig splittet mellom uke og måned */}
+        {user?.id && <SalaryCard timeEntries={timeEntries} userId={user.id} />}
 
         {/* Sticky aktiv timer bar */}
         {(() => {

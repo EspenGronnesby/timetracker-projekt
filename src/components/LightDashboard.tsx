@@ -7,6 +7,7 @@ import { haptic } from "@/lib/haptics";
 import { PaperSheetDialog } from "@/components/PaperSheetDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
+import { WeatherWidget } from "@/components/WeatherWidget";
 
 interface LightDashboardProps {
   projects: Project[];
@@ -313,6 +314,9 @@ export const LightDashboard = ({
 
   return (
     <div className={`flex flex-col min-h-[calc(100dvh-8rem)] px-4 sm:px-6 max-w-lg mx-auto animate-fade-in ${isActive ? "pt-2" : "pt-6"}`}>
+
+      {/* ─── Vær (gated på show_weather_widget i profile) ─── */}
+      <WeatherWidget />
 
       {/* ─── Prosjekt ─── */}
       {activeProjects.length <= 1 ? (

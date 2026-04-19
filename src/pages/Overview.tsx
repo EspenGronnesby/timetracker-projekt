@@ -305,8 +305,8 @@ export default function Overview() {
         </CardContent>
       </Card>
 
-      {/* Three stat cards: Lønn, Kjøring, Overtid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Stat cards: Lønn, Kjøring (valgfri), Overtid */}
+      <div className={`grid grid-cols-1 gap-3 ${profile?.show_driving_card !== false ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {/* Lønn card */}
         <Card className="bg-emerald-500/5 border-emerald-500/20">
           <CardContent className="pt-4">
@@ -329,27 +329,29 @@ export default function Overview() {
           </CardContent>
         </Card>
 
-        {/* Kjøring card */}
-        <Card className="bg-sky-500/5 border-sky-500/20">
-          <CardContent className="pt-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                  Kjøring
-                </p>
-                <p className="text-2xl font-bold tabular-nums text-sky-700 dark:text-sky-300">
-                  {Math.round(weekKilometers)} km
-                </p>
-                <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                  {weekDriveEntries.length} kjøreturer
-                </p>
+        {/* Kjøring card — skjulbar via profile.show_driving_card */}
+        {profile?.show_driving_card !== false && (
+          <Card className="bg-sky-500/5 border-sky-500/20">
+            <CardContent className="pt-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
+                    Kjøring
+                  </p>
+                  <p className="text-2xl font-bold tabular-nums text-sky-700 dark:text-sky-300">
+                    {Math.round(weekKilometers)} km
+                  </p>
+                  <p className="text-xs text-muted-foreground tabular-nums mt-1">
+                    {weekDriveEntries.length} kjøreturer
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-sky-500/10 flex-shrink-0">
+                  <Car className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+                </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-sky-500/10 flex-shrink-0">
-                <Car className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Overtid card */}
         <Card className="bg-orange-500/5 border-orange-500/20">

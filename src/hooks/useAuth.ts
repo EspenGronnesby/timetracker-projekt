@@ -33,6 +33,10 @@ interface Profile {
   default_lunch_time?: string | null;
   default_breakfast_min?: number | null;
   default_lunch_min?: number | null;
+  // Fase 6: Automatisk tidsplan — start/pause/stopp timer automatisk
+  auto_schedule_enabled?: boolean;
+  // Kjøring-kort på Min oversikt (skjulbart, default true)
+  show_driving_card?: boolean;
 }
 
 export const useAuth = () => {
