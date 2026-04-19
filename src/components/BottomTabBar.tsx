@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, StickyNote, MoreHorizontal, Clock, CalendarDays, BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,20 +55,31 @@ export function BottomTabBar() {
               key={tab.path}
               onClick={() => { navigate(tab.path); haptic("light"); }}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full select-none pressable transition-all duration-200",
+                "relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full select-none pressable transition-colors duration-200",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground/60 hover:text-muted-foreground"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-[22px] w-[22px] transition-all duration-200",
-                  isActive && "stroke-[2.5] scale-105"
+              {/* Animated active pill — glides between tabs via shared layoutId */}
+              <div className="relative flex items-center justify-center h-7 w-12">
+                {isActive && (
+                  <motion.span
+                    layoutId="bottom-tab-pill"
+                    className="absolute inset-0 rounded-full bg-primary/12"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    aria-hidden
+                  />
                 )}
-              />
+                <Icon
+                  className={cn(
+                    "h-[22px] w-[22px] relative transition-transform duration-200 motion-reduce:transition-none",
+                    isActive && "stroke-[2.5] scale-110"
+                  )}
+                />
+              </div>
               <span className={cn(
-                "text-[11px] transition-all duration-200 font-medium opacity-100",
+                "text-[11px] font-medium transition-colors duration-200",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground/60"

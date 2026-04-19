@@ -445,9 +445,9 @@ export const LightDashboard = ({
 
           {/* Progress */}
           <div className={`w-full max-w-[280px] mb-1 ${isActive ? "mt-4" : "mt-6"}`}>
-            <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
+            <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
               <div
-                className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                className="h-full rounded-full bg-gradient-to-r from-primary/70 via-primary to-primary/90 transition-[width] duration-700 ease-out motion-reduce:transition-none shadow-sm shadow-primary/20"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -460,9 +460,12 @@ export const LightDashboard = ({
           {/* Status */}
           <div className={`min-h-[20px] ${isActive ? "mt-2" : "mt-3"}`}>
             {isActive && (
-              <p className="text-sm text-green-500 font-semibold animate-timer-pulse motion-reduce:animate-none">
-                På jobb siden {fmtTime(new Date(activeEntry!.start_time))}
-              </p>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-timer-pulse motion-reduce:animate-none" />
+                <p className="text-xs text-green-700 dark:text-green-400 font-semibold">
+                  På jobb siden {fmtTime(new Date(activeEntry!.start_time))}
+                </p>
+              </div>
             )}
             {!isRunning && todayEntries.length === 0 && (
               <p className="text-sm text-muted-foreground">Klar til å starte dagen</p>
