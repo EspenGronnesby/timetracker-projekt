@@ -46,6 +46,46 @@ import {
   type TimeEntryLite,
 } from "@/lib/overtime";
 import { formatNok, formatHours } from "@/lib/salary";
+import { useCountUp } from "@/hooks/useCountUp";
+
+// Capitalize ukedag-forkortelse fra date-fns ("man." → "Man")
+const fmtWeekday = (d: Date) =>
+  format(d, "EEE", { locale: nb })
+    .replace(".", "")
+    .replace(/^(.)/, (c) => c.toUpperCase());
+
+// Custom tooltip — viser dato, total, og breakdown med farge-prikker
+type ChartTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number; color?: string; payload?: { day: string; total: number } }>;
+  label?: string;
+};
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  const total = payload[0]?.payload?.total ?? 0;
+  return (
+    <div className="rounded-xl border border-border/40 bg-card/95 backdrop-blur-sm shadow-lg px-3 py-2.5 text-xs">
+      <p className="font-semibold mb-1.5">{label}</p>
+      <p className="tabular-nums text-foreground/90 mb-1.5">
+        Totalt: <span className="font-semibold">{formatHours(total, "short")}</span>
+      </p>
+      <div className="space-y-1">
+        {payload.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 tabular-nums">
+            <span
+              className="h-2 w-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: p.color }}
+            />
+            <span className="text-muted-foreground">
+              {p.name === "normal" ? "Normal" : "Overtid"}
+            </span>
+            <span className="ml-auto font-medium">{formatHours(p.value ?? 0, "short")}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Overview() {
   const { user, loading, profile } = useAuth();
@@ -161,6 +201,12 @@ export default function Overview() {
     [entriesLite]
   );
 
+  // Animerte verdier for KPI-kort (ruller opp ved sidelaste / data-endring)
+  const animatedHours = useCountUp(weekTotalHours);
+  const animatedNet = useCountUp(weekNet);
+  const animatedKm = useCountUp(weekKilometers);
+  const animatedOvertime = useCountUp(weekOt.overtimeHours);
+
   // Bar chart data
   const chartData = useMemo(() => {
     const data = [];
@@ -181,7 +227,7 @@ export default function Overview() {
       const overtimeHours = Math.max(0, dayHours - config.normalHoursPerDay);
 
       data.push({
-        day: format(dayDate, "EEE", { locale: nb }),
+        day: fmtWeekday(dayDate),
         normal: parseFloat(normalHours.toFixed(2)),
         overtime: parseFloat(overtimeHours.toFixed(2)),
         total: parseFloat(dayHours.toFixed(2)),
@@ -224,7 +270,7 @@ export default function Overview() {
                   sette opp timesats og skatteprosent i innstillinger.
                 </p>
                 <Button
-                  onClick={() => navigate("/settings")}
+                  onClick={() => navigate("/more/work")}
                   className="gap-1.5 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100"
                 >
                   <SettingsIcon className="h-4 w-4" />
@@ -250,7 +296,7 @@ export default function Overview() {
       </div>
 
       {/* Hero: This week's hours */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/2 border-primary/20">
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/2 border-primary/20 transition-all duration-200 hover:shadow-md hover:border-primary/30">
         <CardContent className="pt-6">
           <div className="flex items-start justify-between">
             <div>
@@ -259,7 +305,7 @@ export default function Overview() {
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter leading-none">
-                  {Math.floor(weekTotalHours)}
+                  {Math.floor(animatedHours)}
                 </span>
                 <span className="text-2xl font-semibold text-muted-foreground">t</span>
               </div>
@@ -308,7 +354,7 @@ export default function Overview() {
       {/* Stat cards: Lønn, Kjøring (valgfri), Overtid */}
       <div className={`grid grid-cols-1 gap-3 ${profile?.show_driving_card !== false ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {/* Lønn card */}
-        <Card className="bg-emerald-500/5 border-emerald-500/20">
+        <Card className="bg-emerald-500/5 border-emerald-500/20 transition-all duration-200 hover:shadow-md hover:border-emerald-500/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
           <CardContent className="pt-4">
             <div className="flex items-start justify-between">
               <div>
@@ -316,7 +362,7 @@ export default function Overview() {
                   Lønn (netto)
                 </p>
                 <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-                  {formatNok(weekNet)}
+                  {formatNok(animatedNet)}
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums mt-1">
                   brutto {formatNok(weekGross)}
@@ -331,7 +377,7 @@ export default function Overview() {
 
         {/* Kjøring card — skjulbar via profile.show_driving_card */}
         {profile?.show_driving_card !== false && (
-          <Card className="bg-sky-500/5 border-sky-500/20">
+          <Card className="bg-sky-500/5 border-sky-500/20 transition-all duration-200 hover:shadow-md hover:border-sky-500/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
             <CardContent className="pt-4">
               <div className="flex items-start justify-between">
                 <div>
@@ -339,7 +385,7 @@ export default function Overview() {
                     Kjøring
                   </p>
                   <p className="text-2xl font-bold tabular-nums text-sky-700 dark:text-sky-300">
-                    {Math.round(weekKilometers)} km
+                    {Math.round(animatedKm)} km
                   </p>
                   <p className="text-xs text-muted-foreground tabular-nums mt-1">
                     {weekDriveEntries.length} kjøreturer
@@ -354,7 +400,7 @@ export default function Overview() {
         )}
 
         {/* Overtid card */}
-        <Card className="bg-orange-500/5 border-orange-500/20">
+        <Card className="bg-orange-500/5 border-orange-500/20 transition-all duration-200 hover:shadow-md hover:border-orange-500/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
           <CardContent className="pt-4">
             <div className="flex items-start justify-between">
               <div>
@@ -362,7 +408,7 @@ export default function Overview() {
                   Overtid
                 </p>
                 <p className="text-2xl font-bold tabular-nums text-orange-700 dark:text-orange-300">
-                  {formatHours(weekOt.overtimeHours, "short")}
+                  {formatHours(animatedOvertime, "short")}
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums mt-1">
                   50%: {formatHours(weekOt.rate50Hours, "short")} · 100%: {formatHours(weekOt.rate100Hours, "short")}
@@ -385,31 +431,46 @@ export default function Overview() {
         </CardHeader>
         <CardContent>
           {chartData.some((d) => d.total > 0) ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="normalGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
+                  </linearGradient>
+                  <linearGradient id="overtimeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(24, 95%, 53%)" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="hsl(24, 95%, 53%)" stopOpacity={0.45} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border) / 0.4)"
+                />
                 <XAxis
                   dataKey="day"
-                  stroke="var(--muted-foreground)"
+                  stroke="hsl(var(--muted-foreground))"
+                  tickLine={false}
+                  axisLine={false}
                   style={{ fontSize: "12px" }}
                 />
                 <YAxis
-                  stroke="var(--muted-foreground)"
-                  style={{ fontSize: "12px" }}
+                  stroke="hsl(var(--muted-foreground))"
+                  tickLine={false}
+                  axisLine={false}
+                  width={36}
+                  style={{ fontSize: "11px" }}
+                  tickFormatter={(v: number) => `${v}t`}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "0.5rem",
-                    padding: "8px 12px",
-                  }}
-                  labelStyle={{ color: "var(--foreground)" }}
-                  formatter={(value: number) => [formatHours(value, "short"), ""]}
-                  labelFormatter={(label) => `${label}`}
+                  cursor={{ fill: "hsl(var(--muted) / 0.4)", radius: 6 }}
+                  content={<ChartTooltip />}
                 />
                 <Legend
-                  wrapperStyle={{ paddingTop: "16px" }}
+                  wrapperStyle={{ paddingTop: "12px", fontSize: "12px" }}
+                  iconType="circle"
+                  iconSize={8}
                   formatter={(value) =>
                     value === "normal" ? "Normal" : "Overtid"
                   }
@@ -417,16 +478,20 @@ export default function Overview() {
                 <Bar
                   dataKey="normal"
                   stackId="hours"
-                  fill="hsl(var(--primary))"
+                  fill="url(#normalGradient)"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
                 <Bar
                   dataKey="overtime"
                   stackId="hours"
-                  fill="hsl(24, 95%, 53%)"
+                  fill="url(#overtimeGradient)"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -476,16 +541,47 @@ export default function Overview() {
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
                 Overtid-fordeling
               </p>
-              <div className="space-y-1.5 mb-4 bg-muted/30 rounded-lg p-2">
-                <div className="flex justify-between text-xs">
-                  <span>50%-tillegg</span>
-                  <span className="font-mono font-medium">{formatHours(monthOt.rate50Hours, "short")}</span>
+              {monthOt.rate50Hours + monthOt.rate100Hours > 0 ? (
+                <div className="mb-4">
+                  {/* Stacked horisontal bar */}
+                  <div className="flex h-2 rounded-full overflow-hidden bg-muted/40 mb-2.5">
+                    {monthOt.rate50Hours > 0 && (
+                      <div
+                        className="bg-orange-400/80 h-full transition-all duration-700 motion-reduce:transition-none"
+                        style={{
+                          flexGrow: monthOt.rate50Hours,
+                        }}
+                        aria-label={`50% tillegg: ${formatHours(monthOt.rate50Hours, "short")}`}
+                      />
+                    )}
+                    {monthOt.rate100Hours > 0 && (
+                      <div
+                        className="bg-red-500/80 h-full transition-all duration-700 motion-reduce:transition-none"
+                        style={{
+                          flexGrow: monthOt.rate100Hours,
+                        }}
+                        aria-label={`100% tillegg: ${formatHours(monthOt.rate100Hours, "short")}`}
+                      />
+                    )}
+                  </div>
+                  <div className="flex justify-between gap-2 text-[11px] tabular-nums">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-orange-400/80" />
+                      <span className="text-muted-foreground">50%</span>
+                      <span className="font-medium">{formatHours(monthOt.rate50Hours, "short")}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-red-500/80" />
+                      <span className="text-muted-foreground">100%</span>
+                      <span className="font-medium">{formatHours(monthOt.rate100Hours, "short")}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span>100%-tillegg</span>
-                  <span className="font-mono font-medium">{formatHours(monthOt.rate100Hours, "short")}</span>
-                </div>
-              </div>
+              ) : (
+                <p className="text-xs text-muted-foreground/80 italic mb-4">
+                  Ingen overtid denne måneden
+                </p>
+              )}
 
               {avspaseringHours > 0 && (
                 <>

@@ -23,6 +23,7 @@ const Work = () => {
   const [defaultBreakfastMin, setDefaultBreakfastMin] = useState<string>("20");
   const [defaultLunchMin, setDefaultLunchMin] = useState<string>("30");
   const [autoScheduleEnabled, setAutoScheduleEnabled] = useState<boolean>(false);
+  const [autoScheduleDays, setAutoScheduleDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   useEffect(() => {
     if (profile) {
@@ -49,6 +50,11 @@ const Work = () => {
         profile.default_lunch_min != null ? String(profile.default_lunch_min) : "30"
       );
       setAutoScheduleEnabled(profile.auto_schedule_enabled === true);
+      setAutoScheduleDays(
+        Array.isArray(profile.auto_schedule_days) && profile.auto_schedule_days.length > 0
+          ? profile.auto_schedule_days
+          : [1, 2, 3, 4, 5]
+      );
     }
   }, [profile]);
 
@@ -331,9 +337,56 @@ const Work = () => {
             aria-label="Slå på automatisk tidsplan"
           />
         </div>
-        <p className="text-sm text-muted-foreground">
-          Start, pause og avslutt arbeidsdagen automatisk basert på tidene over. Fungerer mandag til fredag mens appen er åpen. Du kan fortsatt stoppe eller pause manuelt når som helst.
+        <p className="text-sm text-muted-foreground mb-4">
+          Start, pause og avslutt arbeidsdagen automatisk basert på tidene over. Du kan fortsatt stoppe eller pause manuelt når som helst. Krever at appen er åpen.
         </p>
+
+        {autoScheduleEnabled && (
+          <div className="border-t border-border/30 pt-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
+              Aktive dager
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { day: 1, label: "Man" },
+                { day: 2, label: "Tir" },
+                { day: 3, label: "Ons" },
+                { day: 4, label: "Tor" },
+                { day: 5, label: "Fre" },
+                { day: 6, label: "Lør" },
+                { day: 0, label: "Søn" },
+              ].map(({ day, label }) => {
+                const active = autoScheduleDays.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      const next = active
+                        ? autoScheduleDays.filter((d) => d !== day)
+                        : [...autoScheduleDays, day].sort((a, b) => a - b);
+                      setAutoScheduleDays(next);
+                      saveSetting("auto_schedule_days", next);
+                    }}
+                    aria-pressed={active}
+                    className={`min-w-[52px] h-10 px-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {autoScheduleDays.length === 0 && (
+              <p className="text-xs text-amber-600 mt-3">
+                Velg minst én dag, ellers vil ikke automatikken kjøre.
+              </p>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );

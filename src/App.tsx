@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -16,7 +16,6 @@ import "./App.css";
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const JoinProject = lazy(() => import("./pages/JoinProject"));
-const Settings = lazy(() => import("./pages/Settings"));
 const Goals = lazy(() => import("./pages/Goals"));
 const More = lazy(() => import("./pages/More"));
 const Overview = lazy(() => import("./pages/Overview"));
@@ -69,7 +68,8 @@ const App = () => (
                 <Route path="/more/work" element={<MoreWork />} />
                 <Route path="/more/appearance" element={<MoreAppearance />} />
                 <Route path="/more/notifications" element={<MoreNotifications />} />
-                <Route path="/settings" element={<Settings />} />
+                {/* /settings er fjernet — Utseende-siden er nå eneste sted for app-modus + tema */}
+                <Route path="/settings" element={<Navigate to="/more/appearance" replace />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/simple" element={<SimpleTimer />} />
                 <Route path="/simple/history" element={<SimpleHistory />} />
