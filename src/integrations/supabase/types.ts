@@ -984,6 +984,10 @@ export type Database = {
             Args: { project_created_by: string; project_org_id: string }
             Returns: boolean
           }
+      can_view_project_customer_contact: {
+        Args: { _project_id: string }
+        Returns: boolean
+      }
       create_project:
         | {
             Args: {
@@ -1054,6 +1058,14 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      get_project_customer_contact: {
+        Args: { _project_id: string }
+        Returns: {
+          customer_address: string
+          customer_email: string
+          customer_phone: string
+        }[]
+      }
       get_user_organization: { Args: { user_id: string }; Returns: string }
       has_role: {
         Args: {
