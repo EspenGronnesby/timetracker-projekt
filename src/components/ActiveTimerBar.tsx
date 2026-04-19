@@ -64,12 +64,27 @@ export const ActiveTimerBar = ({
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   return (
-    <div className="glass-card rounded-xl mx-4 mb-3 px-4 py-3 flex items-center gap-3 animate-fade-in">
-      {/* Prosjekt-indikator */}
-      <div
-        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isPaused ? "" : "animate-timer-pulse"}`}
-        style={{ backgroundColor: projectColor }}
-      />
+    <div
+      className="relative glass-card rounded-xl mx-4 mb-3 px-4 py-3 flex items-center gap-3 animate-fade-in overflow-hidden transition-shadow duration-200 hover:shadow-md"
+      style={{
+        // Subtil tint i venstre kant basert på prosjektets farge
+        backgroundImage: `linear-gradient(to right, ${projectColor}14 0%, transparent 35%)`,
+      }}
+    >
+      {/* Prosjekt-indikator med glow */}
+      <div className="relative flex-shrink-0 flex items-center justify-center">
+        {!isPaused && (
+          <span
+            aria-hidden
+            className="absolute h-5 w-5 rounded-full opacity-50 animate-soft-glow motion-reduce:animate-none"
+            style={{ backgroundColor: projectColor }}
+          />
+        )}
+        <div
+          className={`relative w-2.5 h-2.5 rounded-full ${isPaused ? "" : "animate-timer-pulse motion-reduce:animate-none"}`}
+          style={{ backgroundColor: projectColor }}
+        />
+      </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
@@ -86,21 +101,24 @@ export const ActiveTimerBar = ({
         {isPaused ? (
           <button
             onClick={() => { onResume(); haptic("medium"); }}
-            className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center pressable"
+            className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center pressable shadow-sm shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow"
+            aria-label="Gjenoppta timer"
           >
-            <Play className="h-3.5 w-3.5 text-white ml-0.5" />
+            <Play className="h-3.5 w-3.5 text-white ml-0.5 fill-white" />
           </button>
         ) : (
           <button
             onClick={() => { onPause(); haptic("light"); }}
-            className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center pressable"
+            className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center pressable shadow-sm shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-shadow"
+            aria-label="Pause timer"
           >
             <Pause className="h-3.5 w-3.5 text-white" />
           </button>
         )}
         <button
           onClick={() => { onStop(); haptic("heavy"); }}
-          className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center pressable hover:bg-red-500 hover:text-white transition-colors"
+          className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center pressable hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors"
+          aria-label="Stopp timer"
         >
           <Square className="h-3 w-3 text-red-500" />
         </button>

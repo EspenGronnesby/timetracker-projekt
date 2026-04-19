@@ -88,7 +88,10 @@ export function AppShell() {
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
-            <h1 className="text-lg font-semibold tracking-tight truncate">
+            <h1
+              key={title}
+              className="text-lg font-semibold tracking-tight truncate animate-fade-in"
+            >
               {title}
             </h1>
           </div>

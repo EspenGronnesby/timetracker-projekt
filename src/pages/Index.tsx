@@ -11,7 +11,8 @@ import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { SalaryCard } from "@/components/SalaryCard";
 import { FilterDrawer } from "@/components/FilterDrawer";
-import { Search } from "lucide-react";
+import { Search, FolderKanban, Zap, Clock } from "lucide-react";
+import { useCountUp } from "@/hooks/useCountUp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -117,6 +118,11 @@ const Index = () => {
     (entry) => entry.user_id === user?.id && !entry.end_time
   );
   const activeCount = activeTimeEntries.length + pausedTimeEntries.length + activeDriveEntries.length;
+
+  // Animerte tall for KPI-stripen
+  const animatedProjectCount = useCountUp(projects?.length || 0);
+  const animatedActiveCount = useCountUp(activeCount);
+  const animatedTotalHours = useCountUp(totalTime / 3600);
 
   // Alle aktive/pausede entries for sorting
   const allRunningTimeEntries = timeEntries.filter(
@@ -382,26 +388,40 @@ const Index = () => {
 
         {/* Stats — KPI Strip */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
-            <div className="h-8 w-8 rounded bg-blue-500/20 flex items-center justify-center text-blue-600 text-sm font-semibold">📊</div>
+          <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 flex items-center gap-2.5 transition-all duration-200 hover:shadow-md hover:border-blue-500/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
+            <div className="h-9 w-9 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+              <FolderKanban className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prosjekter</p>
-              <p className="text-lg font-bold tabular-nums">{projects?.length || 0}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Prosjekter</p>
+              <p className="text-lg font-bold tabular-nums leading-tight">{Math.round(animatedProjectCount)}</p>
             </div>
           </div>
-          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
-            <div className={`h-8 w-8 rounded flex items-center justify-center text-sm font-semibold ${activeCount > 0 ? "bg-green-500/20 text-green-600" : "bg-slate-200/40 text-slate-500"}`}>⚡</div>
+          <div className={`rounded-xl border p-3 flex items-center gap-2.5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 ${
+            activeCount > 0
+              ? "border-green-500/20 bg-green-500/5 hover:border-green-500/30"
+              : "border-border/40 bg-muted/20 hover:border-border/60"
+          }`}>
+            <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              activeCount > 0 ? "bg-green-500/15" : "bg-muted"
+            }`}>
+              <Zap className={`h-4 w-4 ${activeCount > 0 ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`} />
+            </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Aktive nå</p>
-              <p className={`text-lg font-bold tabular-nums ${activeCount > 0 ? "text-green-600" : ""}`}>{activeCount}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Aktive nå</p>
+              <p className={`text-lg font-bold tabular-nums leading-tight ${activeCount > 0 ? "text-green-700 dark:text-green-300" : ""}`}>
+                {Math.round(animatedActiveCount)}
+              </p>
             </div>
           </div>
-          <div className="border border-border/60 bg-muted/20 rounded-lg p-3 flex items-center gap-2">
-            <div className="h-8 w-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-600 text-sm font-semibold">🕐</div>
+          <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 flex items-center gap-2.5 transition-all duration-200 hover:shadow-md hover:border-purple-500/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
+            <div className="h-9 w-9 rounded-lg bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total tid</p>
-              <p className="text-lg font-bold tabular-nums">
-                {Math.floor(totalTime / 3600)}:{Math.floor((totalTime % 3600) / 60).toString().padStart(2, "0")}
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total tid</p>
+              <p className="text-lg font-bold tabular-nums leading-tight">
+                {Math.floor(animatedTotalHours)}:{Math.floor((animatedTotalHours % 1) * 60).toString().padStart(2, "0")}
               </p>
             </div>
           </div>
