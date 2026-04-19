@@ -30,7 +30,7 @@ const Appearance = () => {
 
   useEffect(() => {
     if (profile) {
-      setAppMode(profile.app_mode || "pro");
+      setAppMode((profile.app_mode as AppMode) || "pro");
       setShowTeamInvite(profile.show_team_invite || false);
       setShowProjectActions(profile.show_project_actions || false);
       setShowActivityLog(profile.show_activity_log || false);

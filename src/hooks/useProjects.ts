@@ -172,7 +172,7 @@ export const useProjects = (userId?: string) => {
   // Hent pause-rader for ALLE viste tidsregistreringer (ikke bare aktive).
   // Ferdige timer trenger også pausehistorikk for korrekt visning av
   // pausetotaler i DayOverviewCard og LightDashboard.
-  const allTimeEntryIds = timeEntries.map((e) => e.id)
+  const allTimeEntryIds = timeEntries
     .filter((e) => !e.end_time)
     .map((e) => e.id);
 

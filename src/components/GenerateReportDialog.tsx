@@ -12,9 +12,10 @@ interface GenerateReportDialogProps {
   projectId: string;
   projectName: string;
   canAccess: boolean;
+  iconOnly?: boolean;
 }
 
-export const GenerateReportDialog = ({ projectId, projectName, canAccess }: GenerateReportDialogProps) => {
+export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOnly }: GenerateReportDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<string>("");
