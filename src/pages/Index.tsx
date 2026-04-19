@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserStorage } from "@/hooks/useUserStorage";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { QuickStartProjectCard } from "@/components/QuickStartProjectCard";
@@ -31,14 +32,10 @@ const Index = () => {
   const [showShimmer, setShowShimmer] = useState(false);
   const [projectStatus, setProjectStatus] = useState<"active" | "completed" | "all">("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "time" | "active" | "recent">(() => (localStorage.getItem("tt-sortBy") as "name" | "time" | "active" | "recent") || "name");
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() =>
-    (localStorage.getItem("tt-viewMode") as "grid" | "list") || "grid"
-  );
-
-  // Persist preferences
-  useEffect(() => { localStorage.setItem("tt-sortBy", sortBy); }, [sortBy]);
-  useEffect(() => { localStorage.setItem("tt-viewMode", viewMode); }, [viewMode]);
+  // Preferanser lagres i localStorage prefikset med userId så de ikke
+  // lekker mellom kontoer som bruker samme enhet.
+  const [sortBy, setSortBy] = useUserStorage<"name" | "time" | "active" | "recent">("sortBy", "name");
+  const [viewMode, setViewMode] = useUserStorage<"grid" | "list">("viewMode", "grid");
 
   useEffect(() => {
     const timer = setTimeout(() => {
