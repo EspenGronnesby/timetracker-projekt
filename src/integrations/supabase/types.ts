@@ -380,6 +380,7 @@ export type Database = {
       profiles: {
         Row: {
           app_mode: string
+          auto_schedule_enabled: boolean
           color_theme: string | null
           created_at: string
           default_breakfast_min: number | null
@@ -397,6 +398,7 @@ export type Database = {
           organization_number: string | null
           show_activity_log: boolean
           show_cost_calculator: boolean
+          show_driving_card: boolean
           show_notes: boolean
           show_project_actions: boolean
           show_team_invite: boolean
@@ -408,6 +410,7 @@ export type Database = {
         }
         Insert: {
           app_mode?: string
+          auto_schedule_enabled?: boolean
           color_theme?: string | null
           created_at?: string
           default_breakfast_min?: number | null
@@ -425,6 +428,7 @@ export type Database = {
           organization_number?: string | null
           show_activity_log?: boolean
           show_cost_calculator?: boolean
+          show_driving_card?: boolean
           show_notes?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
@@ -436,6 +440,7 @@ export type Database = {
         }
         Update: {
           app_mode?: string
+          auto_schedule_enabled?: boolean
           color_theme?: string | null
           created_at?: string
           default_breakfast_min?: number | null
@@ -453,6 +458,7 @@ export type Database = {
           organization_number?: string | null
           show_activity_log?: boolean
           show_cost_calculator?: boolean
+          show_driving_card?: boolean
           show_notes?: boolean
           show_project_actions?: boolean
           show_team_invite?: boolean
