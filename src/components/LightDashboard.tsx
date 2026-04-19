@@ -445,7 +445,7 @@ export const LightDashboard = ({
             Arbeidstid i dag
           </p>
           <div className={`font-bold tabular-nums tracking-tighter leading-none ${isActive ? "text-5xl sm:text-6xl" : "text-6xl sm:text-7xl"}`}>
-            {workH}<span className="text-muted-foreground/40">:</span>{workM.toString().padStart(2, "0")}
+            {workH}<span className="text-muted-foreground/60">:</span>{workM.toString().padStart(2, "0")}
           </div>
 
           {/* Progress */}

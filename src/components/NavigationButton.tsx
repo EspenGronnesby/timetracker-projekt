@@ -98,6 +98,7 @@ export const NavigationButton = () => {
         <Button
           variant="outline"
           size="icon"
+          aria-label="Naviger til adresse"
           className="flex items-center gap-2 hover:border-primary/50 hover:bg-primary/10 transition-all"
         >
           <Navigation className="h-5 w-5" />

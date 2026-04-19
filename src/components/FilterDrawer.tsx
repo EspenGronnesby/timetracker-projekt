@@ -71,7 +71,9 @@ export function FilterDrawer({
           variant={viewMode === "grid" ? "default" : "ghost"}
           size="icon"
           onClick={() => onViewModeChange("grid")}
-          className="h-9 w-9"
+          aria-label="Rutenett-visning"
+          aria-pressed={viewMode === "grid"}
+          className="h-11 w-11"
         >
           <LayoutGrid className="h-4 w-4" />
         </Button>
@@ -79,7 +81,9 @@ export function FilterDrawer({
           variant={viewMode === "list" ? "default" : "ghost"}
           size="icon"
           onClick={() => onViewModeChange("list")}
-          className="h-9 w-9"
+          aria-label="Liste-visning"
+          aria-pressed={viewMode === "list"}
+          className="h-11 w-11"
         >
           <List className="h-4 w-4" />
         </Button>
@@ -88,7 +92,12 @@ export function FilterDrawer({
       {/* Filter-knapp */}
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="h-9 w-9 relative">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={activeFilterCount > 0 ? `Åpne filter (${activeFilterCount} aktive)` : "Åpne filter"}
+            className="h-11 w-11 relative"
+          >
             <SlidersHorizontal className="h-4 w-4" />
             {activeFilterCount > 0 && (
               <Badge className="absolute -top-1.5 -right-1.5 h-4 w-4 p-0 flex items-center justify-center text-[10px]">

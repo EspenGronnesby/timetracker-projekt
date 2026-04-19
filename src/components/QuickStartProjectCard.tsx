@@ -76,6 +76,7 @@ export const QuickStartProjectCard = ({
             <Button
               variant="default"
               size="icon"
+              aria-label="Pause timer"
               className="h-12 w-12 transition-all bg-yellow-500 hover:bg-yellow-600"
               onClick={onPause}
             >
@@ -85,6 +86,7 @@ export const QuickStartProjectCard = ({
             <Button
               variant="default"
               size="icon"
+              aria-label="Fortsett timer"
               className="h-12 w-12 transition-all bg-blue-500 hover:bg-blue-600 animate-pulse"
               onClick={onResume}
             >
@@ -94,6 +96,7 @@ export const QuickStartProjectCard = ({
             <Button
               variant="outline"
               size="icon"
+              aria-label="Start timer"
               className="h-12 w-12 transition-all"
               onClick={onToggle}
             >
@@ -106,6 +109,7 @@ export const QuickStartProjectCard = ({
             <Button
               variant="default"
               size="icon"
+              aria-label="Stopp timer"
               className="h-12 w-12 transition-all bg-red-500 hover:bg-red-600"
               onClick={onToggle}
             >
@@ -127,6 +131,7 @@ export const QuickStartProjectCard = ({
             <Button
               variant="outline"
               size="icon"
+              aria-label="Registrer materiale"
               className="h-12 w-12 hover:bg-orange-500/10 hover:border-orange-500/50 transition-all"
               onClick={() => setMaterialOpen(true)}
             >

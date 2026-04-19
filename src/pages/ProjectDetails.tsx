@@ -547,7 +547,7 @@ const ProjectDetails = () => {
   return <div className="min-h-screen bg-background animate-fade-in">
       <header className="border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/app")} className="shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/app")} aria-label="Tilbake" className="shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
@@ -591,6 +591,7 @@ const ProjectDetails = () => {
                       disabled={generating}
                       variant="ghost"
                       size="icon"
+                      aria-label="Generer invitasjon"
                       className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
                     >
                       <Share2 className="h-5 w-5" />
@@ -610,6 +611,7 @@ const ProjectDetails = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="Slett prosjekt"
                             className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
                           >
                             <Trash2 className="h-5 w-5" />
@@ -659,6 +661,7 @@ const ProjectDetails = () => {
                       onClick={() => handleLeaveProject(true)}
                       variant="ghost"
                       size="icon"
+                      aria-label="Forlat prosjekt"
                       className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
                     >
                       <Download className="h-5 w-5" />
@@ -872,7 +875,7 @@ const ProjectDetails = () => {
                     <p className="text-[10px] text-muted-foreground mb-1 leading-snug">Ny invitasjonslenke:</p>
                     <div className="flex gap-1.5">
                       <input type="text" value={inviteUrl} readOnly className="flex-1 px-2 py-1 text-xs border rounded-lg bg-background min-w-0" />
-                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
+                      <Button onClick={() => handleCopyInvite(inviteUrl)} size="icon" variant="outline" aria-label="Kopier invitasjonslenke" className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                       </Button>
                     </div>
@@ -891,7 +894,7 @@ const ProjectDetails = () => {
                             {invite.expires_at && ` • Utløper ${new Date(invite.expires_at).toLocaleDateString('no-NO')}`}
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+                        <Button size="icon" variant="ghost" onClick={() => handleCopyInvite(`${window.location.origin}/join/${invite.invite_code}`)} aria-label="Kopier invitasjonslenke" className="flex-shrink-0 h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>)}
@@ -919,13 +922,13 @@ const ProjectDetails = () => {
               >
                 Alle aktiviteter
               </Button>
-              <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
+              <Button variant={activityFilter === "time" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("time")} aria-label="Vis tidsregistreringer" aria-pressed={activityFilter === "time"} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "drive" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("drive")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
+              <Button variant={activityFilter === "drive" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("drive")} aria-label="Vis kjøring" aria-pressed={activityFilter === "drive"} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Car className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button variant={activityFilter === "material" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("material")} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
+              <Button variant={activityFilter === "material" ? "default" : "outline"} size="icon" onClick={() => setActivityFilter("material")} aria-label="Vis materialer" aria-pressed={activityFilter === "material"} className="h-11 w-11 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
                 <Package className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
@@ -967,6 +970,7 @@ const ProjectDetails = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          aria-label="Rediger tidsregistrering"
                           className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                           onClick={() => handleEdit("time", entry)}
                         >
@@ -1001,6 +1005,7 @@ const ProjectDetails = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          aria-label="Rediger kjøring"
                           className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                           onClick={() => handleEdit("drive", entry)}
                         >
@@ -1031,6 +1036,7 @@ const ProjectDetails = () => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Rediger materiale"
                         className="h-11 w-11 opacity-0 group-hover/entry:opacity-100 transition-opacity flex-shrink-0 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
                         onClick={() => handleEdit("material", material)}
                       >

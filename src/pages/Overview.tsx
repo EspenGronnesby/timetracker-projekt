@@ -638,7 +638,7 @@ export default function Overview() {
             </ResponsiveContainer>
           ) : (
             <div className="h-[220px] flex flex-col items-center justify-center">
-              <BarChart3 className="h-10 w-10 text-muted-foreground/20 mb-2" />
+              <BarChart3 className="h-10 w-10 text-muted-foreground/40 mb-2" aria-hidden />
               <p className="text-caption text-muted-foreground">
                 Ingen registreringer i denne perioden
               </p>
