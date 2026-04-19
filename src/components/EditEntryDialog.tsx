@@ -7,10 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { TimeEntry, DriveEntry, Material } from "@/hooks/useProjects";
 
@@ -39,6 +50,8 @@ interface EditEntryDialogProps {
     quantity: number;
     unitPrice: number;
   }) => void;
+  /** Valgfri — hvis satt vises en Slett-knapp i dialogen. Type matcher editType. */
+  onDelete?: (type: EditType, entryId: string) => void;
 }
 
 export const EditEntryDialog = ({
@@ -50,7 +63,9 @@ export const EditEntryDialog = ({
   onUpdateTimeEntry,
   onUpdateDriveEntry,
   onUpdateMaterial,
+  onDelete,
 }: EditEntryDialogProps) => {
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   // Time entry fields
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -259,15 +274,57 @@ export const EditEntryDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
-          </Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit()}>
-            Lagre
-          </Button>
+        <DialogFooter className="gap-2 sm:justify-between">
+          {onDelete ? (
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDeleteOpen(true)}
+              className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Slett
+            </Button>
+          ) : <span />}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Avbryt
+            </Button>
+            <Button onClick={handleSubmit} disabled={!canSubmit()}>
+              Lagre
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
+
+      {onDelete && (
+        <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {type === "time" && "Slett tidsregistrering?"}
+                {type === "drive" && "Slett kjøreregistrering?"}
+                {type === "material" && "Slett materiale?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Denne handlingen kan ikke angres.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  onDelete(type, entry.id);
+                  setConfirmDeleteOpen(false);
+                  onOpenChange(false);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Slett
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </Dialog>
   );
 };

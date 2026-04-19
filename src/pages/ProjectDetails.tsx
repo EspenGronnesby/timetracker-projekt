@@ -50,7 +50,16 @@ const ProjectDetails = () => {
     updateTimeEntry,
     updateDriveEntry,
     updateMaterial,
+    deleteTimeEntry,
+    deleteDriveEntry,
+    deleteMaterial,
   } = useProjects(user?.id);
+
+  const handleDeleteEntry = (type: "time" | "drive" | "material", entryId: string) => {
+    if (type === "time") deleteTimeEntry(entryId);
+    else if (type === "drive") deleteDriveEntry(entryId);
+    else if (type === "material") deleteMaterial(entryId);
+  };
   const [statsView, setStatsView] = useState<"my" | "total">("my");
   const [liveTime, setLiveTime] = useState(0);
   const [inviteUrl, setInviteUrl] = useState<string>("");
@@ -1045,6 +1054,7 @@ const ProjectDetails = () => {
             onUpdateTimeEntry={updateTimeEntry}
             onUpdateDriveEntry={updateDriveEntry}
             onUpdateMaterial={updateMaterial}
+            onDelete={handleDeleteEntry}
           />
         )}
         </Card>

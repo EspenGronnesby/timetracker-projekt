@@ -837,6 +837,50 @@ export const useProjects = (userId?: string) => {
     },
   });
 
+  // Slett en kj\u00f8reregistrering
+  const deleteDriveEntry = useMutation({
+    mutationFn: async (entryId: string) => {
+      const { error } = await supabase
+        .from("drive_entries")
+        .delete()
+        .eq("id", entryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drive_entries"] });
+      toast({ title: "Kj\u00f8reregistrering slettet" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke slette",
+        description: error.message,
+      });
+    },
+  });
+
+  // Slett et materiale
+  const deleteMaterial = useMutation({
+    mutationFn: async (materialId: string) => {
+      const { error } = await supabase
+        .from("materials")
+        .delete()
+        .eq("id", materialId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["materials"] });
+      toast({ title: "Materiale slettet" });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke slette",
+        description: error.message,
+      });
+    },
+  });
+
   const toggleComplete = useMutation({
     mutationFn: async (projectId: string) => {
       const { data: project } = await supabase
@@ -889,5 +933,9 @@ export const useProjects = (userId?: string) => {
     // Fase 5a: Slett tidsregistrering
     deleteTimeEntry: deleteTimeEntry.mutate,
     deleteTimeEntryAsync: deleteTimeEntry.mutateAsync,
+    deleteDriveEntry: deleteDriveEntry.mutate,
+    deleteDriveEntryAsync: deleteDriveEntry.mutateAsync,
+    deleteMaterial: deleteMaterial.mutate,
+    deleteMaterialAsync: deleteMaterial.mutateAsync,
   };
 };
