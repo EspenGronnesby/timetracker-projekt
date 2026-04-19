@@ -99,26 +99,26 @@ export const DriveDialog = ({
           const { data, error } = await invokeWithRetry<{
             distance_km: number;
             start_address?: string;
-            end_address?: string;
-            duration_minutes?: number;
-            route_polyline?: unknown;
-          }>(
-            "calculate-driving-distance",
-            { body: { startLocation: startLoc, endLocation: endCoords } },
-            { idempotent: true }
-          );
+          end_address?: string;
+          duration_minutes?: number;
+          route_polyline?: string;
+        }>(
+          "calculate-driving-distance",
+          { body: { startLocation: startLoc, endLocation: endCoords } },
+          { idempotent: true }
+        );
 
-          if (error || !data?.distance_km) {
-            throw new Error("Calculation failed");
-          }
+        if (error || !data?.distance_km) {
+          throw new Error("Calculation failed");
+        }
 
-          setAutoResult({
-            km: data.distance_km,
-            startAddress: data.start_address || "Startposisjon",
-            endAddress: data.end_address || "Nåværende posisjon",
-            durationMinutes: data.duration_minutes || 0,
-            polyline: data.route_polyline,
-          });
+        setAutoResult({
+          km: data.distance_km,
+          startAddress: data.start_address || "Startposisjon",
+          endAddress: data.end_address || "Nåværende posisjon",
+          durationMinutes: data.duration_minutes || 0,
+          polyline: typeof data.route_polyline === "string" ? data.route_polyline : undefined,
+        });
           setKilometers(data.distance_km.toString());
         } catch {
           setGpsError(true);
@@ -175,7 +175,7 @@ export const DriveDialog = ({
         start_address?: string;
         end_address?: string;
         duration_minutes?: number;
-        route_polyline?: unknown;
+        route_polyline?: string;
       }>(
         "calculate-driving-distance",
         { body: { startLocation: manualStart, endLocation: manualEnd } },
@@ -189,7 +189,7 @@ export const DriveDialog = ({
         startAddress: data.start_address || manualStart,
         endAddress: data.end_address || manualEnd,
         durationMinutes: data.duration_minutes || 0,
-        polyline: data.route_polyline,
+        polyline: typeof data.route_polyline === "string" ? data.route_polyline : undefined,
       });
       setKilometers(data.distance_km.toString());
     } catch {
