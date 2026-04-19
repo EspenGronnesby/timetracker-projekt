@@ -17,7 +17,6 @@ const pageTitles: Record<string, string> = {
   "/more/work": "Arbeid & Lønn",
   "/more/appearance": "Utseende",
   "/more/notifications": "Varsler",
-  "/settings": "Innstillinger",
   "/admin": "Admin",
   "/simple": "",
   "/simple/history": "Historikk",

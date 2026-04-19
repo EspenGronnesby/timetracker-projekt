@@ -120,7 +120,7 @@ export function MonthOverviewCard({ timeEntries, userId }: MonthOverviewCardProp
               Sett opp lønn i innstillinger for å se inntekt og overtid.
             </p>
             <button
-              onClick={() => navigate("/settings")}
+              onClick={() => navigate("/more/work")}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-caption text-primary font-medium rounded-lg bg-primary/5 hover:bg-primary/10 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <SettingsIcon className="h-3.5 w-3.5" />

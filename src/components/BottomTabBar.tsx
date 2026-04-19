@@ -35,7 +35,7 @@ export function BottomTabBar() {
     <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border/30 bg-background/80 backdrop-blur-xl backdrop-saturate-150 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
         {tabs.map((tab) => {
-          const moreRoutes = ["/more", "/settings", "/admin", "/overview", "/simple/wage"];
+          const moreRoutes = ["/more", "/admin", "/overview", "/simple/wage"];
           const isActive =
             tab.path === "/app"
               ? location.pathname === "/app"

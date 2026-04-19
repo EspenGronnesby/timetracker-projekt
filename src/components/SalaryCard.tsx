@@ -73,7 +73,7 @@ export function SalaryCard({ timeEntries, userId }: SalaryCardProps) {
               Skriv inn timelønn og skatteprosent for å se hvor mye du tjener.
             </p>
             <button
-              onClick={() => navigate("/settings")}
+              onClick={() => navigate("/more/work")}
               className="inline-flex items-center gap-1.5 text-caption text-primary font-medium pressable"
             >
               <SettingsIcon className="h-3.5 w-3.5" />
@@ -95,7 +95,7 @@ export function SalaryCard({ timeEntries, userId }: SalaryCardProps) {
           </h3>
         </div>
         <button
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate("/more/work")}
           className="text-muted-foreground hover:text-foreground transition-colors pressable"
           aria-label="Juster lønnsinnstillinger"
         >

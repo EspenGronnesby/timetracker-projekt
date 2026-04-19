@@ -224,7 +224,7 @@ export default function Overview() {
                   sette opp timesats og skatteprosent i innstillinger.
                 </p>
                 <Button
-                  onClick={() => navigate("/settings")}
+                  onClick={() => navigate("/more/work")}
                   className="gap-1.5 active:scale-[0.98] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100"
                 >
                   <SettingsIcon className="h-4 w-4" />
