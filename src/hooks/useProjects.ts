@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -168,13 +169,19 @@ export const useProjects = (userId?: string) => {
     enabled: !!userId && projectIds.length > 0,
   });
 
-  // Hent alle aktive time entry IDs for å hente pauser
   // Hent pause-rader for ALLE viste tidsregistreringer (ikke bare aktive).
   // Ferdige timer trenger også pausehistorikk for korrekt visning av
   // pausetotaler i DayOverviewCard og LightDashboard.
-  const allTimeEntryIds = timeEntries
-    .filter((e) => !e.end_time)
-    .map((e) => e.id);
+  //
+  // Fix: tidligere `map → filter(!e.end_time) → map` på samme array ga
+  // array av `undefined` fordi andre `.map` kalte `.id` på strings, så
+  // pause-query returnerte alltid tomt. Main hadde en mellomløsning som
+  // kun ga aktive entries — men da forsvinner pausehistorikk for dagens
+  // ferdige entries. Riktig er ALLE.
+  const allTimeEntryIds = useMemo(
+    () => timeEntries.map((e) => e.id),
+    [timeEntries]
+  );
 
   const { data: timeEntryPauses = [] } = useQuery({
     queryKey: ["time_entry_pauses", allTimeEntryIds],

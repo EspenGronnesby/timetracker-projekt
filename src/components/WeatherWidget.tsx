@@ -15,8 +15,11 @@ export const WeatherWidget = () => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    loadWeather();
-  }, []);
+    // Unngå unødvendig nettverkskall når bruker har skrudd av widgeten
+    if (profile?.show_weather_widget) {
+      loadWeather();
+    }
+  }, [profile?.show_weather_widget]);
 
   const loadWeather = async () => {
     setLoading(true);
