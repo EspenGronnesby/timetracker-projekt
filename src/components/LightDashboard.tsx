@@ -184,6 +184,10 @@ export const LightDashboard = ({
   const [alarmEnabled, setAlarmEnabled] = useState(true);
   const [alarmFired, setAlarmFired] = useState(false);
 
+  // In-flight guard for "Logg vanlig dag" så dobbelklikk ikke skaper
+  // to identiske entries før invalidation har oppdatert alreadyLoggedToday.
+  const [quickLogging, setQuickLogging] = useState(false);
+
   useEffect(() => {
     if (!currentPause) {
       setBreakElapsed(0);
@@ -600,20 +604,27 @@ export const LightDashboard = ({
           // IKKE STARTET → primær handling er "Logg vanlig dag" (rettet mot vanlige arbeidere)
           <>
             {(() => {
-              // Beregn vanlig dag (timer som lagres etter lunsj-trekk)
-              const [sh, sm] = startHHMM.split(":").map(Number);
-              const [eh, em] = endHHMM.split(":").map(Number);
+              // Beregn vanlig dag (timer som lagres etter lunsj-trekk).
+              // NB: Number.isNaN-sjekker — ikke `|| 7`/`|| 0` — så 00:00 ikke
+              // blir tolket som 07:00 (natt-skift).
+              const [shRaw, smRaw] = startHHMM.split(":").map(Number);
+              const [ehRaw, emRaw] = endHHMM.split(":").map(Number);
+              const sh = Number.isNaN(shRaw) ? 7 : shRaw;
+              const sm = Number.isNaN(smRaw) ? 0 : smRaw;
+              const eh = Number.isNaN(ehRaw) ? 15 : ehRaw;
+              const em = Number.isNaN(emRaw) ? 0 : emRaw;
               const rawHours = (eh + em / 60) - (sh + sm / 60);
               const standardHours = Math.max(0, rawHours - lunchMin / 60);
               const alreadyLoggedToday = todayEntries.length > 0;
-              const canLog = !!onAddManualEntry && !!selectedProjectId && standardHours > 0 && !alreadyLoggedToday;
+              const canLog = !!onAddManualEntry && !!selectedProjectId && standardHours > 0 && !alreadyLoggedToday && !quickLogging;
 
               const handleQuickLogStandardDay = async () => {
                 if (!canLog || !onAddManualEntry || !selectedProjectId) return;
+                setQuickLogging(true);
                 haptic("heavy");
                 const today = new Date();
                 const startTime = new Date(today);
-                startTime.setHours(sh || 7, sm || 0, 0, 0);
+                startTime.setHours(sh, sm, 0, 0);
                 // Slutt = start + (rawHours - lunsjtimer) for å reflektere lønnsbar tid
                 const endTime = new Date(startTime.getTime() + standardHours * 3600 * 1000);
                 try {
@@ -625,6 +636,8 @@ export const LightDashboard = ({
                   });
                 } catch {
                   // toast håndteres i mutationen
+                } finally {
+                  setQuickLogging(false);
                 }
               };
 
@@ -636,12 +649,16 @@ export const LightDashboard = ({
                   aria-label={
                     alreadyLoggedToday
                       ? "Vanlig dag allerede logget i dag"
+                      : quickLogging
+                      ? "Lagrer vanlig dag"
                       : `Logg vanlig dag (${standardHours.toFixed(1).replace(".", ",")} timer)`
                   }
                 >
                   <Zap className="h-6 w-6 fill-white" />
                   {alreadyLoggedToday
                     ? "Allerede logget i dag"
+                    : quickLogging
+                    ? "Lagrer…"
                     : <>Logg vanlig dag <span className="opacity-90 font-normal">({standardHours.toFixed(1).replace(".", ",")} t)</span></>
                   }
                 </button>
