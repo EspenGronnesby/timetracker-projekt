@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Project, TimeEntry, TimeEntryPause, PauseType } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Square, Coffee, UtensilsCrossed, LogOut, Clock, Bell, BellOff, ClipboardList } from "lucide-react";
+import { Play, Pause, Square, Coffee, UtensilsCrossed, LogOut, Clock, Bell, BellOff, ClipboardList, Zap } from "lucide-react";
 import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { haptic } from "@/lib/haptics";
 import { PaperSheetDialog } from "@/components/PaperSheetDialog";
@@ -38,6 +38,7 @@ interface LightDashboardProps {
   defaultLunchTime?: string | null;
   defaultBreakfastMin?: number | null;
   defaultLunchMin?: number | null;
+  // Brukernavn brukes til manuell innleggelse (sendes til onAddManualEntry)
 }
 
 const DAILY_GOAL_HOURS = 7.5;
@@ -596,37 +597,89 @@ export const LightDashboard = ({
             </Button>
           </div>
         ) : (
-          // IKKE STARTET → start dagen
-          <button
-            onClick={() => { if (selectedProjectId) { onToggleProject(selectedProjectId); haptic("heavy"); } }}
-            disabled={!selectedProjectId}
-            className="w-full max-w-xs h-16 rounded-2xl bg-green-500 hover:bg-green-600 active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100 flex items-center justify-center gap-3 transition-all duration-150 shadow-lg shadow-green-500/25 text-white text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:active:scale-100"
-          >
-            <Play className="h-6 w-6 fill-white" />
-            Start arbeidsdagen
-          </button>
-        )}
+          // IKKE STARTET → primær handling er "Logg vanlig dag" (rettet mot vanlige arbeidere)
+          <>
+            {(() => {
+              // Beregn vanlig dag (timer som lagres etter lunsj-trekk)
+              const [sh, sm] = startHHMM.split(":").map(Number);
+              const [eh, em] = endHHMM.split(":").map(Number);
+              const rawHours = (eh + em / 60) - (sh + sm / 60);
+              const standardHours = Math.max(0, rawHours - lunchMin / 60);
+              const alreadyLoggedToday = todayEntries.length > 0;
+              const canLog = !!onAddManualEntry && !!selectedProjectId && standardHours > 0 && !alreadyLoggedToday;
 
-        {/* Fase 4: Papirark — diskret alternativ inngang */}
-        {onAddManualEntry && !isRunning && (
-          <PaperSheetDialog
-            projects={projects}
-            userName={userName}
-            normalHoursPerDay={normalHoursPerDay}
-            defaultStartTime={startHHMM}
-            defaultEndTime={endHHMM}
-            defaultLunchMin={lunchMin}
-            onSubmit={(input) => onAddManualEntry({ ...input, userName })}
-            trigger={
-              <Button
-                variant="outline"
-                className="w-full max-w-xs h-14 rounded-2xl pressable gap-2 text-base font-semibold mt-2"
-              >
-                <ClipboardList className="h-5 w-5" />
-                Skriv inn timer
-              </Button>
-            }
-          />
+              const handleQuickLogStandardDay = async () => {
+                if (!canLog || !onAddManualEntry || !selectedProjectId) return;
+                haptic("heavy");
+                const today = new Date();
+                const startTime = new Date(today);
+                startTime.setHours(sh || 7, sm || 0, 0, 0);
+                // Slutt = start + (rawHours - lunsjtimer) for å reflektere lønnsbar tid
+                const endTime = new Date(startTime.getTime() + standardHours * 3600 * 1000);
+                try {
+                  await onAddManualEntry({
+                    projectId: selectedProjectId,
+                    userName,
+                    startTime,
+                    endTime,
+                  });
+                } catch {
+                  // toast håndteres i mutationen
+                }
+              };
+
+              return (
+                <button
+                  onClick={handleQuickLogStandardDay}
+                  disabled={!canLog}
+                  className="w-full max-w-xs h-16 rounded-2xl bg-green-500 hover:bg-green-600 active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100 flex items-center justify-center gap-3 transition-all duration-150 shadow-lg shadow-green-500/25 text-white text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:active:scale-100"
+                  aria-label={
+                    alreadyLoggedToday
+                      ? "Vanlig dag allerede logget i dag"
+                      : `Logg vanlig dag (${standardHours.toFixed(1).replace(".", ",")} timer)`
+                  }
+                >
+                  <Zap className="h-6 w-6 fill-white" />
+                  {alreadyLoggedToday
+                    ? "Allerede logget i dag"
+                    : <>Logg vanlig dag <span className="opacity-90 font-normal">({standardHours.toFixed(1).replace(".", ",")} t)</span></>
+                  }
+                </button>
+              );
+            })()}
+
+            {/* Sekundær: Skriv inn timer (åpner dialog for tilpasning) */}
+            {onAddManualEntry && (
+              <PaperSheetDialog
+                projects={projects}
+                userName={userName}
+                normalHoursPerDay={normalHoursPerDay}
+                defaultStartTime={startHHMM}
+                defaultEndTime={endHHMM}
+                defaultLunchMin={lunchMin}
+                onSubmit={(input) => onAddManualEntry({ ...input, userName })}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="w-full max-w-xs h-14 rounded-2xl pressable gap-2 text-base font-semibold mt-2"
+                  >
+                    <ClipboardList className="h-5 w-5" />
+                    Skriv inn timer
+                  </Button>
+                }
+              />
+            )}
+
+            {/* Tertiær: Start klokke (live timer for de som trenger det) */}
+            <button
+              onClick={() => { if (selectedProjectId) { onToggleProject(selectedProjectId); haptic("heavy"); } }}
+              disabled={!selectedProjectId}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-3 inline-flex items-center gap-1.5 disabled:opacity-40"
+            >
+              <Play className="h-3.5 w-3.5" />
+              Start klokke i stedet
+            </button>
+          </>
         )}
       </div>
 

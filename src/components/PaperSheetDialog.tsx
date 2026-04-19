@@ -36,7 +36,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
+import { ClipboardList, ChevronDown, ChevronUp, Zap } from "lucide-react";
 import { Project } from "@/hooks/useProjects";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -338,18 +338,18 @@ export function PaperSheetDialog({
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as "day" | "week")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-9">
-            <TabsTrigger value="day">Dag</TabsTrigger>
-            <TabsTrigger value="week">Uke</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-11">
+            <TabsTrigger value="day" className="text-base">Dag</TabsTrigger>
+            <TabsTrigger value="week" className="text-base">Uke</TabsTrigger>
           </TabsList>
 
           {/* ─────── DAG ─────── */}
-          <TabsContent value="day" className="pt-6 space-y-6">
+          <TabsContent value="day" className="pt-6 space-y-5">
             {/* Dato-pille */}
             <div className="flex justify-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-full hover:bg-muted/50 capitalize">
+                  <button className="text-base text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full hover:bg-muted/50 capitalize font-medium border border-border/40 hover:border-border">
                     {dateLabel}
                   </button>
                 </PopoverTrigger>
@@ -366,6 +366,23 @@ export function PaperSheetDialog({
               </Popover>
             </div>
 
+            {/* Snarvei: vanlig dag — stor og åpenbart klikkbar */}
+            {defaultDayHours > 0 && !dayUseFromTo && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setDayHours(formatHoursValue(defaultDayHours))}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.98] border border-primary/25 hover:border-primary/40 text-primary font-medium text-sm transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                >
+                  <Zap className="h-4 w-4 fill-primary" />
+                  Bruk vanlig dag
+                  <span className="text-xs text-primary/70 tabular-nums font-normal">
+                    ({startHHMM}–{endHHMM} = {formatHoursValue(defaultDayHours)}t)
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Stort tallfelt */}
             {!dayUseFromTo ? (
               <div className="flex flex-col items-center gap-2">
@@ -380,22 +397,12 @@ export function PaperSheetDialog({
                   }}
                   className="h-20 text-center text-5xl font-semibold tabular-nums tracking-tight border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:border-primary px-0"
                 />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                <span className="text-sm text-muted-foreground uppercase tracking-wider">
                   timer
                 </span>
-                {/* Snarvei: vanlig dag */}
-                {defaultDayHours > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setDayHours(formatHoursValue(defaultDayHours))}
-                    className="mt-1 text-xs text-primary hover:underline tabular-nums"
-                  >
-                    Vanlig dag ({startHHMM}–{endHHMM} = {formatHoursValue(defaultDayHours)}t)
-                  </button>
-                )}
                 {/* Live preview når lunsj trekkes fra */}
                 {daySubtractLunch && dayPreviewHours !== null && (
-                  <p className="text-xs text-muted-foreground tabular-nums">
+                  <p className="text-sm text-muted-foreground tabular-nums">
                     Lagres som <span className="font-semibold text-foreground">{formatPreview(dayPreviewHours)}</span>
                   </p>
                 )}
@@ -403,7 +410,7 @@ export function PaperSheetDialog({
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1 text-center">Fra</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 text-center font-medium">Fra</p>
                   <Input
                     type="time"
                     value={dayFrom}
@@ -412,7 +419,7 @@ export function PaperSheetDialog({
                   />
                 </div>
                 <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1 text-center">Til</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 text-center font-medium">Til</p>
                   <Input
                     type="time"
                     value={dayTo}
@@ -423,23 +430,24 @@ export function PaperSheetDialog({
               </div>
             )}
 
-            {/* Flere valg ▾ */}
+            {/* Flere valg ▾ — full-bredde knapp som ser klikkbar ut */}
             <div className="border-t border-border/40 pt-3">
               <button
                 onClick={() => setDayMore((v) => !v)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                className="flex items-center justify-center gap-2 w-full h-11 rounded-xl border border-border/40 bg-muted/30 hover:bg-muted/50 hover:border-border text-foreground/90 hover:text-foreground text-sm font-medium transition-all duration-150 active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-expanded={dayMore}
               >
-                {dayMore ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {dayMore ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 Flere valg
               </button>
 
               {dayMore && (
-                <div className="space-y-3 pt-4 animate-fade-in">
+                <div className="space-y-4 pt-4 animate-fade-in">
                   {/* Trekk fra lunsj */}
-                  <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
+                  <label className="flex items-center justify-between gap-3 cursor-pointer select-none p-2 -mx-2 rounded-lg hover:bg-muted/30 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">Trekk fra 30 min lunsj</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-base font-medium">Trekk fra 30 min lunsj</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Skru på hvis du skriver inn skiftlengden (f.eks. 8 t for 08–16)
                       </p>
                     </div>
@@ -447,13 +455,13 @@ export function PaperSheetDialog({
                       type="checkbox"
                       checked={daySubtractLunch}
                       onChange={(e) => setDaySubtractLunch(e.target.checked)}
-                      className="h-4 w-4 accent-primary flex-shrink-0"
+                      className="h-5 w-5 accent-primary flex-shrink-0"
                     />
                   </label>
 
                   {/* Prosjekt */}
                   <Select value={dayProjectId} onValueChange={setDayProjectId}>
-                    <SelectTrigger className="h-9 text-sm">
+                    <SelectTrigger className="h-11 text-base">
                       <SelectValue placeholder="Velg prosjekt" />
                     </SelectTrigger>
                     <SelectContent>
@@ -466,10 +474,10 @@ export function PaperSheetDialog({
                     </SelectContent>
                   </Select>
 
-                  {/* Fra-til-bytte */}
+                  {/* Fra-til-bytte — tydeligere lenkeknapp */}
                   <button
                     onClick={() => setDayUseFromTo((v) => !v)}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+                    className="text-sm text-primary hover:underline w-full text-left font-medium py-1"
                   >
                     {dayUseFromTo ? "← Bytt til antall timer" : "Bruk fra–til klokkeslett →"}
                   </button>
@@ -480,7 +488,7 @@ export function PaperSheetDialog({
                     value={dayComment}
                     onChange={(e) => setDayComment(e.target.value)}
                     rows={2}
-                    className="text-sm resize-none"
+                    className="text-base resize-none"
                   />
                 </div>
               )}
@@ -490,47 +498,49 @@ export function PaperSheetDialog({
           {/* ─────── UKE ─────── */}
           <TabsContent value="week" className="pt-6 space-y-4">
             {/* Ukenavigasjon */}
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between gap-2">
               <button
                 onClick={() => setWeekStart((d) => addDays(d, -7))}
-                className="px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Forrige uke"
+                className="h-10 w-10 rounded-xl border border-border/40 bg-background flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-border active:scale-[0.96] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 ←
               </button>
-              <span className="text-muted-foreground tabular-nums">
+              <span className="text-base font-medium tabular-nums text-center flex-1">
                 {format(weekStart, "d. MMM", { locale: nb })} –{" "}
                 {format(addDays(weekStart, 6), "d. MMM", { locale: nb })}
               </span>
               <button
                 onClick={() => setWeekStart((d) => addDays(d, 7))}
-                className="px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Neste uke"
+                className="h-10 w-10 rounded-xl border border-border/40 bg-background flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-border active:scale-[0.96] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 →
               </button>
             </div>
 
             {/* 7 dager */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {weekDays.map((d, i) => {
                 const today = isToday(d);
                 return (
                   <div
                     key={i}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg",
                       today && "bg-primary/5"
                     )}
                   >
                     <div className="w-20 flex-shrink-0">
                       <p
                         className={cn(
-                          "text-sm capitalize",
+                          "text-base capitalize leading-tight",
                           today ? "font-semibold text-primary" : "font-medium"
                         )}
                       >
                         {format(d, "EEE", { locale: nb })}
                       </p>
-                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                      <p className="text-xs text-muted-foreground tabular-nums">
                         {format(d, "d. MMM", { locale: nb })}
                       </p>
                     </div>
@@ -543,31 +553,32 @@ export function PaperSheetDialog({
                         next[i] = e.target.value;
                         setWeekHours(next);
                       }}
-                      className="flex-1 h-9 text-right tabular-nums text-base"
+                      className="flex-1 h-11 text-right tabular-nums text-lg"
                     />
-                    <span className="text-xs text-muted-foreground w-4">t</span>
+                    <span className="text-sm text-muted-foreground w-4 text-center">t</span>
                   </div>
                 );
               })}
             </div>
 
-            {/* Flere valg ▾ */}
+            {/* Flere valg ▾ — full-bredde knapp som ser klikkbar ut */}
             <div className="border-t border-border/40 pt-3">
               <button
                 onClick={() => setWeekMore((v) => !v)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                className="flex items-center justify-center gap-2 w-full h-11 rounded-xl border border-border/40 bg-muted/30 hover:bg-muted/50 hover:border-border text-foreground/90 hover:text-foreground text-sm font-medium transition-all duration-150 active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-expanded={weekMore}
               >
-                {weekMore ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {weekMore ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 Flere valg
               </button>
 
               {weekMore && (
-                <div className="pt-4 space-y-3 animate-fade-in">
+                <div className="pt-4 space-y-4 animate-fade-in">
                   {/* Trekk fra lunsj — gjelder hele uken */}
-                  <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
+                  <label className="flex items-center justify-between gap-3 cursor-pointer select-none p-2 -mx-2 rounded-lg hover:bg-muted/30 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">Trekk fra 30 min lunsj</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-base font-medium">Trekk fra 30 min lunsj</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Trekkes fra hver dag du fyller inn
                       </p>
                     </div>
@@ -575,12 +586,12 @@ export function PaperSheetDialog({
                       type="checkbox"
                       checked={weekSubtractLunch}
                       onChange={(e) => setWeekSubtractLunch(e.target.checked)}
-                      className="h-4 w-4 accent-primary flex-shrink-0"
+                      className="h-5 w-5 accent-primary flex-shrink-0"
                     />
                   </label>
 
                   <Select value={weekProjectId} onValueChange={setWeekProjectId}>
-                    <SelectTrigger className="h-9 text-sm">
+                    <SelectTrigger className="h-11 text-base">
                       <SelectValue placeholder="Velg prosjekt" />
                     </SelectTrigger>
                     <SelectContent>
@@ -603,39 +614,39 @@ export function PaperSheetDialog({
           dayPreviewHours !== null &&
           dayPreviewHours > normalHoursPerDay && (
             <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3 space-y-3 mt-2 animate-fade-in">
-              <label className="flex items-start gap-2 cursor-pointer select-none">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={dayOvertimeAccepted}
                   onChange={(e) => setDayOvertimeAccepted(e.target.checked)}
-                  className="h-4 w-4 mt-0.5 accent-orange-500 flex-shrink-0"
+                  className="h-5 w-5 mt-0.5 accent-orange-500 flex-shrink-0"
                 />
-                <div className="flex-1 min-w-0 text-sm">
-                  <p className="font-medium">
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-medium">
                     Marker som overtid?{" "}
                     <span className="text-muted-foreground tabular-nums font-normal">
                       ({formatPreview(dayPreviewHours - normalHoursPerDay)} over normal)
                     </span>
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Du har skrevet inn mer enn {normalHoursPerDay}t. Marker som overtid for riktig lønn.
                   </p>
                 </div>
               </label>
 
               {dayOvertimeAccepted && (
-                <div className="space-y-2 pl-6 animate-fade-in">
+                <div className="space-y-3 pl-7 animate-fade-in">
                   {/* Sats */}
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Sats</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 font-medium">Sats</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setDayOvertimeRate(50)}
                         className={cn(
-                          "flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors",
+                          "flex-1 py-2.5 rounded-lg border text-sm font-medium transition-colors",
                           dayOvertimeRate === 50
                             ? "border-orange-500 bg-orange-500/10 text-orange-700 dark:text-orange-300"
-                            : "border-border text-muted-foreground"
+                            : "border-border text-muted-foreground hover:border-border/80"
                         )}
                       >
                         50% (hverdag)
@@ -643,10 +654,10 @@ export function PaperSheetDialog({
                       <button
                         onClick={() => setDayOvertimeRate(100)}
                         className={cn(
-                          "flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors",
+                          "flex-1 py-2.5 rounded-lg border text-sm font-medium transition-colors",
                           dayOvertimeRate === 100
                             ? "border-orange-500 bg-orange-500/10 text-orange-700 dark:text-orange-300"
-                            : "border-border text-muted-foreground"
+                            : "border-border text-muted-foreground hover:border-border/80"
                         )}
                       >
                         100% (kveld/helg)
@@ -656,15 +667,15 @@ export function PaperSheetDialog({
 
                   {/* Kompensasjon */}
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Kompensasjon</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 font-medium">Kompensasjon</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setDayCompMethod("money")}
                         className={cn(
-                          "flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors",
+                          "flex-1 py-2.5 rounded-lg border text-sm font-medium transition-colors",
                           dayCompMethod === "money"
                             ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground"
+                            : "border-border text-muted-foreground hover:border-border/80"
                         )}
                       >
                         Utbetaling
@@ -672,17 +683,17 @@ export function PaperSheetDialog({
                       <button
                         onClick={() => setDayCompMethod("avspasering")}
                         className={cn(
-                          "flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors",
+                          "flex-1 py-2.5 rounded-lg border text-sm font-medium transition-colors",
                           dayCompMethod === "avspasering"
                             ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground"
+                            : "border-border text-muted-foreground hover:border-border/80"
                         )}
                       >
                         Avspasering
                       </button>
                     </div>
                     {dayCompMethod === "avspasering" && (
-                      <p className="text-[10px] text-muted-foreground mt-1.5">
+                      <p className="text-xs text-muted-foreground mt-2">
                         Grunntimene tas ut som fri senere. Tillegget ({dayOvertimeRate}%) utbetales uansett (lovkrav).
                       </p>
                     )}
