@@ -12,8 +12,12 @@ export const useColorTheme = () => {
   // på samme enhet. Gamle uprefikset keys (current_color_theme,
   // recent_color_themes) migreres automatisk første gang en bruker er
   // kjent — se useUserStorage.ts.
-  const [currentTheme, setCurrentTheme] = useUserStorage<ColorTheme>('color_theme', 'light');
+  // userId fra useAuth() er allerede hentet over — sender den inn slik at
+  // useUserStorage slipper å kalle useAuth selv (unngår dobbel-subscription
+  // og duplikat profile-fetch for hver hook-instans).
+  const [currentTheme, setCurrentTheme] = useUserStorage<ColorTheme>(user?.id, 'color_theme', 'light');
   const [recentThemes, setRecentThemes] = useUserStorage<ColorTheme[]>(
+    user?.id,
     'recent_color_themes',
     ['light', 'dark']
   );

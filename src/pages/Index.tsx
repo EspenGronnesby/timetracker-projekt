@@ -33,9 +33,10 @@ const Index = () => {
   const [projectStatus, setProjectStatus] = useState<"active" | "completed" | "all">("active");
   const [searchQuery, setSearchQuery] = useState("");
   // Preferanser lagres i localStorage prefikset med userId så de ikke
-  // lekker mellom kontoer som bruker samme enhet.
-  const [sortBy, setSortBy] = useUserStorage<"name" | "time" | "active" | "recent">("sortBy", "name");
-  const [viewMode, setViewMode] = useUserStorage<"grid" | "list">("viewMode", "grid");
+  // lekker mellom kontoer som bruker samme enhet. userId sendes inn slik
+  // at hooken slipper å kalle useAuth selv (unngår dobbel-subscription).
+  const [sortBy, setSortBy] = useUserStorage<"name" | "time" | "active" | "recent">(user?.id, "sortBy", "name");
+  const [viewMode, setViewMode] = useUserStorage<"grid" | "list">(user?.id, "viewMode", "grid");
 
   useEffect(() => {
     const timer = setTimeout(() => {
