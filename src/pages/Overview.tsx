@@ -12,6 +12,7 @@ import {
   subWeeks,
   startOfMonth,
   endOfMonth,
+  subMonths,
   format,
   addDays,
   startOfDay,
@@ -139,6 +140,8 @@ export default function Overview() {
   const lastWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
+  const lastMonthStart = startOfMonth(subMonths(now, 1));
+  const lastMonthEnd = endOfMonth(subMonths(now, 1));
 
   // Overtime calculations
   const weekOt = useMemo(
@@ -154,6 +157,11 @@ export default function Overview() {
   const monthOt = useMemo(
     () => calculateRangeOvertime(entriesLite, monthStart, monthEnd, config),
     [entriesLite, monthStart, monthEnd, config]
+  );
+
+  const lastMonthOt = useMemo(
+    () => calculateRangeOvertime(entriesLite, lastMonthStart, lastMonthEnd, config),
+    [entriesLite, lastMonthStart, lastMonthEnd, config]
   );
 
   // Salary calculations
@@ -188,12 +196,23 @@ export default function Overview() {
 
   const weekKilometers = weekDriveEntries.reduce((sum, d) => sum + (d.kilometers || 0), 0);
 
-  // Week totals and trend
+  const monthDriveEntries = useMemo(() => {
+    if (!user) return [];
+    return driveEntries.filter((d) => {
+      const dDate = new Date(d.start_time);
+      return dDate >= monthStart && dDate <= monthEnd && d.user_id === user.id;
+    });
+  }, [driveEntries, monthStart, monthEnd, user]);
+
+  const monthKilometers = monthDriveEntries.reduce((sum, d) => sum + (d.kilometers || 0), 0);
+
+  // Totals and trends
   const weekTotalHours = weekOt.normalHours + weekOt.overtimeHours;
-  const lastWeekTotalHours = lastWeekOt.normalHours + lastWeekOt.overtimeHours;
-  const hoursDelta = weekTotalHours - lastWeekTotalHours;
-  const hoursPct =
-    lastWeekTotalHours > 0 ? (hoursDelta / lastWeekTotalHours) * 100 : 0;
+  const monthTotalHours = monthOt.normalHours + monthOt.overtimeHours;
+  const lastMonthTotalHours = lastMonthOt.normalHours + lastMonthOt.overtimeHours;
+  const monthHoursDelta = monthTotalHours - lastMonthTotalHours;
+  const monthHoursPct =
+    lastMonthTotalHours > 0 ? (monthHoursDelta / lastMonthTotalHours) * 100 : 0;
 
   // Avspasering
   const avspaseringHours = useMemo(
@@ -201,11 +220,13 @@ export default function Overview() {
     [entriesLite]
   );
 
-  // Animerte verdier for KPI-kort (ruller opp ved sidelaste / data-endring)
-  const animatedHours = useCountUp(weekTotalHours);
-  const animatedNet = useCountUp(weekNet);
-  const animatedKm = useCountUp(weekKilometers);
-  const animatedOvertime = useCountUp(weekOt.overtimeHours);
+  // Animerte verdier for KPI-kort (måned er primær, uke sekundær)
+  const animatedMonthHours = useCountUp(monthTotalHours);
+  const animatedMonthNet = useCountUp(monthNet);
+  const animatedMonthKm = useCountUp(monthKilometers);
+  const animatedMonthOvertime = useCountUp(monthOt.overtimeHours);
+  const animatedWeekHours = useCountUp(weekTotalHours);
+  const animatedWeekNet = useCountUp(weekNet);
 
   // Bar chart data
   const chartData = useMemo(() => {
@@ -295,54 +316,54 @@ export default function Overview() {
         </p>
       </div>
 
-      {/* Hero: This week's hours */}
+      {/* Hero: Denne måneden (primær) */}
       <Card className="bg-gradient-to-br from-primary/5 to-primary/2 border-primary/20 transition-all duration-200 hover:shadow-md hover:border-primary/30">
         <CardContent className="pt-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                Denne uken
+                Denne måneden
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter leading-none">
-                  {Math.floor(animatedHours)}
+                  {Math.floor(animatedMonthHours)}
                 </span>
                 <span className="text-2xl font-semibold text-muted-foreground">t</span>
               </div>
             </div>
 
-            {/* Trend badge */}
+            {/* Trend badge — sammenligner med forrige måned */}
             <div className="text-right">
-              {hoursDelta === 0 && lastWeekTotalHours === 0 ? (
+              {monthHoursDelta === 0 && lastMonthTotalHours === 0 ? (
                 <p className="text-caption text-muted-foreground">Ingen data ennå</p>
-              ) : hoursDelta === 0 && lastWeekTotalHours > 0 ? (
+              ) : monthHoursDelta === 0 && lastMonthTotalHours > 0 ? (
                 <div className="flex items-center justify-end gap-1.5 px-3 py-1.5 rounded-lg bg-muted">
                   <Minus className="h-4 w-4 text-muted-foreground" />
                   <span className="text-caption font-medium text-muted-foreground">
-                    Samme som forrige uke
+                    Samme som forrige måned
                   </span>
                 </div>
               ) : (
                 <div
                   className={`flex items-center justify-end gap-1.5 px-3 py-1.5 rounded-lg ${
-                    hoursDelta > 0
+                    monthHoursDelta > 0
                       ? "bg-emerald-500/10"
                       : "bg-red-500/10"
                   }`}
                 >
-                  {hoursDelta > 0 ? (
+                  {monthHoursDelta > 0 ? (
                     <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   ) : (
                     <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
                   )}
                   <span
                     className={`text-caption font-medium tabular-nums ${
-                      hoursDelta > 0
+                      monthHoursDelta > 0
                         ? "text-emerald-700 dark:text-emerald-300"
                         : "text-red-700 dark:text-red-300"
                     }`}
                   >
-                    {hoursDelta > 0 ? "↑" : "↓"} {Math.abs(hoursDelta).toFixed(1)}t ({Math.abs(hoursPct).toFixed(0)}%)
+                    {monthHoursDelta > 0 ? "↑" : "↓"} {Math.abs(monthHoursDelta).toFixed(1)}t ({Math.abs(monthHoursPct).toFixed(0)}%)
                   </span>
                 </div>
               )}
@@ -362,10 +383,10 @@ export default function Overview() {
                   Lønn (netto)
                 </p>
                 <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-                  {formatNok(animatedNet)}
+                  {formatNok(animatedMonthNet)}
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                  brutto {formatNok(weekGross)}
+                  brutto {formatNok(monthGross)}
                 </p>
               </div>
               <div className="p-2.5 rounded-xl bg-emerald-500/10 flex-shrink-0">
@@ -385,10 +406,10 @@ export default function Overview() {
                     Kjøring
                   </p>
                   <p className="text-2xl font-bold tabular-nums text-sky-700 dark:text-sky-300">
-                    {Math.round(animatedKm)} km
+                    {Math.round(animatedMonthKm)} km
                   </p>
                   <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                    {weekDriveEntries.length} kjøreturer
+                    {monthDriveEntries.length} kjøreturer
                   </p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-sky-500/10 flex-shrink-0">
@@ -408,10 +429,10 @@ export default function Overview() {
                   Overtid
                 </p>
                 <p className="text-2xl font-bold tabular-nums text-orange-700 dark:text-orange-300">
-                  {formatHours(animatedOvertime, "short")}
+                  {formatHours(animatedMonthOvertime, "short")}
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                  50%: {formatHours(weekOt.rate50Hours, "short")} · 100%: {formatHours(weekOt.rate100Hours, "short")}
+                  50%: {formatHours(monthOt.rate50Hours, "short")} · 100%: {formatHours(monthOt.rate100Hours, "short")}
                 </p>
               </div>
               <div className="p-2.5 rounded-xl bg-orange-500/10 flex-shrink-0">
@@ -504,63 +525,58 @@ export default function Overview() {
         </CardContent>
       </Card>
 
-      {/* Month overview: Compact version */}
-      <Card>
+      {/* Sekundær: Denne uken — sammendrag */}
+      <Card className="bg-muted/20 border-border/40">
         <CardHeader>
           <h3 className="text-caption uppercase tracking-wider text-muted-foreground">
-            Denne måneden
+            Denne uken
           </h3>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
-            {/* Left column: Timer & lønn */}
+            {/* Timer & lønn */}
             <div>
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
                 Timer
               </p>
-              <p className="text-2xl font-bold tabular-nums mb-3">
-                {formatHours(monthOt.normalHours + monthOt.overtimeHours)}
+              <p className="text-xl font-bold tabular-nums mb-3 tabular-nums">
+                {formatHours(animatedWeekHours)}
               </p>
               <p className="text-xs text-muted-foreground tabular-nums mb-4">
-                {formatHours(monthOt.normalHours, "short")} normal · {formatHours(monthOt.overtimeHours, "short")} overtid
+                {formatHours(weekOt.normalHours, "short")} normal · {formatHours(weekOt.overtimeHours, "short")} overtid
               </p>
 
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
                 Lønn (netto)
               </p>
-              <p className="text-2xl font-bold tabular-nums">
-                {formatNok(monthNet)}
+              <p className="text-xl font-bold tabular-nums">
+                {formatNok(animatedWeekNet)}
               </p>
               <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                brutto {formatNok(monthGross)}
+                brutto {formatNok(weekGross)}
               </p>
             </div>
 
-            {/* Right column: Breakdown & avspasering */}
+            {/* Overtid-fordeling for uken & avspasering */}
             <div>
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
                 Overtid-fordeling
               </p>
-              {monthOt.rate50Hours + monthOt.rate100Hours > 0 ? (
+              {weekOt.rate50Hours + weekOt.rate100Hours > 0 ? (
                 <div className="mb-4">
-                  {/* Stacked horisontal bar */}
                   <div className="flex h-2 rounded-full overflow-hidden bg-muted/40 mb-2.5">
-                    {monthOt.rate50Hours > 0 && (
+                    {weekOt.rate50Hours > 0 && (
                       <div
                         className="bg-orange-400/80 h-full transition-all duration-700 motion-reduce:transition-none"
-                        style={{
-                          flexGrow: monthOt.rate50Hours,
-                        }}
-                        aria-label={`50% tillegg: ${formatHours(monthOt.rate50Hours, "short")}`}
+                        style={{ flexGrow: weekOt.rate50Hours }}
+                        aria-label={`50% tillegg: ${formatHours(weekOt.rate50Hours, "short")}`}
                       />
                     )}
-                    {monthOt.rate100Hours > 0 && (
+                    {weekOt.rate100Hours > 0 && (
                       <div
                         className="bg-red-500/80 h-full transition-all duration-700 motion-reduce:transition-none"
-                        style={{
-                          flexGrow: monthOt.rate100Hours,
-                        }}
-                        aria-label={`100% tillegg: ${formatHours(monthOt.rate100Hours, "short")}`}
+                        style={{ flexGrow: weekOt.rate100Hours }}
+                        aria-label={`100% tillegg: ${formatHours(weekOt.rate100Hours, "short")}`}
                       />
                     )}
                   </div>
@@ -568,25 +584,25 @@ export default function Overview() {
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-orange-400/80" />
                       <span className="text-muted-foreground">50%</span>
-                      <span className="font-medium">{formatHours(monthOt.rate50Hours, "short")}</span>
+                      <span className="font-medium">{formatHours(weekOt.rate50Hours, "short")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-red-500/80" />
                       <span className="text-muted-foreground">100%</span>
-                      <span className="font-medium">{formatHours(monthOt.rate100Hours, "short")}</span>
+                      <span className="font-medium">{formatHours(weekOt.rate100Hours, "short")}</span>
                     </div>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground/80 italic mb-4">
-                  Ingen overtid denne måneden
+                  Ingen overtid denne uken
                 </p>
               )}
 
               {avspaseringHours > 0 && (
                 <>
                   <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                    Avspasering
+                    Avspasering (totalt)
                   </p>
                   <p className="text-lg font-bold tabular-nums text-primary">
                     {formatHours(avspaseringHours, "short")}
