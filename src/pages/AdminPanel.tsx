@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithRetry } from "@/lib/invokeWithRetry";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -50,7 +51,11 @@ export default function AdminPanel() {
     setLoadingUsers(true);
     try {
       // Call server-side admin verification endpoint (enforces admin check server-side)
-      const { data, error } = await supabase.functions.invoke('admin-get-users');
+      const { data, error } = await invokeWithRetry<{ users: Array<{ [k: string]: unknown }> }>(
+        'admin-get-users',
+        {},
+        { idempotent: true }
+      );
       
       if (error) {
         console.error('Error fetching users:', error);

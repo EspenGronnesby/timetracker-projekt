@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Car, MapPin, ChevronDown, Loader2, Navigation, Clock, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithRetry } from "@/lib/invokeWithRetry";
 import { toast } from "sonner";
 import { FavoriteQuickSelect } from "./FavoriteQuickSelect";
 import { RouteMap } from "./RouteMap";
@@ -95,9 +96,17 @@ export const DriveDialog = ({
         }
 
         try {
-          const { data, error } = await supabase.functions.invoke("calculate-driving-distance", {
-            body: { startLocation: startLoc, endLocation: endCoords },
-          });
+          const { data, error } = await invokeWithRetry<{
+            distance_km: number;
+            start_address?: string;
+            end_address?: string;
+            duration_minutes?: number;
+            route_polyline?: unknown;
+          }>(
+            "calculate-driving-distance",
+            { body: { startLocation: startLoc, endLocation: endCoords } },
+            { idempotent: true }
+          );
 
           if (error || !data?.distance_km) {
             throw new Error("Calculation failed");
@@ -161,9 +170,17 @@ export const DriveDialog = ({
 
     setIsCalculating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("calculate-driving-distance", {
-        body: { startLocation: manualStart, endLocation: manualEnd },
-      });
+      const { data, error } = await invokeWithRetry<{
+        distance_km: number;
+        start_address?: string;
+        end_address?: string;
+        duration_minutes?: number;
+        route_polyline?: unknown;
+      }>(
+        "calculate-driving-distance",
+        { body: { startLocation: manualStart, endLocation: manualEnd } },
+        { idempotent: true }
+      );
 
       if (error || !data?.distance_km) throw new Error("Failed");
 

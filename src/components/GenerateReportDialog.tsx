@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, Download, Copy, Loader2, FileSpreadsheet, Printer } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeWithRetry } from "@/lib/invokeWithRetry";
 import { toast } from "sonner";
 
 interface GenerateReportDialogProps {
@@ -31,24 +31,29 @@ export const GenerateReportDialog = ({ projectId, projectName, canAccess, iconOn
     setReport("");
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-project-report', {
-        body: {
-          projectId,
-          includeCustomerInfo,
-          includeTimeStats,
-          includeDriveStats,
-          includeMaterialCosts,
-          includeAiAnalysis,
-        }
-      });
+      const { data, error } = await invokeWithRetry<{ report?: string; error?: string }>(
+        'generate-project-report',
+        {
+          body: {
+            projectId,
+            includeCustomerInfo,
+            includeTimeStats,
+            includeDriveStats,
+            includeMaterialCosts,
+            includeAiAnalysis,
+          },
+        },
+        { idempotent: true }
+      );
 
       if (error) throw error;
+      if (!data) throw new Error("Ingen data returnert");
 
-      if (data?.error) {
+      if (data.error) {
         throw new Error(data.error);
       }
 
-      setReport(data.report);
+      setReport(data.report ?? "");
       toast.success("Rapport generert!");
     } catch (error: any) {
       console.error('Report generation error:', error);

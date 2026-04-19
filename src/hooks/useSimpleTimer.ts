@@ -55,11 +55,16 @@ export const useSimpleTimer = () => {
     },
   });
 
-  // Active time entry (no end_time)
+  // Active time entry (no end_time).
+  //
+  // Tidligere polling hver 5s → 10 åpne tabs = 50 req/sek, unødvendig
+  // på mobilnettverk ute i felten. Nå: Realtime-subscription på
+  // time_entries for innlogget bruker, med en mild failsafe-refetch
+  // hvert 60s i tilfelle WebSocket-forbindelsen mistes.
   const { data: activeEntry } = useQuery({
     queryKey: ["simple_active_entry", user?.id],
     enabled: !!user && !!simpleProject,
-    refetchInterval: 5000,
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("time_entries")
@@ -74,6 +79,33 @@ export const useSimpleTimer = () => {
       return data;
     },
   });
+
+  // Realtime: invaliderer queryen så snart en time_entries-rad for
+  // denne brukeren endres (INSERT/UPDATE/DELETE). Krever at time_entries
+  // er med i supabase_realtime-publikasjonen — det er den allerede.
+  useEffect(() => {
+    if (!user || !simpleProject) return;
+    const channel = supabase
+      .channel(`simple-timer-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "time_entries",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["simple_active_entry", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["simple_today_entries", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, simpleProject, queryClient]);
 
   // Today's completed entries
   const todayStart = new Date();

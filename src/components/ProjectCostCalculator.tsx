@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calculator, Clock, Car, Package, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeWithRetry } from "@/lib/invokeWithRetry";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -49,11 +49,14 @@ export function ProjectCostCalculator({ projectId, userId }: ProjectCostCalculat
   const calculateCosts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('calculate-project-cost', {
-        body: { projectId, userId },
-      });
+      const { data, error } = await invokeWithRetry<{ success: boolean; myCosts: CostBreakdown; allCosts: CostBreakdown }>(
+        'calculate-project-cost',
+        { body: { projectId, userId } },
+        { idempotent: true }
+      );
 
       if (error) throw error;
+      if (!data) throw new Error("Ingen data returnert");
 
       if (data.success) {
         setMyCosts(data.myCosts);
