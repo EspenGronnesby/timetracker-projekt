@@ -27,6 +27,7 @@ const Appearance = () => {
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showCostCalculator, setShowCostCalculator] = useState(false);
+  const [showDrivingCard, setShowDrivingCard] = useState(true);
 
   useEffect(() => {
     if (profile) {
@@ -35,6 +36,7 @@ const Appearance = () => {
       setShowProjectActions(profile.show_project_actions || false);
       setShowActivityLog(profile.show_activity_log || false);
       setShowCostCalculator(profile.show_cost_calculator || false);
+      setShowDrivingCard(profile.show_driving_card !== false);
     }
   }, [profile]);
 
@@ -232,6 +234,22 @@ const Appearance = () => {
               id="cost-calculator"
               checked={showCostCalculator}
               onCheckedChange={(v) => toggleSetting("show_cost_calculator", setShowCostCalculator, v)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="driving-card" className="text-base">
+                Kjøring på Min oversikt
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Vis kilometer og kjøreturer som eget kort på oversikten
+              </p>
+            </div>
+            <Switch
+              id="driving-card"
+              checked={showDrivingCard}
+              onCheckedChange={(v) => toggleSetting("show_driving_card", setShowDrivingCard, v)}
             />
           </div>
         </div>

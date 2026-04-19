@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring, animate } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Clock,
   Car,
@@ -206,7 +207,21 @@ function PhoneMockup() {
 /* ─── main component ─── */
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   const heroRef = useRef<HTMLDivElement>(null);
+
+  // Auto-login: hvis bruker allerede er innlogget, send dem rett til riktig dashboard
+  useEffect(() => {
+    if (loading || !user) return;
+    // Vent på profile for å vite modus, men ha en fallback så vi ikke henger
+    if (profile) {
+      const isSimple = profile.app_mode === "simple" || profile.app_mode === "light";
+      navigate(isSimple ? "/simple" : "/app", { replace: true });
+      return;
+    }
+    const fallback = setTimeout(() => navigate("/app", { replace: true }), 3000);
+    return () => clearTimeout(fallback);
+  }, [user, profile, loading, navigate]);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -221,6 +236,11 @@ export default function Landing() {
   const mobileCTAY = useTransform(pageProgress, [0.15, 0.25], [60, 0]);
   const springY = useSpring(mobileCTAY, { stiffness: 300, damping: 30 });
   const springOpacity = useSpring(mobileCTAOpacity, { stiffness: 300, damping: 30 });
+
+  // Under auth-sjekk eller pågående redirect: vis tom bakgrunn (unngå flicker av landing)
+  if (loading || user) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
     <div className="animate-fade-in min-h-screen bg-background text-foreground overflow-x-hidden">

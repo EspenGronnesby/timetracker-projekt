@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAutoScheduler } from "@/hooks/useAutoScheduler";
 import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { BottomTabBar } from "@/components/BottomTabBar";
@@ -23,10 +24,16 @@ const pageTitles: Record<string, string> = {
   "/simple/wage": "Lønnsinnstillinger",
 };
 
+// Ruter som er bunn-tabber — skal IKKE ha tilbake-knapp
+const TAB_ROOT_ROUTES = ["/app", "/simple", "/simple/history", "/goals", "/more"];
+
 export function AppShell() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fase 6: Automatisk tidsplan. Mounter alltid, hooken no-op'er hvis ikke aktivert.
+  useAutoScheduler();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -49,12 +56,24 @@ export function AppShell() {
   if (loading || !user) return null;
 
   const isHome = location.pathname === "/app" || location.pathname === "/simple";
-  const title = isHome ? profile?.name : pageTitles[location.pathname] || "";
-  // Fase 2: StreakIndicator fjernet (markert som støy i audit-fase-0.md).
-  // NotificationBell vises kun i pro-modus (team-brukere), ikke i light-modus.
-  const showNotificationBell = isHome && profile?.app_mode !== "light";
-  // Vis tilbake-pil på alle undersider under /more/* (ikke selve /more)
-  const showBackButton = location.pathname.startsWith("/more/");
+  const isSimple = profile?.app_mode === "simple" || profile?.app_mode === "light";
+  // Tittel: hjem viser brukernavn, /project/:id får generisk fallback
+  const projectDetailTitle = location.pathname.startsWith("/project/") ? "Prosjekt" : "";
+  const title = isHome
+    ? profile?.name
+    : pageTitles[location.pathname] || projectDetailTitle;
+  // NotificationBell vises på hjem-sidene (også i enkel modus for værvarsler)
+  const showNotificationBell = isHome;
+  // Vis tilbake-pil på alle undersider som ikke er bunn-tab-ruter
+  const showBackButton = !TAB_ROOT_ROUTES.includes(location.pathname);
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(isSimple ? "/simple" : "/app");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
@@ -63,8 +82,8 @@ export function AppShell() {
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {showBackButton && (
               <button
-                onClick={() => navigate("/more")}
-                aria-label="Tilbake til Mer"
+                onClick={handleBack}
+                aria-label="Tilbake"
                 className="flex items-center justify-center h-10 w-10 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 active:scale-[0.96] transition-all duration-150 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background flex-shrink-0"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -76,7 +95,7 @@ export function AppShell() {
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {showNotificationBell && <NotificationBell />}
-            <NavigationButton />
+            {!isSimple && <NavigationButton />}
           </div>
         </div>
       </header>

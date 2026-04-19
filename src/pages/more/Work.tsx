@@ -2,7 +2,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Wallet, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Wallet, Clock, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useCallback } from "react";
@@ -21,6 +22,7 @@ const Work = () => {
   const [defaultLunchTime, setDefaultLunchTime] = useState<string>("11:30");
   const [defaultBreakfastMin, setDefaultBreakfastMin] = useState<string>("20");
   const [defaultLunchMin, setDefaultLunchMin] = useState<string>("30");
+  const [autoScheduleEnabled, setAutoScheduleEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     if (profile) {
@@ -46,6 +48,7 @@ const Work = () => {
       setDefaultLunchMin(
         profile.default_lunch_min != null ? String(profile.default_lunch_min) : "30"
       );
+      setAutoScheduleEnabled(profile.auto_schedule_enabled === true);
     }
   }, [profile]);
 
@@ -309,6 +312,27 @@ const Work = () => {
 
         <p className="text-xs text-muted-foreground mt-4">
           Disse tidene styrer også dagsplanen (frokost/lunsj/ferdig) på hovedsiden.
+        </p>
+      </Card>
+
+      {/* Automatisk tidsplan */}
+      <Card className="p-6">
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold tracking-tight">Automatisk tidsplan</h3>
+          </div>
+          <Switch
+            checked={autoScheduleEnabled}
+            onCheckedChange={(checked) => {
+              setAutoScheduleEnabled(checked);
+              saveSetting("auto_schedule_enabled", checked);
+            }}
+            aria-label="Slå på automatisk tidsplan"
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Start, pause og avslutt arbeidsdagen automatisk basert på tidene over. Fungerer mandag til fredag mens appen er åpen. Du kan fortsatt stoppe eller pause manuelt når som helst.
         </p>
       </Card>
     </div>
