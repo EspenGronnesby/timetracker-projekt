@@ -57,7 +57,7 @@ export const NotificationPanel = ({ onClose }: NotificationPanelProps) => {
               Merk alle som lest
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Lukk varsler">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -109,6 +109,7 @@ export const NotificationPanel = ({ onClose }: NotificationPanelProps) => {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
+                        aria-label="Slett varsel"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteNotification.mutate(notification.id);

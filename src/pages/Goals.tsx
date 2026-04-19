@@ -308,6 +308,7 @@ export default function Goals() {
           onClick={() => setIsAddListDialogOpen(true)}
           size="icon"
           variant="outline"
+          aria-label="Legg til liste"
           className="h-11 w-11 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:bg-primary/10"
         >
           <Plus className="h-5 w-5" />
@@ -364,6 +365,7 @@ export default function Goals() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Liste-handlinger"
                         className="h-10 w-10 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <MoreHorizontal className="h-4 w-4" />
@@ -450,6 +452,7 @@ export default function Goals() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteTask(task.id)}
+                            aria-label="Slett notat"
                             className="h-9 w-9 flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -581,6 +584,7 @@ function TaskInput({ inputRef, onFocus, onAdd }: TaskInputProps) {
           <Button
             variant="ghost"
             size="icon"
+            aria-label={deadline ? "Endre frist" : "Sett frist"}
             className={cn(
               "h-9 w-9 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               deadline && "text-primary"
@@ -615,6 +619,7 @@ function TaskInput({ inputRef, onFocus, onAdd }: TaskInputProps) {
       {value.trim() && (
         <Button
           size="icon"
+          aria-label="Legg til notat"
           className="h-9 w-9 flex-shrink-0 transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           onClick={handleAdd}
         >

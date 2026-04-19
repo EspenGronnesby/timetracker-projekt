@@ -121,11 +121,17 @@ export const WeatherWidget = () => {
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <RefreshCw className="h-4 w-4" onClick={(e) => {
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Oppdater vær"
+              className="h-10 w-10"
+              onClick={(e) => {
                 e.stopPropagation();
                 loadWeather();
-              }} />
+              }}
+            >
+              <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -136,7 +142,12 @@ export const WeatherWidget = () => {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">Værvarsel</h3>
-            <Button variant="ghost" size="icon" onClick={() => setExpanded(false)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Lukk værvarsel"
+              onClick={() => setExpanded(false)}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>

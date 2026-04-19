@@ -236,7 +236,7 @@ export function DayOverviewCard({
         </CardHeader>
         <CardContent>
           <div className="py-8 flex flex-col items-center justify-center">
-            <Clock className="h-10 w-10 text-muted-foreground/30 mb-2" />
+            <Clock className="h-10 w-10 text-muted-foreground/50 mb-2" aria-hidden />
             <p className="text-caption text-muted-foreground">Ingen registreringer i dag</p>
           </div>
         </CardContent>

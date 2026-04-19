@@ -36,7 +36,7 @@ function MenuItem({ icon, label, description, onClick, destructive }: MenuItemPr
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
         )}
       </div>
-      {!destructive && <ChevronRight className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />}
+      {!destructive && <ChevronRight className="h-5 w-5 text-muted-foreground/60 flex-shrink-0" aria-hidden />}
     </button>
   );
 }

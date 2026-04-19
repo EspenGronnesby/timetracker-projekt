@@ -101,26 +101,26 @@ export const ActiveTimerBar = ({
         {isPaused ? (
           <button
             onClick={() => { onResume(); haptic("medium"); }}
-            className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center pressable shadow-sm shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow"
-            aria-label="Gjenoppta timer"
+            aria-label="Fortsett timer"
+            className="w-11 h-11 rounded-full bg-blue-500 flex items-center justify-center pressable shadow-sm shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow"
           >
-            <Play className="h-3.5 w-3.5 text-white ml-0.5 fill-white" />
+            <Play className="h-4 w-4 text-white ml-0.5 fill-white" />
           </button>
         ) : (
           <button
             onClick={() => { onPause(); haptic("light"); }}
-            className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center pressable shadow-sm shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-shadow"
             aria-label="Pause timer"
+            className="w-11 h-11 rounded-full bg-yellow-500 flex items-center justify-center pressable shadow-sm shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-shadow"
           >
-            <Pause className="h-3.5 w-3.5 text-white" />
+            <Pause className="h-4 w-4 text-white" />
           </button>
         )}
         <button
           onClick={() => { onStop(); haptic("heavy"); }}
-          className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center pressable hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors"
           aria-label="Stopp timer"
+          className="w-11 h-11 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center pressable hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors"
         >
-          <Square className="h-3 w-3 text-red-500" />
+          <Square className="h-4 w-4 text-red-500" />
         </button>
       </div>
     </div>
