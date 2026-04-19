@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
-import { User, Briefcase, Palette, Bell, BarChart3, Shield, LogOut, ChevronRight } from "lucide-react";
+import { useAppMode } from "@/hooks/useAppMode";
+import { User, Briefcase, Palette, Bell, BarChart3, Shield, LogOut, ChevronRight, Zap, Crown, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MenuItemProps {
@@ -45,24 +46,73 @@ export default function More() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const isAdmin = useIsAdmin(user?.id);
+  const { appMode, setAppMode } = useAppMode();
 
   return (
-    <div className="py-6 px-4 sm:px-6 max-w-lg mx-auto space-y-1 animate-fade-in">
-      <MenuItem
-        icon={<BarChart3 className="h-5 w-5" />}
-        label="Min oversikt"
-        description="Timer, lønn og overtid for uken og måneden"
-        onClick={() => navigate("/overview")}
-      />
+    <div className="py-6 px-4 sm:px-6 max-w-lg mx-auto space-y-4 animate-fade-in">
+      {/* App-modus — øverst fordi det er den viktigste innstillingen */}
+      <div className="rounded-2xl border border-border/50 bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Smartphone className="h-4 w-4 text-primary" />
+          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+            App-modus
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => appMode !== "simple" && setAppMode("simple")}
+            className={cn(
+              "flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-left transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              appMode === "simple"
+                ? "border-primary bg-primary/5"
+                : "border-border/60 hover:border-primary/40 hover:bg-muted/30"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Zap className={cn("h-4 w-4", appMode === "simple" ? "text-primary" : "text-muted-foreground")} />
+              <span className="font-semibold text-sm tracking-tight">Enkel</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              Stoppeklokke + logg vanlig dag
+            </p>
+          </button>
 
-      <div className="border-t border-border/50 my-2" />
+          <button
+            onClick={() => appMode !== "pro" && setAppMode("pro")}
+            className={cn(
+              "flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-left transition-all duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              appMode === "pro"
+                ? "border-primary bg-primary/5"
+                : "border-border/60 hover:border-primary/40 hover:bg-muted/30"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Crown className={cn("h-4 w-4", appMode === "pro" ? "text-primary" : "text-muted-foreground")} />
+              <span className="font-semibold text-sm tracking-tight">Pro</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              Prosjekter, kjøring, materialer
+            </p>
+          </button>
+        </div>
+      </div>
 
-      <MenuItem
-        icon={<User className="h-5 w-5" />}
-        label="Profil"
-        description="Navn, e-post og organisasjon"
-        onClick={() => navigate("/more/profile")}
-      />
+      <div className="space-y-1">
+        <MenuItem
+          icon={<BarChart3 className="h-5 w-5" />}
+          label="Min oversikt"
+          description="Timer, lønn og overtid for uken og måneden"
+          onClick={() => navigate("/overview")}
+        />
+
+        <div className="border-t border-border/50 my-2" />
+
+        <MenuItem
+          icon={<User className="h-5 w-5" />}
+          label="Profil"
+          description="Navn, e-post og organisasjon"
+          onClick={() => navigate("/more/profile")}
+        />
 
       <MenuItem
         icon={<Briefcase className="h-5 w-5" />}
@@ -106,6 +156,7 @@ export default function More() {
         onClick={signOut}
         destructive
       />
+      </div>
     </div>
   );
 }
