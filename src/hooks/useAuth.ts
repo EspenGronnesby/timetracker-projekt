@@ -35,6 +35,8 @@ interface Profile {
   default_lunch_min?: number | null;
   // Fase 6: Automatisk tidsplan — start/pause/stopp timer automatisk
   auto_schedule_enabled?: boolean;
+  // Ukedager auto-schedule kjører på (0=søn, 1=man, ..., 6=lør)
+  auto_schedule_days?: number[] | null;
   // Kjøring-kort på Min oversikt (skjulbart, default true)
   show_driving_card?: boolean;
 }

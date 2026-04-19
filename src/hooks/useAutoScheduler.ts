@@ -11,9 +11,12 @@ import { useProjects, PauseType, TimeEntry } from "@/hooks/useProjects";
  * sjekker timer-state før den handler, og bruker localStorage for idempotens
  * per dag og event (trygt mot flere åpne faner).
  *
- * Krever at profile.auto_schedule_enabled er true. Fungerer kun mandag-fredag
- * i v1. Fungerer kun mens appen er åpen — full bakgrunns-kjøring er fase 2.
+ * Krever at profile.auto_schedule_enabled er true. Kjører kun på ukedager valgt
+ * i profile.auto_schedule_days (0=søn, 1=man, ..., 6=lør). Fungerer kun mens
+ * appen er åpen — full bakgrunns-kjøring er fase 2.
  */
+
+const DEFAULT_DAYS = [1, 2, 3, 4, 5]; // mandag-fredag
 
 type EventName =
   | "start"
@@ -100,8 +103,12 @@ export function useAutoScheduler() {
       if (!user || !profile?.auto_schedule_enabled) return;
 
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 0 = søndag, 1-5 = man-fre, 6 = lørdag
-      if (dayOfWeek === 0 || dayOfWeek === 6) return; // kun man-fre i v1
+      const dayOfWeek = now.getDay(); // 0 = søndag, ..., 6 = lørdag
+      const enabledDays =
+        profile.auto_schedule_days && profile.auto_schedule_days.length > 0
+          ? profile.auto_schedule_days
+          : DEFAULT_DAYS;
+      if (!enabledDays.includes(dayOfWeek)) return;
 
       // Bygg dagens event-timeline fra profil-feltene
       const start = parseHHMM(profile.default_start_time);
@@ -189,13 +196,14 @@ export function useAutoScheduler() {
     return () => clearInterval(interval);
   }, [
     profile?.auto_schedule_enabled,
-    // Re-mount hvis tider endres (så vi bygger timeline på nytt)
+    // Re-mount hvis tider eller dager endres (så vi bygger timeline på nytt)
     profile?.default_start_time,
     profile?.default_end_time,
     profile?.default_breakfast_time,
     profile?.default_lunch_time,
     profile?.default_breakfast_min,
     profile?.default_lunch_min,
+    profile?.auto_schedule_days,
     toggleProject,
     pauseTimer,
     resumeTimer,
