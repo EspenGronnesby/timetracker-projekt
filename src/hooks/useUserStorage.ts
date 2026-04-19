@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 
 /**
  * useUserStorage
@@ -10,13 +9,17 @@ import { useAuth } from "@/hooks/useAuth";
  *
  * Intern key = `tt:${userId}:${key}`.
  *
+ * userId sendes inn eksplisitt — hooken kaller IKKE useAuth selv. Ellers
+ * ville hver (key,defaultValue)-instans satt opp en ny auth-subscription
+ * og dobbel profile-fetch: en side som bruker hooken for både sortBy og
+ * viewMode + et tema-par ville blåse opp auth-listeners × 4.
+ *
  * Engang-migrering: Hvis en gammel uprefikset key finnes på enheten og
  * den nye prefikset key mangler, flyttes verdien over og gamle key
  * slettes. Dette skjer kun første gang en bruker logger inn etter
- * oppgraderingen — senere brukere på samme enhet får tom konto, slik
- * de skal.
+ * oppgraderingen — senere brukere på samme enhet får tom konto.
  *
- * Før `user` er kjent lagrer hooken kun in-memory (ingen localStorage),
+ * Før userId er kjent lagrer hooken kun in-memory (ingen localStorage),
  * så vi unngår å skrive til feil namespace.
  */
 
@@ -76,39 +79,40 @@ function migrateLegacyKey(userId: string, key: string): void {
 }
 
 export function useUserStorage<T extends Serializable>(
+  userId: string | null | undefined,
   key: string,
   defaultValue: T
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const { user } = useAuth();
-  const userId = user?.id ?? null;
+  // Normaliser undefined → null for konsistent dep-sammenligning
+  const safeUserId = userId ?? null;
 
   // Initier fra localStorage hvis bruker er kjent fra start
   const [value, setValue] = useState<T>(() => {
-    if (!userId) return defaultValue;
-    migrateLegacyKey(userId, key);
-    return readFromStorage(buildStorageKey(userId, key), defaultValue);
+    if (!safeUserId) return defaultValue;
+    migrateLegacyKey(safeUserId, key);
+    return readFromStorage(buildStorageKey(safeUserId, key), defaultValue);
   });
 
   // Når userId blir kjent (etter innlogging i samme sesjon), migrer og last
   useEffect(() => {
-    if (!userId) return;
-    migrateLegacyKey(userId, key);
-    const stored = readFromStorage(buildStorageKey(userId, key), defaultValue);
+    if (!safeUserId) return;
+    migrateLegacyKey(safeUserId, key);
+    const stored = readFromStorage(buildStorageKey(safeUserId, key), defaultValue);
     setValue(stored);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, key]);
+  }, [safeUserId, key]);
 
   const update = useCallback(
     (next: T | ((prev: T) => T)) => {
       setValue((prev) => {
         const resolved = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
-        if (userId) {
-          writeToStorage(buildStorageKey(userId, key), resolved);
+        if (safeUserId) {
+          writeToStorage(buildStorageKey(safeUserId, key), resolved);
         }
         return resolved;
       });
     },
-    [userId, key]
+    [safeUserId, key]
   );
 
   return [value, update];
