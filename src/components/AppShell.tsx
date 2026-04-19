@@ -24,7 +24,7 @@ const pageTitles: Record<string, string> = {
 };
 
 // Ruter som er bunn-tabber — skal IKKE ha tilbake-knapp
-const TAB_ROOT_ROUTES = ["/app", "/simple", "/simple/history", "/goals", "/more"];
+const TAB_ROOT_ROUTES = ["/app", "/simple", "/simple/history", "/overview", "/goals", "/more"];
 
 export function AppShell() {
   const { user, profile, loading } = useAuth();
