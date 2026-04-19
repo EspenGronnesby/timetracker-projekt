@@ -213,6 +213,10 @@ export default function Overview() {
   const monthHoursDelta = monthTotalHours - lastMonthTotalHours;
   const monthHoursPct =
     lastMonthTotalHours > 0 ? (monthHoursDelta / lastMonthTotalHours) * 100 : 0;
+  const lastWeekTotalHours = lastWeekOt.normalHours + lastWeekOt.overtimeHours;
+  const weekHoursDelta = weekTotalHours - lastWeekTotalHours;
+  const weekHoursPct =
+    lastWeekTotalHours > 0 ? (weekHoursDelta / lastWeekTotalHours) * 100 : 0;
 
   // Avspasering
   const avspaseringHours = useMemo(
@@ -227,6 +231,8 @@ export default function Overview() {
   const animatedMonthOvertime = useCountUp(monthOt.overtimeHours);
   const animatedWeekHours = useCountUp(weekTotalHours);
   const animatedWeekNet = useCountUp(weekNet);
+  const animatedWeekKm = useCountUp(weekKilometers);
+  const animatedWeekOvertime = useCountUp(weekOt.overtimeHours);
 
   // Bar chart data
   const chartData = useMemo(() => {
@@ -525,94 +531,195 @@ export default function Overview() {
         </CardContent>
       </Card>
 
-      {/* Sekundær: Denne uken — sammendrag */}
-      <Card className="bg-muted/20 border-border/40">
-        <CardHeader>
-          <h3 className="text-caption uppercase tracking-wider text-muted-foreground">
-            Denne uken
-          </h3>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Timer & lønn */}
-            <div>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                Timer
-              </p>
-              <p className="text-xl font-bold tabular-nums mb-3 tabular-nums">
-                {formatHours(animatedWeekHours)}
-              </p>
-              <p className="text-xs text-muted-foreground tabular-nums mb-4">
-                {formatHours(weekOt.normalHours, "short")} normal · {formatHours(weekOt.overtimeHours, "short")} overtid
-              </p>
+      {/* Sekundær: Denne uken — speiler månedsstrukturen, men dimmer */}
+      <div className="space-y-3 pt-2">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground/70 font-medium px-1">
+          Denne uken
+        </p>
 
-              <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                Lønn (netto)
-              </p>
-              <p className="text-xl font-bold tabular-nums">
-                {formatNok(animatedWeekNet)}
-              </p>
-              <p className="text-xs text-muted-foreground tabular-nums mt-1">
-                brutto {formatNok(weekGross)}
-              </p>
-            </div>
+        {/* Mini-hero: ukentlig totalt + trend */}
+        <Card className="bg-muted/30 border-border/40 transition-colors duration-200 hover:border-border/60">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-1">
+                  Totalt
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight leading-none text-foreground/85">
+                    {Math.floor(animatedWeekHours)}
+                  </span>
+                  <span className="text-base font-semibold text-muted-foreground/80">t</span>
+                </div>
+              </div>
 
-            {/* Overtid-fordeling for uken & avspasering */}
-            <div>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                Overtid-fordeling
-              </p>
-              {weekOt.rate50Hours + weekOt.rate100Hours > 0 ? (
-                <div className="mb-4">
-                  <div className="flex h-2 rounded-full overflow-hidden bg-muted/40 mb-2.5">
-                    {weekOt.rate50Hours > 0 && (
-                      <div
-                        className="bg-orange-400/80 h-full transition-all duration-700 motion-reduce:transition-none"
-                        style={{ flexGrow: weekOt.rate50Hours }}
-                        aria-label={`50% tillegg: ${formatHours(weekOt.rate50Hours, "short")}`}
-                      />
-                    )}
-                    {weekOt.rate100Hours > 0 && (
-                      <div
-                        className="bg-red-500/80 h-full transition-all duration-700 motion-reduce:transition-none"
-                        style={{ flexGrow: weekOt.rate100Hours }}
-                        aria-label={`100% tillegg: ${formatHours(weekOt.rate100Hours, "short")}`}
-                      />
-                    )}
+              {/* Liten trend-pille vs forrige uke */}
+              <div className="text-right">
+                {weekHoursDelta === 0 && lastWeekTotalHours === 0 ? (
+                  <p className="text-[11px] text-muted-foreground/70">Ingen data</p>
+                ) : weekHoursDelta === 0 && lastWeekTotalHours > 0 ? (
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted/60">
+                    <Minus className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      Som forrige uke
+                    </span>
                   </div>
-                  <div className="flex justify-between gap-2 text-[11px] tabular-nums">
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-orange-400/80" />
-                      <span className="text-muted-foreground">50%</span>
-                      <span className="font-medium">{formatHours(weekOt.rate50Hours, "short")}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-red-500/80" />
-                      <span className="text-muted-foreground">100%</span>
-                      <span className="font-medium">{formatHours(weekOt.rate100Hours, "short")}</span>
-                    </div>
+                ) : (
+                  <div
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${
+                      weekHoursDelta > 0 ? "bg-emerald-500/8" : "bg-red-500/8"
+                    }`}
+                  >
+                    {weekHoursDelta > 0 ? (
+                      <TrendingUp className="h-3 w-3 text-emerald-600/80 dark:text-emerald-400/80" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-red-600/80 dark:text-red-400/80" />
+                    )}
+                    <span
+                      className={`text-[11px] font-medium tabular-nums ${
+                        weekHoursDelta > 0
+                          ? "text-emerald-700/90 dark:text-emerald-300/90"
+                          : "text-red-700/90 dark:text-red-300/90"
+                      }`}
+                    >
+                      {Math.abs(weekHoursDelta).toFixed(1)}t ({Math.abs(weekHoursPct).toFixed(0)}%)
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tre dempede KPI-kort som speiler måneds-strippen */}
+        <div className={`grid grid-cols-1 gap-2 ${profile?.show_driving_card !== false ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+          {/* Lønn (uke) */}
+          <Card className="bg-emerald-500/3 border-emerald-500/15 transition-colors duration-200 hover:border-emerald-500/25">
+            <CardContent className="pt-3 pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-1">
+                    Lønn (netto)
+                  </p>
+                  <p className="text-base font-semibold tabular-nums text-emerald-700/90 dark:text-emerald-300/90">
+                    {formatNok(animatedWeekNet)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/70 tabular-nums mt-0.5">
+                    brutto {formatNok(weekGross)}
+                  </p>
+                </div>
+                <div className="p-1.5 rounded-lg bg-emerald-500/8 flex-shrink-0">
+                  <Banknote className="h-3.5 w-3.5 text-emerald-600/80 dark:text-emerald-400/80" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Kjøring (uke) */}
+          {profile?.show_driving_card !== false && (
+            <Card className="bg-sky-500/3 border-sky-500/15 transition-colors duration-200 hover:border-sky-500/25">
+              <CardContent className="pt-3 pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-1">
+                      Kjøring
+                    </p>
+                    <p className="text-base font-semibold tabular-nums text-sky-700/90 dark:text-sky-300/90">
+                      {Math.round(animatedWeekKm)} km
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70 tabular-nums mt-0.5">
+                      {weekDriveEntries.length} kjøreturer
+                    </p>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-sky-500/8 flex-shrink-0">
+                    <Car className="h-3.5 w-3.5 text-sky-600/80 dark:text-sky-400/80" />
                   </div>
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground/80 italic mb-4">
-                  Ingen overtid denne uken
-                </p>
-              )}
+              </CardContent>
+            </Card>
+          )}
 
-              {avspaseringHours > 0 && (
-                <>
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
-                    Avspasering (totalt)
+          {/* Overtid (uke) */}
+          <Card className="bg-orange-500/3 border-orange-500/15 transition-colors duration-200 hover:border-orange-500/25">
+            <CardContent className="pt-3 pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-1">
+                    Overtid
                   </p>
-                  <p className="text-lg font-bold tabular-nums text-primary">
-                    {formatHours(avspaseringHours, "short")}
+                  <p className="text-base font-semibold tabular-nums text-orange-700/90 dark:text-orange-300/90">
+                    {formatHours(animatedWeekOvertime, "short")}
                   </p>
-                </>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                  <p className="text-[10px] text-muted-foreground/70 tabular-nums mt-0.5">
+                    50%: {formatHours(weekOt.rate50Hours, "short")} · 100%: {formatHours(weekOt.rate100Hours, "short")}
+                  </p>
+                </div>
+                <div className="p-1.5 rounded-lg bg-orange-500/8 flex-shrink-0">
+                  <TrendingUp className="h-3.5 w-3.5 text-orange-600/80 dark:text-orange-400/80" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Overtid-fordeling for uken + avspasering (kompakt) */}
+        {(weekOt.rate50Hours + weekOt.rate100Hours > 0 || avspaseringHours > 0) && (
+          <Card className="bg-muted/20 border-border/40">
+            <CardContent className="pt-3 pb-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-2">
+                    Overtid-fordeling
+                  </p>
+                  {weekOt.rate50Hours + weekOt.rate100Hours > 0 ? (
+                    <div>
+                      <div className="flex h-1.5 rounded-full overflow-hidden bg-muted/50 mb-2">
+                        {weekOt.rate50Hours > 0 && (
+                          <div
+                            className="bg-orange-400/70 h-full transition-all duration-700 motion-reduce:transition-none"
+                            style={{ flexGrow: weekOt.rate50Hours }}
+                            aria-label={`50% tillegg: ${formatHours(weekOt.rate50Hours, "short")}`}
+                          />
+                        )}
+                        {weekOt.rate100Hours > 0 && (
+                          <div
+                            className="bg-red-500/70 h-full transition-all duration-700 motion-reduce:transition-none"
+                            style={{ flexGrow: weekOt.rate100Hours }}
+                            aria-label={`100% tillegg: ${formatHours(weekOt.rate100Hours, "short")}`}
+                          />
+                        )}
+                      </div>
+                      <div className="flex justify-between gap-2 text-[10px] tabular-nums text-muted-foreground/80">
+                        <div className="flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-orange-400/70" />
+                          <span>50% {formatHours(weekOt.rate50Hours, "short")}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500/70" />
+                          <span>100% {formatHours(weekOt.rate100Hours, "short")}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground/70 italic">Ingen overtid</p>
+                  )}
+                </div>
+
+                {avspaseringHours > 0 && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-medium mb-2">
+                      Avspasering (totalt)
+                    </p>
+                    <p className="text-base font-semibold tabular-nums text-primary/85">
+                      {formatHours(avspaseringHours, "short")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Today's activity merged card */}
       <DayOverviewCard
