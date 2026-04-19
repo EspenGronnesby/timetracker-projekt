@@ -145,6 +145,22 @@ const Index = () => {
     );
   }, [statusFilteredProjects, searchQuery]);
 
+  // Forhåndsbygg lookup-maps så sort-funksjonene er O(n) i stedet for O(n × m)
+  const projectTimeMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of timeEntries) {
+      m.set(e.project_id, (m.get(e.project_id) ?? 0) + e.duration_seconds);
+    }
+    return m;
+  }, [timeEntries]);
+
+  const activeProjectIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const e of allRunningTimeEntries) s.add(e.project_id);
+    for (const e of activeDriveEntries) s.add(e.project_id);
+    return s;
+  }, [allRunningTimeEntries, activeDriveEntries]);
+
   // Smart sorting
   const sortedProjects = useMemo(() => {
     const list = [...searchFilteredProjects];
@@ -152,15 +168,13 @@ const Index = () => {
       case "name":
         return list.sort((a, b) => a.name.localeCompare(b.name));
       case "time":
-        return list.sort((a, b) => {
-          const timeA = timeEntries.filter(e => e.project_id === a.id).reduce((s, e) => s + e.duration_seconds, 0);
-          const timeB = timeEntries.filter(e => e.project_id === b.id).reduce((s, e) => s + e.duration_seconds, 0);
-          return timeB - timeA;
-        });
+        return list.sort(
+          (a, b) => (projectTimeMap.get(b.id) ?? 0) - (projectTimeMap.get(a.id) ?? 0)
+        );
       case "active":
         return list.sort((a, b) => {
-          const aActive = allRunningTimeEntries.some(e => e.project_id === a.id) || activeDriveEntries.some(e => e.project_id === a.id);
-          const bActive = allRunningTimeEntries.some(e => e.project_id === b.id) || activeDriveEntries.some(e => e.project_id === b.id);
+          const aActive = activeProjectIds.has(a.id);
+          const bActive = activeProjectIds.has(b.id);
           return (bActive ? 1 : 0) - (aActive ? 1 : 0);
         });
       case "recent":
@@ -168,7 +182,7 @@ const Index = () => {
       default:
         return list;
     }
-  }, [searchFilteredProjects, sortBy, timeEntries, allRunningTimeEntries, activeDriveEntries]);
+  }, [searchFilteredProjects, sortBy, projectTimeMap, activeProjectIds]);
 
   const activeProjectCount = projects.filter(p => !p.completed).length;
   const completedProjectCount = projects.filter(p => p.completed).length;
