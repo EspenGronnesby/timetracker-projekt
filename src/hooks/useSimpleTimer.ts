@@ -30,7 +30,7 @@ export const useSimpleTimer = () => {
         const projectIds = members.map((m) => m.project_id);
         const { data: projects } = await supabase
           .from("projects")
-          .select("*")
+          .select("id")
           .in("id", projectIds)
           .eq("name", SIMPLE_PROJECT_NAME)
           .limit(1);
