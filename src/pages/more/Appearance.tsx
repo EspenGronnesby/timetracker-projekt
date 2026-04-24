@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Palette, Zap, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useColorTheme, ColorTheme } from "@/hooks/useColorTheme";
+import { useAppMode } from "@/hooks/useAppMode";
 
 const themes: { value: ColorTheme; label: string; description: string; preview: string }[] = [
   { value: 'light', label: 'Lys', description: 'Standard lyst tema', preview: 'bg-background border-2 border-border' },
@@ -18,27 +19,10 @@ const themes: { value: ColorTheme; label: string; description: string; preview: 
 ];
 
 const Appearance = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refetchProfile } = useAuth();
   const { toast } = useToast();
   const { currentTheme, setColorTheme } = useColorTheme();
-
-  const [appMode, setAppMode] = useState<AppMode>("pro");
-  const [showTeamInvite, setShowTeamInvite] = useState(false);
-  const [showProjectActions, setShowProjectActions] = useState(false);
-  const [showActivityLog, setShowActivityLog] = useState(false);
-  const [showCostCalculator, setShowCostCalculator] = useState(false);
-  const [showDrivingCard, setShowDrivingCard] = useState(true);
-
-  useEffect(() => {
-    if (profile) {
-      setAppMode((profile.app_mode as AppMode) || "pro");
-      setShowTeamInvite(profile.show_team_invite || false);
-      setShowProjectActions(profile.show_project_actions || false);
-      setShowActivityLog(profile.show_activity_log || false);
-      setShowCostCalculator(profile.show_cost_calculator || false);
-      setShowDrivingCard(profile.show_driving_card !== false);
-    }
-  }, [profile]);
+  const { appMode, setAppMode: switchAppMode } = useAppMode();
 
   const saveSetting = useCallback(async (field: string, value: unknown) => {
     if (!user) return;
@@ -49,22 +33,19 @@ const Appearance = () => {
 
     if (error) {
       toast({ title: "Kunne ikke lagre", description: error.message, variant: "destructive" });
+      return;
     }
-  }, [user, toast]);
+    // Invalider den delte React Query-cachen for profile, slik at alle
+    // komponenter (inkludert Switch-verdiene her) viser ny verdi uten
+    // lokal state. Single source of truth = profile.
+    await refetchProfile();
+  }, [user, toast, refetchProfile]);
 
-  const toggleSetting = (
-    field: string,
-    setter: (v: boolean) => void,
-    newValue: boolean
-  ) => {
-    setter(newValue);
-    saveSetting(field, newValue);
-  };
-
-  const changeAppMode = (mode: AppMode) => {
-    setAppMode(mode);
-    saveSetting("app_mode", mode);
-    toast({ title: mode === "light" ? "Light-modus aktivert" : "Pro-modus aktivert" });
+  const changeAppMode = async (mode: AppMode) => {
+    // Eneste kilde til sannhet: appMode fra useAppMode (backet av React Query
+    // cache). setAppMode oppdaterer DB + navigerer + refetcher profile slik
+    // at neste render viser ny modus.
+    await switchAppMode(mode);
   };
 
   if (loading || !user) {
@@ -184,8 +165,8 @@ const Appearance = () => {
             </div>
             <Switch
               id="team-invite"
-              checked={showTeamInvite}
-              onCheckedChange={(v) => toggleSetting("show_team_invite", setShowTeamInvite, v)}
+              checked={profile?.show_team_invite ?? false}
+              onCheckedChange={(v) => saveSetting("show_team_invite", v)}
             />
           </div>
 
@@ -200,8 +181,8 @@ const Appearance = () => {
             </div>
             <Switch
               id="project-actions"
-              checked={showProjectActions}
-              onCheckedChange={(v) => toggleSetting("show_project_actions", setShowProjectActions, v)}
+              checked={profile?.show_project_actions ?? false}
+              onCheckedChange={(v) => saveSetting("show_project_actions", v)}
             />
           </div>
 
@@ -216,8 +197,8 @@ const Appearance = () => {
             </div>
             <Switch
               id="activity-log"
-              checked={showActivityLog}
-              onCheckedChange={(v) => toggleSetting("show_activity_log", setShowActivityLog, v)}
+              checked={profile?.show_activity_log ?? false}
+              onCheckedChange={(v) => saveSetting("show_activity_log", v)}
             />
           </div>
 
@@ -232,8 +213,8 @@ const Appearance = () => {
             </div>
             <Switch
               id="cost-calculator"
-              checked={showCostCalculator}
-              onCheckedChange={(v) => toggleSetting("show_cost_calculator", setShowCostCalculator, v)}
+              checked={profile?.show_cost_calculator ?? false}
+              onCheckedChange={(v) => saveSetting("show_cost_calculator", v)}
             />
           </div>
 
@@ -248,8 +229,8 @@ const Appearance = () => {
             </div>
             <Switch
               id="driving-card"
-              checked={showDrivingCard}
-              onCheckedChange={(v) => toggleSetting("show_driving_card", setShowDrivingCard, v)}
+              checked={profile?.show_driving_card !== false}
+              onCheckedChange={(v) => saveSetting("show_driving_card", v)}
             />
           </div>
         </div>

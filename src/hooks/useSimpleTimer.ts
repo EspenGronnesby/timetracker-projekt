@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWageSettings } from "@/hooks/useWageSettings";
 import { useBreaks } from "@/hooks/useBreaks";
+import { LIGHT_MODE_PROJECT_NAME } from "@/lib/projectConstants";
 
-const SIMPLE_PROJECT_NAME = "Standard arbeidsdag";
+const SIMPLE_PROJECT_NAME = LIGHT_MODE_PROJECT_NAME;
 const SIMPLE_PROJECT_COLOR = "#3B82F6";
 
 export const useSimpleTimer = () => {
@@ -51,6 +52,17 @@ export const useSimpleTimer = () => {
         p_hide_customer_info: true,
       });
       if (error) throw error;
+
+      // Marker som system-opprettet Light-prosjekt så Pro-dashboard filtrerer
+      // det bort uavhengig av navn. Uten dette ville et user-opprettet
+      // prosjekt med samme navn feilaktig bli skjult (Codex P2, PR #17).
+      const newId = (data as { id: string } | null)?.id;
+      if (newId) {
+        await supabase
+          .from("projects")
+          .update({ is_simple_project: true } as never)
+          .eq("id", newId);
+      }
       return data;
     },
   });

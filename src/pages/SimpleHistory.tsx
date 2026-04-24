@@ -40,7 +40,7 @@ const SimpleHistory = () => {
         .from("projects")
         .select("id")
         .in("id", projectIds)
-        .eq("name", "Standard arbeidsdag");
+        .eq("is_simple_project", true);
 
       if (!projects?.length) return [];
 

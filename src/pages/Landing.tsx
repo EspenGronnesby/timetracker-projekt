@@ -215,8 +215,9 @@ export default function Landing() {
     if (loading || !user) return;
     // Vent på profile for å vite modus, men ha en fallback så vi ikke henger
     if (profile) {
-      const isSimple = profile.app_mode === "simple" || profile.app_mode === "light";
-      navigate(isSimple ? "/simple" : "/app", { replace: true });
+      const isLight =
+        profile.app_mode === "light" || profile.app_mode === "simple";
+      navigate(isLight ? "/simple" : "/app", { replace: true });
       return;
     }
     const fallback = setTimeout(() => navigate("/app", { replace: true }), 3000);

@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type AppMode = "light" | "pro";
 
@@ -44,70 +45,72 @@ interface Profile {
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
+        setAuthLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      setAuthLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    try {
+  // Profile via React Query så cachen deles på tvers av alle useAuth-
+  // instanser. Uten dette har hver komponent sin egen profile-kopi og
+  // refetch i én hook påvirker ikke de andre.
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async (): Promise<Profile | null> => {
+      if (!user) return null;
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", user.id)
         .single();
-
       if (error) throw error;
-      setProfile(data as any);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data as Profile;
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60,
+  });
+
+  const loading = authLoading || (!!user && profileLoading);
+
+  // Invaliderer den delte React Query-cachen. Alle komponenter som
+  // bruker useAuth får automatisk ny profile gjennom sin egen useQuery.
+  const refetchProfile = useCallback(async () => {
+    if (!user) return;
+    await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+  }, [user, queryClient]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setProfile(null);
+    // Clear hele query-cachen så ingen rester (profile, projects, time_entries,
+    // drive_entries, materials) fra forrige bruker vises ved neste innlogging.
+    queryClient.clear();
     navigate("/auth");
   };
 
   return {
     user,
     session,
-    profile,
+    profile: profile ?? null,
     loading,
     signOut,
+    refetchProfile,
   };
 };
