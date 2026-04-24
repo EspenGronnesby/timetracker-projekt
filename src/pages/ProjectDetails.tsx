@@ -839,11 +839,15 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
-        {/* Per-prosjekt notater — for entrepenører som trenger rask notat-flate */}
+        {/* Per-prosjekt notater — for entrepenører som trenger rask notat-flate.
+            canEdit er snevrere enn for ProjectNoteList: RLS på public.projects
+            ("Project owners can update projects", migrering 20251005132156)
+            tillater kun project_members.role='owner'. Admin/creator-UI uten
+            owner-medlemskap ville gitt editerbar textarea men autosave-403. */}
         <ProjectNotes
           projectId={project.id}
           initialNotes={project.notes ?? null}
-          canEdit={!!(isAdmin || isProjectCreator || isProjectOwner)}
+          canEdit={!!isProjectOwner}
         />
 
         {/* Separate titulerte notater (handleliste, kutt-dimensjoner, planlegging).

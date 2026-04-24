@@ -22,7 +22,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
 import { handleError, handleSuccess } from "@/lib/errorHandler";
-import { LIGHT_MODE_PROJECT_NAME } from "@/lib/projectConstants";
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
@@ -100,10 +99,11 @@ const Index = () => {
   };
 
   // Data-separasjon: Pro-dashboard skal IKKE vise Light-modus-prosjektet
-  // ("Standard arbeidsdag"). Det prosjektet brukes kun i /simple og ansatt-
-  // timer skal ikke blandes inn i entrepenør-prosjekter, KPI, eller lønn.
+  // som /simple auto-oppretter. Vi bruker is_simple_project-flagget (satt
+  // av useSimpleTimer) fremfor navn-match, så user-opprettede prosjekter
+  // med navnet "Standard arbeidsdag" ikke blir skjult ved et uhell.
   const proProjects = useMemo(
-    () => projects.filter((p) => p.name !== LIGHT_MODE_PROJECT_NAME),
+    () => projects.filter((p) => !p.is_simple_project),
     [projects]
   );
   const proProjectIds = useMemo(

@@ -15,6 +15,7 @@ export type Project = {
   contract_number: string | null;
   description: string | null;
   notes: string | null;
+  is_simple_project: boolean;
   created_by: string;
   created_at: string;
   completed: boolean;
@@ -120,6 +121,7 @@ export const useProjects = (userId?: string) => {
         ...project,
         hide_customer_info: (project as { hide_customer_info?: boolean }).hide_customer_info ?? false,
         notes: (project as { notes?: string | null }).notes ?? null,
+        is_simple_project: (project as { is_simple_project?: boolean }).is_simple_project ?? false,
       })) as Project[];
     },
     enabled: !!userId,

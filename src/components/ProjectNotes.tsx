@@ -21,6 +21,9 @@ export function ProjectNotes({ projectId, initialNotes, canEdit }: ProjectNotesP
   const timeoutRef = useRef<number | null>(null);
   const savedResetRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
+  // Holder siste ulagrede value så cleanup kan flushe den ved unmount.
+  // Tidligere ble timer bare cleared — rask navigering tapte siste endring.
+  const pendingRef = useRef<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -59,15 +62,33 @@ export function ProjectNotes({ projectId, initialNotes, canEdit }: ProjectNotesP
 
   const handleChange = (value: string) => {
     setNotes(value);
+    pendingRef.current = value;
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => save(value), 800);
+    timeoutRef.current = window.setTimeout(() => {
+      pendingRef.current = null;
+      save(value);
+    }, 800);
   };
+
+  // Hold save i ref så cleanup kan kalle seneste versjon uten å avhenge
+  // av den i dep-arrayet (ville trigget re-kjøring av cleanup hver save).
+  const saveRef = useRef(save);
+  useEffect(() => {
+    saveRef.current = save;
+  }, [save]);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
       if (savedResetRef.current) window.clearTimeout(savedResetRef.current);
+      // Flush pending endring ved unmount — fire-and-forget. DB-kallet
+      // fullfører i bakgrunnen selv om komponenten er borte; mountedRef-
+      // sjekker inne i save() hindrer state-oppdateringer på unmounted.
+      if (pendingRef.current !== null) {
+        void saveRef.current(pendingRef.current);
+        pendingRef.current = null;
+      }
     };
   }, []);
 
