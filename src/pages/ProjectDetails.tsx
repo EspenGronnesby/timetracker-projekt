@@ -13,6 +13,9 @@ import { GenerateReportDialog } from "@/components/GenerateReportDialog";
 import { ManualTimeDialog } from "@/components/ManualTimeDialog";
 import { EditEntryDialog } from "@/components/EditEntryDialog";
 import { ProjectCostCalculator } from "@/components/ProjectCostCalculator";
+import { ProjectNotes } from "@/components/ProjectNotes";
+import { ProjectNoteList } from "@/components/ProjectNoteList";
+import { NewProjectNoteButton } from "@/components/NewProjectNoteButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Clock, Car, Package, User, Phone, Mail, MapPin, FileText, Lock, Share2, Copy, Check, Users, Trash2, CheckCircle2, Download, Pencil } from "lucide-react";
 import jsPDF from 'jspdf';
@@ -560,6 +563,9 @@ const ProjectDetails = () => {
             {profile?.show_cost_calculator && (
               <ProjectCostCalculator projectId={project.id} userId={user.id} />
             )}
+            {(isAdmin || isProjectCreator || isProjectOwner) && (
+              <NewProjectNoteButton projectId={project.id} userId={user.id} />
+            )}
             <OnlineUsersIndicator userId={user.id} userName={profile.name} projectId={project.id} />
           </div>
         </div>
@@ -833,6 +839,19 @@ const ProjectDetails = () => {
           </Tabs>
         </Card>
 
+        {/* Per-prosjekt notater — for entrepenører som trenger rask notat-flate */}
+        <ProjectNotes
+          projectId={project.id}
+          initialNotes={project.notes ?? null}
+          canEdit={!!(isAdmin || isProjectCreator || isProjectOwner)}
+        />
+
+        {/* Separate titulerte notater (handleliste, kutt-dimensjoner, planlegging).
+            Opprettelse skjer via NewProjectNoteButton i action-raden øverst. */}
+        <ProjectNoteList
+          projectId={project.id}
+          canEdit={!!(isAdmin || isProjectCreator || isProjectOwner)}
+        />
 
         {profile?.show_team_invite && (isAdmin || isProjectCreator) && <Card id="invites" className="p-3 sm:p-4 rounded-2xl">
             <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5 tracking-tight">

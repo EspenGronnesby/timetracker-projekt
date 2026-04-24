@@ -7,6 +7,7 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { NavigationButton } from "@/components/NavigationButton";
+import { ModeToggle } from "@/components/ModeToggle";
 
 const pageTitles: Record<string, string> = {
   "/app": "",
@@ -40,13 +41,15 @@ export function AppShell() {
     }
   }, [user, loading, navigate]);
 
-  // Redirect based on app mode
+  // Redirect based on app mode. Backward-compat: gammel verdi "simple"
+  // regnes som Light inntil DB-migreringen er kjørt.
   useEffect(() => {
     if (!loading && user && profile) {
-      const isSimple = profile.app_mode === "simple";
-      if (isSimple && location.pathname === "/app") {
+      const isLight =
+        profile.app_mode === "light" || profile.app_mode === "simple";
+      if (isLight && location.pathname === "/app") {
         navigate("/simple", { replace: true });
-      } else if (!isSimple && location.pathname === "/simple") {
+      } else if (!isLight && location.pathname === "/simple") {
         navigate("/app", { replace: true });
       }
     }
@@ -55,7 +58,8 @@ export function AppShell() {
   if (loading || !user) return null;
 
   const isHome = location.pathname === "/app" || location.pathname === "/simple";
-  const isSimple = profile?.app_mode === "simple" || profile?.app_mode === "light";
+  const isLight =
+    profile?.app_mode === "light" || profile?.app_mode === "simple";
   // Tittel: hjem viser brukernavn, /project/:id får generisk fallback
   const projectDetailTitle = location.pathname.startsWith("/project/") ? "Prosjekt" : "";
   const title = isHome
@@ -70,7 +74,7 @@ export function AppShell() {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate(isSimple ? "/simple" : "/app");
+      navigate(isLight ? "/simple" : "/app");
     }
   };
 
@@ -96,8 +100,9 @@ export function AppShell() {
             </h1>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            <ModeToggle />
             {showNotificationBell && <NotificationBell />}
-            {!isSimple && <NavigationButton />}
+            {!isLight && <NavigationButton />}
           </div>
         </div>
       </header>

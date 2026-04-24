@@ -104,17 +104,17 @@ export function ProjectCostCalculator({ projectId, userId }: ProjectCostCalculat
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Timer</span>
-            <span className="font-medium">{formatHours(costs.labor.hours)} t</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Timer</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">{formatHours(costs.labor.hours)} t</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Timepris</span>
-            <span className="font-medium">{formatCurrency(costs.labor.rate)}/t</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Timepris</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">{formatCurrency(costs.labor.rate)}/t</span>
           </div>
-          <div className="flex justify-between font-semibold pt-2 border-t">
-            <span>Sum arbeid</span>
-            <span>{formatCurrency(costs.labor.cost)}</span>
+          <div className="flex justify-between font-semibold pt-2 border-t gap-2">
+            <span className="min-w-0 flex-1">Sum arbeid</span>
+            <span className="flex-shrink-0 tabular-nums">{formatCurrency(costs.labor.cost)}</span>
           </div>
         </CardContent>
       </Card>
@@ -127,21 +127,21 @@ export function ProjectCostCalculator({ projectId, userId }: ProjectCostCalculat
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Total kjørt</span>
-            <span className="font-medium">{costs.driving.totalKm.toFixed(1)} km</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Total kjørt</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">{costs.driving.totalKm.toFixed(1)} km</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Gratis km</span>
-            <span className="font-medium">-{costs.driving.freeKm} km</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Gratis km</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">-{costs.driving.freeKm} km</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Fakturerbar kjøring</span>
-            <span className="font-medium">{costs.driving.billableKm.toFixed(1)} km × {formatCurrency(costs.driving.rate)}/km</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Fakturerbar kjøring</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">{costs.driving.billableKm.toFixed(1)} km × {formatCurrency(costs.driving.rate)}/km</span>
           </div>
-          <div className="flex justify-between font-semibold pt-2 border-t">
-            <span>Sum kjøring</span>
-            <span>{formatCurrency(costs.driving.cost)}</span>
+          <div className="flex justify-between font-semibold pt-2 border-t gap-2">
+            <span className="min-w-0 flex-1">Sum kjøring</span>
+            <span className="flex-shrink-0 tabular-nums">{formatCurrency(costs.driving.cost)}</span>
           </div>
         </CardContent>
       </Card>
@@ -154,13 +154,13 @@ export function ProjectCostCalculator({ projectId, userId }: ProjectCostCalculat
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Antall poster</span>
-            <span className="font-medium">{costs.materials.items}</span>
+          <div className="flex justify-between text-sm gap-2">
+            <span className="text-muted-foreground min-w-0 flex-1">Antall poster</span>
+            <span className="font-medium flex-shrink-0 tabular-nums">{costs.materials.items}</span>
           </div>
-          <div className="flex justify-between font-semibold pt-2 border-t">
-            <span>Sum materialer</span>
-            <span>{formatCurrency(costs.materials.cost)}</span>
+          <div className="flex justify-between font-semibold pt-2 border-t gap-2">
+            <span className="min-w-0 flex-1">Sum materialer</span>
+            <span className="flex-shrink-0 tabular-nums">{formatCurrency(costs.materials.cost)}</span>
           </div>
         </CardContent>
       </Card>

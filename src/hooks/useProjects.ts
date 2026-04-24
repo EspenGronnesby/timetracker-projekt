@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SELF_PROJECT_NAME } from "@/lib/projectConstants";
 
 export type Project = {
   id: string;
@@ -13,6 +14,7 @@ export type Project = {
   customer_email: string | null;
   contract_number: string | null;
   description: string | null;
+  notes: string | null;
   created_by: string;
   created_at: string;
   completed: boolean;
@@ -116,7 +118,8 @@ export const useProjects = (userId?: string) => {
       if (error) throw error;
       return (data || []).map(project => ({
         ...project,
-        hide_customer_info: project.hide_customer_info ?? false
+        hide_customer_info: (project as { hide_customer_info?: boolean }).hide_customer_info ?? false,
+        notes: (project as { notes?: string | null }).notes ?? null,
       })) as Project[];
     },
     enabled: !!userId,
@@ -171,7 +174,7 @@ export const useProjects = (userId?: string) => {
 
   // Hent pause-rader for ALLE viste tidsregistreringer (ikke bare aktive).
   // Ferdige timer trenger også pausehistorikk for korrekt visning av
-  // pausetotaler i DayOverviewCard og LightDashboard.
+  // pausetotaler i DayOverviewCard og SimpleTimer.
   //
   // Fix: tidligere `map → filter(!e.end_time) → map` på samme array ga
   // array av `undefined` fordi andre `.map` kalte `.id` på strings, så
@@ -727,8 +730,6 @@ export const useProjects = (userId?: string) => {
    * Brukes av papirark-modus når bruker registrerer timer uten å velge prosjekt.
    * Konstant navn: "Eget arbeid". Skjult kundeinfo.
    */
-  const SELF_PROJECT_NAME = "Eget arbeid";
-
   const getOrCreateSelfProject = async (): Promise<string> => {
     if (!userId) throw new Error("Må være innlogget");
 

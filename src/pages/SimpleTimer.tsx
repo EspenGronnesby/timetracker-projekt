@@ -129,7 +129,7 @@ const SimpleTimer = () => {
       </AnimatePresence>
 
       {/* Control buttons */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-center gap-4 flex-wrap">
         {status === "ready" || status === "done" ? (
           <motion.div whileTap={{ scale: 0.95 }}>
             <Button
@@ -206,24 +206,24 @@ const SimpleTimer = () => {
         {rate > 0 && (
           <>
             <div className="border-t border-border pt-3 space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
+              <div className="flex justify-between text-sm gap-2">
+                <span className="text-muted-foreground min-w-0 flex-1">
                   Normal: {formatHoursMinutes(normalSeconds)} × {formatMoney(rate)}
                 </span>
-                <span>{formatMoney(normalWage)}</span>
+                <span className="flex-shrink-0 tabular-nums">{formatMoney(normalWage)}</span>
               </div>
               {overtimeSeconds > 0 && (
-                <div className="flex justify-between text-sm text-yellow-500">
-                  <span>
+                <div className="flex justify-between text-sm text-yellow-500 gap-2">
+                  <span className="min-w-0 flex-1">
                     Overtid: {formatHoursMinutes(overtimeSeconds)} × {formatMoney(rate * multiplier)}
                   </span>
-                  <span>{formatMoney(overtimeWage)}</span>
+                  <span className="flex-shrink-0 tabular-nums">{formatMoney(overtimeWage)}</span>
                 </div>
               )}
             </div>
-            <div className="flex justify-between font-semibold border-t border-border pt-2">
-              <span>Estimert lønn</span>
-              <span className={cn(isOvertime && "text-yellow-500")}>{formatMoney(totalWage)}</span>
+            <div className="flex justify-between font-semibold border-t border-border pt-2 gap-2">
+              <span className="min-w-0 flex-1">Estimert lønn</span>
+              <span className={cn("flex-shrink-0 tabular-nums", isOvertime && "text-yellow-500")}>{formatMoney(totalWage)}</span>
             </div>
           </>
         )}

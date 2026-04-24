@@ -1,24 +1,44 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, AppMode } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export const useAppMode = () => {
-  const { profile, user } = useAuth();
-  const queryClient = useQueryClient();
+  const { profile, user, refetchProfile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const isSimpleMode = profile?.app_mode === "simple";
+  // Backward-compat: eksisterende brukere kan ha "simple" i DB fra før migrering.
+  // Behandle både "simple" og "light" som Light-modus. Migreringen normaliserer
+  // dette på sikt, men koden skal fungere i mellomtiden.
+  const isLightMode = profile?.app_mode === "light" || profile?.app_mode === "simple";
 
-  const setAppMode = async (mode: "simple" | "pro") => {
+  const setAppMode = async (mode: AppMode) => {
     if (!user) return;
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .update({ app_mode: mode })
       .eq("id", user.id);
-    await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    navigate(mode === "simple" ? "/simple" : "/app");
+    if (error) {
+      // Typisk når DB-constraint ennå ikke er kjørt og det står "simple"
+      // i DB, eller hvis constraint avviser nye verdier. Vis feilen tydelig.
+      toast({
+        variant: "destructive",
+        title: "Kunne ikke bytte modus",
+        description: error.message,
+      });
+      return;
+    }
+    // Profile ligger i lokal state i useAuth — må re-fetches eksplisitt
+    // for at ModeToggle-segmentet og AppShell-redirecten skal reagere.
+    await refetchProfile();
+    navigate(mode === "light" ? "/simple" : "/app", { replace: true });
   };
 
-  return { isSimpleMode, appMode: (profile?.app_mode || "simple") as "simple" | "pro", setAppMode };
+  // Normaliser "simple" → "light" i returverdien så ModeToggle og andre
+  // konsumenter kun ser kanoniske "light"/"pro".
+  const normalizedMode: AppMode =
+    profile?.app_mode === "pro" ? "pro" : "light";
+
+  return { isLightMode, appMode: normalizedMode, setAppMode };
 };

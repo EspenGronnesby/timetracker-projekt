@@ -159,7 +159,7 @@ export const WeatherWidget = () => {
           <div className={`p-4 rounded-lg border mb-3 ${getSeverityColor(weather.current.severity)}`}>
             <div className="flex items-center gap-3 mb-2">
               {getWeatherIcon(weather.current.weatherType)}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground">I dag</p>
                 <p className="text-2xl font-bold">{Math.round(weather.current.temperature)}°C</p>
               </div>
@@ -177,7 +177,7 @@ export const WeatherWidget = () => {
           <div className={`p-4 rounded-lg border ${getSeverityColor(weather.tomorrow.severity)}`}>
             <div className="flex items-center gap-3 mb-2">
               {getWeatherIcon(weather.tomorrow.weatherType)}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground">I morgen</p>
                 <p className="text-2xl font-bold">{Math.round(weather.tomorrow.temperature)}°C</p>
               </div>

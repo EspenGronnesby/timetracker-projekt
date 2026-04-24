@@ -4,13 +4,12 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { QuickStartProjectCard } from "@/components/QuickStartProjectCard";
-import { LightDashboard } from "@/components/LightDashboard";
 import { ActiveTimerBar } from "@/components/ActiveTimerBar";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { ProjectCardSkeleton } from "@/components/ProjectCardSkeleton";
 import { TimerNotificationSystem } from "@/components/TimerNotificationSystem";
 import { WeatherWidget } from "@/components/WeatherWidget";
-import { SalaryCard } from "@/components/SalaryCard";
+import { CollapsibleSalaryCard } from "@/components/CollapsibleSalaryCard";
 import { FilterDrawer } from "@/components/FilterDrawer";
 import { Search, FolderKanban, Zap, Clock } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
@@ -23,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { startOfDay, startOfWeek, startOfMonth, isWithinInterval } from "date-fns";
 import { handleError, handleSuccess } from "@/lib/errorHandler";
+import { LIGHT_MODE_PROJECT_NAME } from "@/lib/projectConstants";
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
@@ -99,40 +99,60 @@ const Index = () => {
     return entries.filter(entry => new Date(entry.start_time) >= filterDate);
   };
 
-  const filteredTimeEntries = filterTimeEntries(timeEntries);
+  // Data-separasjon: Pro-dashboard skal IKKE vise Light-modus-prosjektet
+  // ("Standard arbeidsdag"). Det prosjektet brukes kun i /simple og ansatt-
+  // timer skal ikke blandes inn i entrepenør-prosjekter, KPI, eller lønn.
+  const proProjects = useMemo(
+    () => projects.filter((p) => p.name !== LIGHT_MODE_PROJECT_NAME),
+    [projects]
+  );
+  const proProjectIds = useMemo(
+    () => new Set(proProjects.map((p) => p.id)),
+    [proProjects]
+  );
+  const proTimeEntries = useMemo(
+    () => timeEntries.filter((e) => proProjectIds.has(e.project_id)),
+    [timeEntries, proProjectIds]
+  );
+  const proDriveEntries = useMemo(
+    () => driveEntries.filter((e) => proProjectIds.has(e.project_id)),
+    [driveEntries, proProjectIds]
+  );
+
+  const filteredTimeEntries = filterTimeEntries(proTimeEntries);
 
   const myTimeEntries = filteredTimeEntries.filter(
     (entry) => entry.user_id === user?.id && entry.end_time
   );
   const totalTime = myTimeEntries.reduce((acc, entry) => acc + entry.duration_seconds, 0);
 
-  const activeTimeEntries = timeEntries.filter(
+  const activeTimeEntries = proTimeEntries.filter(
     (entry) => entry.user_id === user?.id && !entry.end_time && !entry.paused_at
   );
-  const pausedTimeEntries = timeEntries.filter(
+  const pausedTimeEntries = proTimeEntries.filter(
     (entry) => entry.user_id === user?.id && !entry.end_time && entry.paused_at
   );
-  const activeDriveEntries = driveEntries.filter(
+  const activeDriveEntries = proDriveEntries.filter(
     (entry) => entry.user_id === user?.id && !entry.end_time
   );
   const activeCount = activeTimeEntries.length + pausedTimeEntries.length + activeDriveEntries.length;
 
   // Animerte tall for KPI-stripen
-  const animatedProjectCount = useCountUp(projects?.length || 0);
+  const animatedProjectCount = useCountUp(proProjects.length);
   const animatedActiveCount = useCountUp(activeCount);
   const animatedTotalHours = useCountUp(totalTime / 3600);
 
   // Alle aktive/pausede entries for sorting
-  const allRunningTimeEntries = timeEntries.filter(
+  const allRunningTimeEntries = proTimeEntries.filter(
     (entry) => entry.user_id === user?.id && !entry.end_time
   );
 
-  // Filter projects by status
+  // Filter projects by status (starter fra proProjects for å ekskludere light-prosjekt)
   const statusFilteredProjects = useMemo(() => {
-    if (projectStatus === "active") return projects.filter(p => !p.completed);
-    if (projectStatus === "completed") return projects.filter(p => p.completed);
-    return projects;
-  }, [projects, projectStatus]);
+    if (projectStatus === "active") return proProjects.filter(p => !p.completed);
+    if (projectStatus === "completed") return proProjects.filter(p => p.completed);
+    return proProjects;
+  }, [proProjects, projectStatus]);
 
   // Search filter
   const searchFilteredProjects = useMemo(() => {
@@ -146,11 +166,11 @@ const Index = () => {
   // Forhåndsbygg lookup-maps så sort-funksjonene er O(n) i stedet for O(n × m)
   const projectTimeMap = useMemo(() => {
     const m = new Map<string, number>();
-    for (const e of timeEntries) {
+    for (const e of proTimeEntries) {
       m.set(e.project_id, (m.get(e.project_id) ?? 0) + e.duration_seconds);
     }
     return m;
-  }, [timeEntries]);
+  }, [proTimeEntries]);
 
   const activeProjectIds = useMemo(() => {
     const s = new Set<string>();
@@ -182,8 +202,8 @@ const Index = () => {
     }
   }, [searchFilteredProjects, sortBy, projectTimeMap, activeProjectIds]);
 
-  const activeProjectCount = projects.filter(p => !p.completed).length;
-  const completedProjectCount = projects.filter(p => p.completed).length;
+  const activeProjectCount = proProjects.filter(p => !p.completed).length;
+  const completedProjectCount = proProjects.filter(p => p.completed).length;
 
   // Handlers — definert før early returns slik at de er tilgjengelige for alle moduser
   const handleFilterChange = (period: FilterPeriod, range?: { from: Date; to: Date }) => {
@@ -284,30 +304,6 @@ const Index = () => {
     );
   }
 
-  // Light-modus: Forenklet tidtaker-visning
-  if (profile?.app_mode === "light") {
-    return (
-      <LightDashboard
-        projects={projects}
-        timeEntries={timeEntries}
-        timeEntryPauses={timeEntryPauses}
-        userId={user.id}
-        userName={profile.name}
-        onToggleProject={handleToggleProject}
-        onPauseTimer={handlePauseTimer}
-        onResumeTimer={handleResumeTimer}
-        onAddManualEntry={addManualTimeEntryAsync}
-        normalHoursPerDay={profile?.normal_hours_per_day ?? 7.5}
-        defaultStartTime={profile?.default_start_time}
-        defaultEndTime={profile?.default_end_time}
-        defaultBreakfastTime={profile?.default_breakfast_time}
-        defaultLunchTime={profile?.default_lunch_time}
-        defaultBreakfastMin={profile?.default_breakfast_min}
-        defaultLunchMin={profile?.default_lunch_min}
-      />
-    );
-  }
-
   const renderProjectItem = (project: typeof projects[0]) => {
     const projectTimeEntries = filteredTimeEntries.filter((entry) => entry.project_id === project.id);
     const projectDriveEntries = driveEntries.filter((entry) => entry.project_id === project.id);
@@ -374,16 +370,16 @@ const Index = () => {
     <div className="py-4 sm:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
         <WeatherWidget />
 
-        {/* Min lønn — tydelig splittet mellom uke og måned */}
-        {user?.id && <SalaryCard timeEntries={timeEntries} userId={user.id} />}
+        {/* Min lønn — kollapsbar, default skjult (se CollapsibleSalaryCard under) */}
+        {user?.id && <CollapsibleSalaryCard timeEntries={proTimeEntries} userId={user.id} />}
 
-        {/* Sticky aktiv timer bar */}
+        {/* Sticky aktiv timer bar — kun for Pro-prosjekter (ikke light-timer) */}
         {(() => {
-          const runningEntry = timeEntries.find(
+          const runningEntry = proTimeEntries.find(
             (e) => e.user_id === user?.id && !e.end_time
           );
           if (!runningEntry) return null;
-          const project = projects.find((p) => p.id === runningEntry.project_id);
+          const project = proProjects.find((p) => p.id === runningEntry.project_id);
           if (!project) return null;
           return (
             <ActiveTimerBar
@@ -455,7 +451,7 @@ const Index = () => {
             onStatusChange={setProjectStatus}
             activeCount={activeProjectCount}
             completedCount={completedProjectCount}
-            totalCount={projects.length}
+            totalCount={proProjects.length}
             filterPeriod={filterPeriod}
             onFilterChange={handleFilterChange}
             sortBy={sortBy}
@@ -465,8 +461,9 @@ const Index = () => {
           />
         </div>
 
-        {/* Project list */}
-        {projects.length === 0 ? (
+        {/* Project list — bruker proProjects så en Light-bruker med kun
+            "Standard arbeidsdag" får empty-state-knappen, ikke "Ingen treff". */}
+        {proProjects.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">Ingen prosjekter ennå</h2>
             <p className="text-muted-foreground mb-6">

@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWageSettings } from "@/hooks/useWageSettings";
 import { useBreaks } from "@/hooks/useBreaks";
+import { LIGHT_MODE_PROJECT_NAME } from "@/lib/projectConstants";
 
-const SIMPLE_PROJECT_NAME = "Standard arbeidsdag";
+const SIMPLE_PROJECT_NAME = LIGHT_MODE_PROJECT_NAME;
 const SIMPLE_PROJECT_COLOR = "#3B82F6";
 
 export const useSimpleTimer = () => {

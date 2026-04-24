@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, eachDayOfInterval } from "date-fns";
 import { nb } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { LIGHT_MODE_PROJECT_NAME } from "@/lib/projectConstants";
 
 const SimpleHistory = () => {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ const SimpleHistory = () => {
         .from("projects")
         .select("id")
         .in("id", projectIds)
-        .eq("name", "Standard arbeidsdag");
+        .eq("name", LIGHT_MODE_PROJECT_NAME);
 
       if (!projects?.length) return [];
 

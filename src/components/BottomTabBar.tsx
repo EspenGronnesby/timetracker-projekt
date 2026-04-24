@@ -23,10 +23,12 @@ export function BottomTabBar() {
   const navigate = useNavigate();
   const { profile } = useAuth();
 
-  const isSimple = profile?.app_mode === "simple";
+  // Backward-compat: "simple" var det gamle navnet på samme verdi.
+  const isLight =
+    profile?.app_mode === "light" || profile?.app_mode === "simple";
 
   // Fase 2: "Notater"-fanen vises kun hvis show_notes-toggle er på i profilen.
-  const tabs = isSimple
+  const tabs = isLight
     ? simpleTabs
     : proTabs.filter((tab) => {
         if (!tab.requiresFlag) return true;
